@@ -1,0 +1,67 @@
+export const theme = {
+  colors: {
+    primary: "#4361ee",
+    primaryHover: "#3a56d4",
+    secondary: "#7209b7",
+    error: "#dc2626",
+    success: "#10b981",
+    text: "#1f2937",
+    lightText: "#6b7280",
+    lightBg: "#f8fafc",
+    border: "#e5e7eb",
+    white: "#ffffff",
+    gray: "#6b7280",
+    darkGray: "#374151",
+    lightGray: "#9ca3af",
+    blue: "#3b82f6",
+    orange: "#f59e0b",
+    red: "#ef4444",
+    green: "#10b981",
+    gradient: {
+      primary: "linear-gradient(to right, #4361ee, #3a56d4)",
+      secondary: "linear-gradient(to right, #7209b7, #560bad)",
+    },
+  },
+  spacing: {
+    xs: "0.25rem",
+    sm: "0.5rem",
+    md: "1rem",
+    lg: "1.5rem",
+    xl: "2rem",
+    xxl: "3rem",
+  },
+  borderRadius: {
+    sm: "0.25rem",
+    md: "0.5rem",
+    lg: "0.75rem",
+    xl: "1rem",
+  },
+  shadows: {
+    sm: "0 1px 3px rgba(0, 0, 0, 0.1)",
+    md: "0 4px 6px rgba(0, 0, 0, 0.05)",
+    lg: "0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025)",
+    highlight: "0 0 0 3px rgba(66, 153, 225, 0.5)",
+  },
+  fontSizes: {
+    xs: "0.75rem",
+    sm: "0.875rem",
+    md: "1rem",
+    lg: "1.25rem",
+    xl: "1.5rem",
+    xxl: "2rem",
+  },
+  transitions: {
+    fast: "150ms ease-in-out",
+    normal: "250ms ease-in-out",
+    slow: "350ms ease-in-out",
+  },
+  breakpoints: {
+    sm: "640px",
+    md: "768px",
+    lg: "1024px",
+    xl: "1280px",
+    xxl: "1536px",
+  },
+};
+
+export type Theme = typeof theme;

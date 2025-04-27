@@ -1,0 +1,21 @@
+[project]
+name = "agent-project"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "typing>=3.10.0.0",
+    "pydantic",
+    "fastapi",
+    "starlette>=0.46.2",
+    "sse-starlette>=2.3.3",
+    "uvicorn>=0.34.2",
+]
+
+
+[tool.uv]
+package = true
+
+[project.optional-dependencies]
+dev = ["mypy", "datamodel-code-generator", "datamodel-code-generator[http]"]
