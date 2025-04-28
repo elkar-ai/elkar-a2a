@@ -63,6 +63,7 @@ export interface Task {
   id: string;
   sessionId?: string;
   status: TaskStatus;
+  result?: any;
   artifacts?: Artifact[];
   history?: Message[];
   metadata?: Record<string, any>;
@@ -123,9 +124,9 @@ export interface JSONRPCMessage {
   id: string | number | null;
 }
 
-export interface JSONRPCRequest extends JSONRPCMessage {
+export interface JSONRPCRequest<T> extends JSONRPCMessage {
   method: string;
-  params?: Record<string, any>;
+  params?: T;
 }
 
 export interface JSONRPCError {
@@ -134,68 +135,68 @@ export interface JSONRPCError {
   data?: any;
 }
 
-export interface JSONRPCResponse extends JSONRPCMessage {
-  result?: any;
+export interface JSONRPCResponse<T> extends JSONRPCMessage {
+  result?: T;
   error?: JSONRPCError;
 }
 
-export interface SendTaskRequest extends JSONRPCRequest {
+export interface SendTaskRequest extends JSONRPCRequest<TaskSendParams> {
   method: "tasks/send";
-  params: TaskSendParams;
 }
 
-export interface SendTaskResponse extends JSONRPCResponse {
+export interface SendTaskResponse extends JSONRPCResponse<Task> {
   result?: Task;
 }
 
-export interface SendTaskStreamingRequest extends JSONRPCRequest {
+export interface SendTaskStreamingRequest
+  extends JSONRPCRequest<TaskSendParams> {
   method: "tasks/sendSubscribe";
-  params: TaskSendParams;
 }
 
-export interface SendTaskStreamingResponse extends JSONRPCResponse {
+export interface SendTaskStreamingResponse
+  extends JSONRPCResponse<TaskStatusUpdateEvent | TaskArtifactUpdateEvent> {
   result?: TaskStatusUpdateEvent | TaskArtifactUpdateEvent;
 }
 
-export interface GetTaskRequest extends JSONRPCRequest {
+export interface GetTaskRequest extends JSONRPCRequest<TaskQueryParams> {
   method: "tasks/get";
-  params: TaskQueryParams;
 }
 
-export interface GetTaskResponse extends JSONRPCResponse {
+export interface GetTaskResponse extends JSONRPCResponse<Task> {
   result?: Task;
 }
 
-export interface CancelTaskRequest extends JSONRPCRequest {
+export interface CancelTaskRequest extends JSONRPCRequest<TaskIdParams> {
   method: "tasks/cancel";
-  params: TaskIdParams;
 }
 
-export interface CancelTaskResponse extends JSONRPCResponse {
+export interface CancelTaskResponse extends JSONRPCResponse<Task> {
   result?: Task;
 }
 
-export interface SetTaskPushNotificationRequest extends JSONRPCRequest {
+export interface SetTaskPushNotificationRequest
+  extends JSONRPCRequest<TaskPushNotificationConfig> {
   method: "tasks/pushNotification/set";
-  params: TaskPushNotificationConfig;
 }
 
-export interface SetTaskPushNotificationResponse extends JSONRPCResponse {
+export interface SetTaskPushNotificationResponse
+  extends JSONRPCResponse<TaskPushNotificationConfig> {
   result?: TaskPushNotificationConfig;
 }
 
-export interface GetTaskPushNotificationRequest extends JSONRPCRequest {
+export interface GetTaskPushNotificationRequest
+  extends JSONRPCRequest<TaskIdParams> {
   method: "tasks/pushNotification/get";
-  params: TaskIdParams;
 }
 
-export interface GetTaskPushNotificationResponse extends JSONRPCResponse {
+export interface GetTaskPushNotificationResponse
+  extends JSONRPCResponse<TaskPushNotificationConfig> {
   result?: TaskPushNotificationConfig;
 }
 
-export interface TaskResubscriptionRequest extends JSONRPCRequest {
+export interface TaskResubscriptionRequest
+  extends JSONRPCRequest<TaskIdParams> {
   method: "tasks/resubscribe";
-  params: TaskIdParams;
 }
 
 export type A2ARequest =
@@ -208,28 +209,70 @@ export type A2ARequest =
   | SendTaskStreamingRequest;
 
 // Helper functions
-export const createJsonRpcRequest = (
+export function createJsonRpcRequest<T>(
   method: string,
-  params?: any
-): JSONRPCRequest => {
+  params?: T
+): JSONRPCRequest<T> {
   return {
     jsonrpc: "2.0",
     id: uuidv4(),
     method,
     params,
   };
-};
+}
 
-export const createTextPart = (text: string): TextPart => {
-  return {
-    type: "text",
-    text,
+export interface AgentCard {
+  // Human readable name of the agent.
+  // (e.g. "Recipe Agent")
+  name: string;
+  // A human-readable description of the agent. Used to assist users and
+  // other agents in understanding what the agent can do.
+  // (e.g. "Agent that helps users with recipes and cooking.")
+  description: string;
+  // A URL to the address the agent is hosted at.
+  url: string;
+  // The service provider of the agent
+  provider?: {
+    organization: string;
+    url: string;
   };
-};
-
-export const createUserMessage = (text: string): Message => {
-  return {
-    role: "user",
-    parts: [createTextPart(text)],
+  // The version of the agent - format is up to the provider. (e.g. "1.0.0")
+  version: string;
+  // A URL to documentation for the agent.
+  documentationUrl?: string;
+  // Optional capabilities supported by the agent.
+  capabilities: {
+    streaming?: boolean; // true if the agent supports SSE
+    pushNotifications?: boolean; // true if the agent can notify updates to client
+    stateTransitionHistory?: boolean; //true if the agent exposes status change history for tasks
   };
-};
+  // Authentication requirements for the agent.
+  // Intended to match OpenAPI authentication structure.
+  authentication: {
+    schemes: string[]; // e.g. Basic, Bearer
+    credentials?: string; //credentials a client should use for private cards
+  };
+  // The set of interaction modes that the agent
+  // supports across all skills. This can be overridden per-skill.
+  defaultInputModes: string[]; // supported mime types for input
+  defaultOutputModes: string[]; // supported mime types for output
+  // Skills are a unit of capability that an agent can perform.
+  skills: {
+    id: string; // unique identifier for the agent's skill
+    name: string; //human readable name of the skill
+    // description of the skill - will be used by the client or a human
+    // as a hint to understand what the skill does.
+    description: string;
+    // Set of tagwords describing classes of capabilities for this specific
+    // skill (e.g. "cooking", "customer support", "billing")
+    tags: string[];
+    // The set of example scenarios that the skill can perform.
+    // Will be used by the client as a hint to understand how the skill can be
+    // used. (e.g. "I need a recipe for bread")
+    examples?: string[]; // example prompts for tasks
+    // The set of interaction modes that the skill supports
+    // (if different than the default)
+    inputModes?: string[]; // supported mime types for input
+    outputModes?: string[]; // supported mime types for output
+  }[];
+}

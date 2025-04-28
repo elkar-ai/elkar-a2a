@@ -1,6 +1,7 @@
 import json
 from typing import AsyncIterable, Callable, Any
 from a2a_types import *
+from common import ListTasksRequest
 from pydantic import ValidationError
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse, Response
@@ -18,12 +19,12 @@ class A2AServer[T: TaskManager]:
     def __init__(
         self,
         task_manager: T,
-        host="0.0.0.0",
-        port=5000,
-        endpoint="/",
-        cors_allow_origins=["*"],
+        host: str = "0.0.0.0",
+        port: int = 5000,
+        endpoint: str = "/",
+        cors_allow_origins: list[str] = ["*"],
         context_extractor: Callable[[Request], RequestContext] | None = None,
-    ):
+    ) -> None:
         self.host = host
         self.port = port
         self.endpoint = endpoint
@@ -52,14 +53,28 @@ class A2AServer[T: TaskManager]:
             methods=["GET", "OPTIONS"],
         )
 
-    def start(self):
+        self.app.add_route(
+            "/tasks/list",
+            self._list_tasks,
+            methods=["GET", "OPTIONS"],
+        )
+
+    async def _list_tasks(self, request: Request) -> Response:
+        if request.method == "OPTIONS":
+            return Response(status_code=200)
+        body = await request.json()
+        list_tasks_request = ListTasksRequest.model_validate(body)
+        tasks = await self.task_manager.list_tasks(list_tasks_request)
+        return JSONResponse(tasks)
+
+    def start(self) -> None:
 
         if self.task_manager is None:
             raise ValueError("request_handler is not defined")
 
         import uvicorn
 
-        uvicorn.run(self.app, host=self.host, port=self.port)
+        uvicorn.run(self.app, host=self.host, port=self.port, reload=True)
 
     async def extract_request_context(self, request: Request) -> RequestContext:
         """Extracts the context from the request.
@@ -129,7 +144,8 @@ class A2AServer[T: TaskManager]:
             return self._create_response(result)
 
         except Exception as e:
-            return self._handle_exception(e)
+            raise e
+            # return self._handle_exception(e)
 
     def _handle_exception(self, e: Exception) -> JSONResponse:
         json_rpc_error: JSONRPCError
@@ -147,7 +163,9 @@ class A2AServer[T: TaskManager]:
     def _create_response(self, result: Any) -> JSONResponse | EventSourceResponse:
         if isinstance(result, AsyncIterable):
 
-            async def event_generator(result) -> AsyncIterable[dict[str, str]]:
+            async def event_generator(
+                result: AsyncIterable[Any],
+            ) -> AsyncIterable[dict[str, str]]:
                 async for item in result:
                     yield {"data": item.model_dump_json(exclude_none=True)}
 

@@ -1,5 +1,4 @@
 import axios from "axios";
-import { v4 as uuidv4 } from "uuid";
 import {
   JSONRPCRequest,
   JSONRPCResponse,
@@ -9,19 +8,18 @@ import {
   CancelTaskResponse,
   TaskQueryParams,
   TaskIdParams,
-  SendTaskStreamingResponse,
   Task,
   createJsonRpcRequest,
-  createUserMessage,
+  TaskStatusUpdateEvent,
+  TaskArtifactUpdateEvent,
+  AgentCard,
 } from "../types/a2aTypes";
 
 class A2AClient {
   private baseUrl: string;
-  private apiKey: string | null;
 
-  constructor(baseUrl: string, apiKey: string | null = null) {
+  constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
-    this.apiKey = apiKey;
   }
 
   private getHeaders() {
@@ -29,26 +27,34 @@ class A2AClient {
       "Content-Type": "application/json",
     };
 
-    if (this.apiKey) {
-      headers["Authorization"] = `Bearer ${this.apiKey}`;
-    }
-
     return headers;
   }
 
-  private async sendRequest<T extends JSONRPCResponse>(
-    request: JSONRPCRequest
+  async getAgentCard(): Promise<AgentCard> {
+    const response = await axios.get(`${this.baseUrl}/.well-known/agent.json`);
+    return response.data as AgentCard;
+  }
+
+  private async sendRequest<T extends JSONRPCResponse<any>, RequestParams>(
+    request: JSONRPCRequest<RequestParams>
   ): Promise<T> {
+    console.log("Sending request:", JSON.stringify(request, null, 2));
     try {
       const response = await axios.post(this.baseUrl, request, {
         headers: this.getHeaders(),
       });
       return response.data as T;
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        throw new Error(
-          `HTTP Error ${error.response.status}: ${error.response.statusText}`
-        );
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          console.error("Error response:", error.response.data);
+          throw new Error(
+            `HTTP Error ${error.response.status}: ${error.response.statusText}`
+          );
+        } else if (error.request) {
+          console.error("No response received:", error.request);
+          throw new Error("No response received from server");
+        }
       }
       throw new Error(
         `Failed to send request: ${
@@ -58,22 +64,11 @@ class A2AClient {
     }
   }
 
-  public async sendTask(
-    message: string,
-    existingSessionId?: string
-  ): Promise<Task | null> {
-    // Create a new task ID
-    const taskId = uuidv4();
-    const sessionId = existingSessionId || uuidv4();
-
-    const params: TaskSendParams = {
-      id: taskId,
-      sessionId,
-      message: createUserMessage(message),
-    };
-
+  public async sendTask(params: TaskSendParams): Promise<Task | null> {
     const request = createJsonRpcRequest("tasks/send", params);
-    const response = await this.sendRequest<SendTaskResponse>(request);
+    const response = await this.sendRequest<SendTaskResponse, TaskSendParams>(
+      request
+    );
 
     if (response.error) {
       throw new Error(`Error sending task: ${response.error.message}`);
@@ -92,7 +87,9 @@ class A2AClient {
     };
 
     const request = createJsonRpcRequest("tasks/get", params);
-    const response = await this.sendRequest<GetTaskResponse>(request);
+    const response = await this.sendRequest<GetTaskResponse, TaskQueryParams>(
+      request
+    );
 
     if (response.error) {
       throw new Error(`Error getting task: ${response.error.message}`);
@@ -101,13 +98,11 @@ class A2AClient {
     return response.result || null;
   }
 
-  public async cancelTask(taskId: string): Promise<Task | null> {
-    const params: TaskIdParams = {
-      id: taskId,
-    };
-
+  public async cancelTask(params: TaskIdParams): Promise<Task | null> {
     const request = createJsonRpcRequest("tasks/cancel", params);
-    const response = await this.sendRequest<CancelTaskResponse>(request);
+    const response = await this.sendRequest<CancelTaskResponse, TaskIdParams>(
+      request
+    );
 
     if (response.error) {
       throw new Error(`Error canceling task: ${response.error.message}`);
@@ -116,20 +111,66 @@ class A2AClient {
     return response.result || null;
   }
 
-  // Method to handle streaming responses - you would implement WebSocket functionality here
-  public async streamTask(
-    message: string,
-    onUpdate: (update: SendTaskStreamingResponse) => void,
-    existingSessionId?: string
+  public async sendStreamingRequest<T, U>(
+    request: JSONRPCRequest<T>,
+    onChunk: (chunk: U) => void
   ): Promise<void> {
-    // This is a placeholder for WebSocket implementation
-    // In a real implementation, you would connect to the WebSocket endpoint and handle streaming
-    console.warn("Streaming not implemented in this client");
+    const response = await axios({
+      url: this.baseUrl,
+      method: "POST",
+      responseType: "stream",
+      data: request,
+      adapter: "fetch",
+      headers: this.getHeaders(),
+    });
 
-    // Prevent unused parameter warnings
-    void message;
-    void onUpdate;
-    void existingSessionId;
+    if (!response.data) {
+      console.error("No stream in response");
+      throw new Error("No stream in response");
+    }
+
+    const reader = response.data.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const read = await reader.read();
+      if (read.done) break;
+
+      buffer += decoder.decode(read.value, { stream: true });
+
+      // Split by newlines and process complete lines
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || ""; // Keep the last incomplete line in the buffer
+
+      for (const line of lines) {
+        if (line.startsWith("data: ")) {
+          try {
+            const jsonStr = line.slice(6); // Remove 'data: ' prefix
+            const chunk: JSONRPCResponse<U> = JSON.parse(jsonStr);
+            if (chunk.result) {
+              onChunk(chunk.result);
+            }
+            if (chunk.error) {
+              throw new Error(chunk.error.message);
+            }
+          } catch (error) {
+            console.error("Error parsing SSE data:", error);
+          }
+        }
+      }
+    }
+  }
+
+  public async streamTask(
+    params: TaskSendParams,
+    onUpdate: (update: TaskStatusUpdateEvent | TaskArtifactUpdateEvent) => void
+  ): Promise<void> {
+    const request = createJsonRpcRequest("tasks/sendSubscribe", params);
+    await this.sendStreamingRequest<
+      TaskSendParams,
+      TaskStatusUpdateEvent | TaskArtifactUpdateEvent
+    >(request, onUpdate);
   }
 }
 

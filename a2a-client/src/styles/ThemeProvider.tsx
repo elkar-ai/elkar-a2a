@@ -1,9 +1,6 @@
-import {
-  ThemeProvider as StyledThemeProvider,
-  createGlobalStyle,
-} from "styled-components";
-import { theme } from "./theme";
+import { createGlobalStyle } from "styled-components";
 import React from "react";
+import { ThemeProvider } from "../contexts/ThemeContext";
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -22,7 +19,7 @@ const GlobalStyle = createGlobalStyle`
       Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
     color: ${({ theme }) => theme.colors.text};
     line-height: 1.6;
-    background-color: #f5f7fa;
+    background-color: ${({ theme }) => theme.colors.background};
     overflow-x: hidden;
   }
 
@@ -44,10 +41,10 @@ const GlobalStyle = createGlobalStyle`
   a {
     color: ${({ theme }) => theme.colors.primary};
     text-decoration: none;
-    transition: color ${({ theme }) => theme.transitions.fast};
+    transition: color 0.2s ease;
 
     &:hover {
-      color: ${({ theme }) => theme.colors.primaryHover};
+      color: ${({ theme }) => theme.colors.secondary};
     }
   }
 
@@ -58,7 +55,7 @@ const GlobalStyle = createGlobalStyle`
 
   input:focus, textarea:focus {
     outline: none;
-    box-shadow: ${({ theme }) => theme.shadows.highlight};
+    box-shadow: ${({ theme }) => theme.shadows.md};
   }
 
   pre {
@@ -77,16 +74,16 @@ const GlobalStyle = createGlobalStyle`
   }
 
   ::-webkit-scrollbar-track {
-    background: ${({ theme }) => theme.colors.lightBg};
+    background: ${({ theme }) => theme.colors.surface};
   }
 
   ::-webkit-scrollbar-thumb {
-    background: ${({ theme }) => theme.colors.lightGray};
+    background: ${({ theme }) => theme.colors.border};
     border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: ${({ theme }) => theme.colors.gray};
+    background: ${({ theme }) => theme.colors.secondary};
   }
 `;
 
@@ -94,11 +91,13 @@ interface ThemeProviderProps {
   children: React.ReactNode;
 }
 
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
+export const AppThemeProvider: React.FC<ThemeProviderProps> = ({
+  children,
+}) => {
   return (
-    <StyledThemeProvider theme={theme}>
+    <ThemeProvider>
       <GlobalStyle />
       {children}
-    </StyledThemeProvider>
+    </ThemeProvider>
   );
 };
