@@ -11,7 +11,7 @@ import StreamingTaskPanel from "./features/StreamingTaskPanel";
 import SendTaskPanel from "./features/SendTaskPanel";
 import AgentCard from "./features/AgentCard";
 import { AppThemeProvider } from "../styles/ThemeProvider";
-import { useUrl } from "../contexts/urlContext";
+import { useUrl } from "../contexts/UrlContext";
 
 // Define tab types
 type TabType = "sendTask" | "getTask" | "streaming" | "agentCard";

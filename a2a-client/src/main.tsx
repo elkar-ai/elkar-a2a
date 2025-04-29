@@ -7,7 +7,7 @@ import "./index.css";
 import "@fontsource/fira-code/400.css";
 import "@fontsource/fira-code/500.css";
 import "@fontsource/fira-code/600.css";
-import { UrlProvider } from "./contexts/urlContext";
+import { UrlProvider } from "./contexts/UrlContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const queryClient = new QueryClient();

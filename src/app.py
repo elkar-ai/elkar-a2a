@@ -3,6 +3,7 @@ import logging
 from typing import AsyncIterable
 from a2a_types import *
 import colorlog
+from task_queue.in_memory import InMemoryTaskEventQueue
 from server.server import A2AServer
 from store.base import TaskManagerStore
 from task_manager.task_manager_base import RequestContext
@@ -45,10 +46,9 @@ agent_card = AgentCard(
     ),
 )
 
-task_manager = TaskManagerWithStore(store, agent_card)
+queue = InMemoryTaskEventQueue()
 
 
-@task_manager.send_task_handler()
 async def send_task(
     task: Task, request_context: RequestContext | None, store: TaskManagerStore | None
 ) -> Task:
@@ -74,7 +74,6 @@ async def send_task(
     )
 
 
-@task_manager.send_task_streaming_handler()
 async def send_task_streaming(
     task: Task, request_context: RequestContext | None, store: TaskManagerStore | None
 ) -> AsyncIterable[SendTaskStreamingResponse]:
@@ -147,8 +146,18 @@ async def send_task_streaming(
             id=task.id,
             status=TaskStatus(state=TaskState.COMPLETED, message=None),
             metadata=task.metadata,
+            final=True,
         ),
     )
+
+
+task_manager = TaskManagerWithStore(
+    store,
+    agent_card,
+    queue,
+    send_task_handler=send_task,
+    send_task_streaming_handler=send_task_streaming,
+)
 
 
 # Create the server instance but don't start it

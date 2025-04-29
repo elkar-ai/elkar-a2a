@@ -16,6 +16,8 @@
     "@types/uuid": "^10.0.0",
     "axios": "^1.9.0",
     "react": "^19.0.0",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^19.0.0",
     "styled-components": "^6.1.17",
     "uuid": "^11.1.0"

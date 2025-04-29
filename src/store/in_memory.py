@@ -88,9 +88,6 @@ class InMemoryClientTaskManagerBackend(TaskManagerStore):
             if params.artifacts is not None:
                 for artifact in params.artifacts:
                     await self._upsert_artifact(mutable_task, artifact)
-                    logger.debug(
-                        f"Upserted artifact mutable_task: {mutable_task.artifacts}"
-                    )
 
             if params.push_notification is not None:
                 self.tasks[task_id].push_notification = params.push_notification

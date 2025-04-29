@@ -349,6 +349,7 @@ const StreamingTaskPanel = () => {
   const getTaskQuery = useQuery({
     queryKey: ["task", sendTaskParams.id],
     queryFn: () => api_client.getTask(sendTaskParams.id),
+    enabled: false,
   });
 
   return (

@@ -1,4 +1,5 @@
 from abc import abstractmethod
+import asyncio
 from datetime import datetime
 
 from typing import (
@@ -6,9 +7,12 @@ from typing import (
     Awaitable,
     Callable,
 )
+import uuid
 
 from a2a_types import (
     AgentCard,
+    InternalError,
+    Message,
     Task,
     TaskArtifactUpdateEvent,
     TaskState,
@@ -32,10 +36,12 @@ from a2a_types import (
     TaskNotFoundError,
     PushNotificationNotSupportedError,
     TaskPushNotificationConfig,
+    TextPart,
 )
 
 
 from common import ListTasksRequest, PaginatedResponse
+from task_queue.base import TaskEvent, TaskEventManager
 from store.base import ListTasksParams, StoredTask, TaskManagerStore, UpdateTaskParams
 from task_manager.task_manager_base import RequestContext, TaskManager
 
@@ -44,24 +50,31 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class TaskManagerWithStore[T: TaskManagerStore](TaskManager):
-    def __init__(self, store: T, agent_card: AgentCard):
-        self.store = store
-        self.agent_card = agent_card
-        self._send_task_handler: (
+class TaskManagerWithStore[T: TaskManagerStore, Q: TaskEventManager](TaskManager):
+    def __init__(
+        self,
+        store: T,
+        agent_card: AgentCard,
+        queue: Q,
+        send_task_handler: (
             Callable[
                 [Task, RequestContext | None, TaskManagerStore | None], Awaitable[Task]
             ]
             | None
-        ) = None
-
-        self._send_task_streaming_handler: (
+        ) = None,
+        send_task_streaming_handler: (
             Callable[
                 [Task, RequestContext | None, TaskManagerStore | None],
                 AsyncIterable[SendTaskStreamingResponse],
             ]
             | None
-        ) = None
+        ) = None,
+    ):
+        self.store = store
+        self.agent_card = agent_card
+        self.queue = queue
+        self._send_task_handler = send_task_handler
+        self._send_task_streaming_handler = send_task_streaming_handler
 
     async def get_agent_card(self) -> AgentCard:
         return self.agent_card
@@ -139,50 +152,11 @@ class TaskManagerWithStore[T: TaskManagerStore](TaskManager):
             error=None,
         )
 
-    def send_task_handler(
-        self,
-    ) -> Callable[
-        ...,
-        Callable[
-            [Task, RequestContext | None, TaskManagerStore | None], Awaitable[Task]
-        ],
-    ]:
-        """Decorator to handle common logic for sending tasks, like storing."""
-
-        def decorator(
-            fn: Callable[
-                [Task, RequestContext | None, TaskManagerStore | None], Awaitable[Task]
-            ],
-        ) -> Callable[
-            [Task, RequestContext | None, TaskManagerStore | None], Awaitable[Task]
-        ]:
-            self._send_task_handler = fn
-            return fn
-
-        return decorator
-
-    def send_task_streaming_handler(self):
-        """Decorator to handle common logic for sending tasks, like streaming."""
-
-        def decorator(
-            fn: Callable[
-                [Task, RequestContext | None, TaskManagerStore | None],
-                AsyncIterable[SendTaskStreamingResponse],
-            ],
-        ) -> Callable[
-            [Task, RequestContext | None, TaskManagerStore | None],
-            AsyncIterable[SendTaskStreamingResponse],
-        ]:
-            self._send_task_streaming_handler = fn
-            return fn
-
-        return decorator
-
     async def _send_task_streaming(
         self,
         request: SendTaskStreamingRequest,
         request_context: RequestContext | None = None,
-    ) -> AsyncIterable[SendTaskStreamingResponse]:
+    ) -> None:
         """
         The protocol defines this method to return an AsyncIterable.
         We implement it as an async iterator function that yields responses.
@@ -207,6 +181,10 @@ class TaskManagerWithStore[T: TaskManagerStore](TaskManager):
                         caller_id=caller_id,
                     ),
                 )
+                await self.queue.enqueue(
+                    task_id=stored_task.id,
+                    event=response.result,
+                )
                 if response.result.final:
                     break
             elif isinstance(response.result, TaskArtifactUpdateEvent):
@@ -218,15 +196,58 @@ class TaskManagerWithStore[T: TaskManagerStore](TaskManager):
                         caller_id=caller_id,
                     ),
                 )
+                await self.queue.enqueue(
+                    task_id=stored_task.id,
+                    event=response.result,
+                )
 
-            yield response
+            if response.error is not None:
+                logger.error(f"Task {stored_task.id} failed: {response.error.message}")
+                await self.store.update_task(
+                    stored_task.id,
+                    UpdateTaskParams(
+                        status=TaskStatus(
+                            state=TaskState.FAILED,
+                            message=Message(
+                                role="agent",
+                                parts=[TextPart(text="Internal error")],
+                            ),
+                            timestamp=datetime.now(),
+                        ),
+                    ),
+                )
+                await self.queue.enqueue(task_id=stored_task.id, event=response.error)
+                break
 
     async def send_task_streaming(
         self,
         request: SendTaskStreamingRequest,
         request_context: RequestContext | None = None,
     ) -> AsyncIterable[SendTaskStreamingResponse] | JSONRPCResponse:
-        return self._send_task_streaming(request, request_context)
+        subscriber_identifier = str(uuid.uuid4())
+        await self.queue.add_subscriber(
+            request.params.id,
+            subscriber_identifier,
+            is_resubscribe=False,
+            caller_id=(
+                request_context.caller_id if request_context is not None else None
+            ),
+        )
+
+        asyncio.create_task(self._send_task_streaming(request, request_context))
+        try:
+            events = await self.dequeue_task_events(
+                request.id,
+                request.params.id,
+                subscriber_identifier,
+            )
+            return events
+        except Exception as e:
+            logger.error(f"Error while sending task streaming: {e}")
+            return JSONRPCResponse(
+                id=request.id,
+                error=InternalError(message="Internal error"),
+            )
 
     async def set_task_push_notification(
         self,
@@ -285,8 +306,31 @@ class TaskManagerWithStore[T: TaskManagerStore](TaskManager):
         self,
         request: TaskResubscriptionRequest,
         request_context: RequestContext | None = None,
-    ) -> AsyncIterable[SendTaskResponse] | JSONRPCResponse:
-        raise NotImplementedError("resubscribe_to_task is not implemented")
+    ) -> AsyncIterable[SendTaskStreamingResponse] | JSONRPCResponse:
+        task_id_params = request.params
+        try:
+            subscriber_identifier = str(uuid.uuid4())
+            await self.queue.add_subscriber(
+                task_id_params.id,
+                subscriber_identifier,
+                is_resubscribe=True,
+                caller_id=(
+                    request_context.caller_id if request_context is not None else None
+                ),
+            )
+            return await self.dequeue_task_events(
+                request.id,
+                task_id_params.id,
+                subscriber_identifier,
+            )
+        except Exception as e:
+            logger.error(f"Error while reconnecting to SSE stream: {e}")
+            return JSONRPCResponse(
+                id=request.id,
+                error=InternalError(
+                    message=f"An error occurred while reconnecting to stream: {e}"
+                ),
+            )
 
     @staticmethod
     def _check_caller_id(
@@ -300,3 +344,47 @@ class TaskManagerWithStore[T: TaskManagerStore](TaskManager):
     async def list_tasks(self, request: ListTasksRequest) -> PaginatedResponse[Task]:
         params = ListTasksParams()
         return await self.store.list_tasks(params)
+
+    async def dequeue_task_events(
+        self, request_id: int | str | None, task_id: str, subscriber_identifier: str
+    ) -> AsyncIterable[SendTaskStreamingResponse] | JSONRPCResponse:
+        try:
+            return self.try_dequeue_task_events(
+                request_id, task_id, subscriber_identifier
+            )
+
+        except Exception as e:
+            return JSONRPCResponse(id=request_id, error=InternalError(message=str(e)))
+
+    async def try_dequeue_task_events(
+        self, request_id: str | int | None, task_id: str, subscriber_identifier: str
+    ) -> AsyncIterable[SendTaskStreamingResponse]:
+
+        while True:
+            event = await self.queue.dequeue(task_id, subscriber_identifier)
+            if isinstance(event, JSONRPCError):
+                self.queue.remove_subscriber(task_id, subscriber_identifier)
+                yield SendTaskStreamingResponse(
+                    jsonrpc="2.0",
+                    id=request_id,
+                    result=None,
+                    error=event,
+                )
+                break
+            if isinstance(event, TaskStatusUpdateEvent):
+                yield SendTaskStreamingResponse(
+                    jsonrpc="2.0",
+                    id=request_id,
+                    result=event,
+                    error=None,
+                )
+                if event.final:
+                    self.queue.remove_subscriber(task_id, subscriber_identifier)
+                    break
+            if isinstance(event, TaskArtifactUpdateEvent):
+                yield SendTaskStreamingResponse(
+                    jsonrpc="2.0",
+                    id=request_id,
+                    result=event,
+                    error=None,
+                )
