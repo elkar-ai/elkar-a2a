@@ -1,0 +1,4 @@
+[lint]
+select = [
+    "I", # isort rules
+]
