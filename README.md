@@ -5,7 +5,9 @@
 
 No more silos. Elkar lets your agents collaborate — even across companies or tech stacks.
 
-[🌍 Website](https://yourwebsite.com) &nbsp;&nbsp;&nbsp; [💬 Discord](https://discord.gg/f5Znhcvm) &nbsp;&nbsp;&nbsp; [🐛 Open Issues](https://github.com/elkar-ai/elkar/issues) &nbsp;&nbsp;&nbsp; [📬 Open PRs](https://github.com/elkar-ai/elkar/pulls)
+
+
+[Website](https://yourwebsite.com) &nbsp;&nbsp;&nbsp; [💬 Discord](https://discord.gg/f5Znhcvm) &nbsp;&nbsp;&nbsp; [Open Issues](https://github.com/elkar-ai/elkar/issues) &nbsp;&nbsp;&nbsp; [Open PRs](https://github.com/elkar-ai/elkar/pulls)
 
 ## ✨ What is Elkar?
 
