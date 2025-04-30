@@ -2,7 +2,7 @@ import asyncio
 from datetime import datetime
 import logging
 
-from a2a_types import Artifact, Task, TaskSendParams, TaskState, TaskStatus
+from a2a_types import Artifact, Message, Task, TaskSendParams, TaskState, TaskStatus
 from common import PaginatedResponse, Pagination
 from store.base import (
     ListTasksOrder,
@@ -84,9 +84,14 @@ class InMemoryClientTaskManagerBackend(TaskManagerStore):
                     )
             if params.status is not None:
                 mutable_task.status = params.status
-
-            if params.artifacts is not None:
-                for artifact in params.artifacts:
+            if params.new_messages is not None:
+                if mutable_task.history is None:
+                    mutable_task.history = []
+                mutable_task.history.extend(params.new_messages)
+            if params.metadata is not None:
+                mutable_task.metadata = params.metadata
+            if params.artifacts_updates is not None:
+                for artifact in params.artifacts_updates:
                     await self._upsert_artifact(mutable_task, artifact)
 
             if params.push_notification is not None:
@@ -99,7 +104,12 @@ class InMemoryClientTaskManagerBackend(TaskManagerStore):
             task.artifacts = []
         for existing_artifact in task.artifacts:
             if existing_artifact.index == artifact.index:
+                if existing_artifact.lastChunk == True:
+                    raise ValueError(
+                        f"Artifact {existing_artifact.index} is already a last chunk"
+                    )
                 existing_artifact.parts.extend(artifact.parts)
+                existing_artifact.lastChunk = artifact.lastChunk
                 return
         task.artifacts.append(artifact)
 

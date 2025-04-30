@@ -1,39 +1,41 @@
-import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import styled from "styled-components";
 import {
-  TaskSendParams,
-  Part,
-  TextPart,
   FilePart,
-  DataPart,
+  Message,
+  Task,
+  TaskArtifactUpdateEvent,
+  TaskSendParams,
+  TaskStatusUpdateEvent,
 } from "../../types/a2aTypes";
 import { useUrl } from "../../contexts/UrlContext";
 import A2AClient from "../../services/a2aClient";
 import SplitContentLayout from "../layouts/SplitContentLayout";
-import TaskResultPanel from "./TaskResultPanel";
+import { FullTaskPanel } from "./TaskResultPanel";
 import { v4 as uuidv4 } from "uuid";
-import { DndProvider, useDrag, useDrop } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
+import { useTheme } from "styled-components";
 
-const PanelContainer = styled.div`
+import { IoMdClose } from "react-icons/io";
+
+import { useSearchParams } from "react-router";
+import { SendMessageArea } from "./SendMessageArea";
+
+const Container = styled.div`
+  height: 100%;
   display: flex;
   flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.md};
 `;
 
-const TextArea = styled.textarea`
-  width: 100%;
-  min-height: 200px;
-  resize: vertical;
+const Input = styled.input`
+  flex: 1;
+  background-color: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.text};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  padding: ${({ theme }) => theme.spacing.sm};
   font-family: "Fira Code", monospace;
   font-size: ${({ theme }) => theme.fontSizes.sm};
-  line-height: 1.5;
-  background-color: ${({ theme }) => theme.colors.background};
-  color: ${({ theme }) => theme.colors.text};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
-  padding: ${({ theme }) => theme.spacing.sm};
 
   &:focus {
     outline: none;
@@ -41,563 +43,352 @@ const TextArea = styled.textarea`
   }
 `;
 
-const Button = styled.button`
+const NewTaskButton = styled.div`
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  width: fit-content;
+  font-weight: 500;
+  cursor: pointer;
   background-color: ${({ theme }) => theme.colors.primary};
   color: ${({ theme }) => theme.colors.text};
-  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
-  font-weight: 600;
-  transition: all 0.2s ease;
-
-  &:hover {
-    opacity: 0.9;
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
 `;
 
-const PartContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.sm};
-  padding: ${({ theme }) => theme.spacing.sm};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
-  margin-bottom: ${({ theme }) => theme.spacing.sm};
-`;
-
-const PartHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const PartTypeSelect = styled.select`
-  padding: ${({ theme }) => theme.spacing.xs};
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  background-color: ${({ theme }) => theme.colors.background};
-  color: ${({ theme }) => theme.colors.text};
-`;
-
-const RemoveButton = styled.button`
-  background-color: ${({ theme }) => theme.colors.error};
-  color: ${({ theme }) => theme.colors.text};
-  padding: ${({ theme }) => theme.spacing.xs} ${({ theme }) => theme.spacing.sm};
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
-  font-weight: 600;
-  transition: all 0.2s ease;
-
-  &:hover {
-    opacity: 0.9;
-  }
-`;
-
-const AddPartButton = styled.button`
-  background-color: ${({ theme }) => theme.colors.secondary};
-  color: ${({ theme }) => theme.colors.text};
-  padding: ${({ theme }) => theme.spacing.md} ${({ theme }) => theme.spacing.lg};
-  border-radius: ${({ theme }) => theme.borderRadius.md};
-  font-weight: 600;
-  transition: all 0.2s ease;
-  border: none;
+const SwitchContainer = styled.div`
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: ${({ theme }) => theme.spacing.sm};
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: ${({ theme }) => theme.spacing.lg};
-  width: 100%;
-  max-width: 200px;
-  align-self: center;
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    opacity: 0.95;
-  }
-
-  &:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-  }
-
-  &::before {
-    content: "+";
-    font-size: 1.2em;
-    font-weight: bold;
-  }
+  gap: 0.5rem;
+  font-size: 0.9rem;
 `;
 
-const FileInputContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.sm};
-`;
+const Switch = styled.label`
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
 
-const FileInput = styled.input`
-  display: none;
-`;
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
 
-const FileInputLabel = styled.label`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: ${({ theme }) => theme.spacing.sm};
-  border: 2px dashed ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
-  cursor: pointer;
-  transition: all 0.2s ease;
+  span {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: ${({ theme }) => theme.colors.background};
+    transition: 0.4s;
+    border-radius: 20px;
+    border: 1px solid ${({ theme }) => theme.colors.border};
 
-  &:hover {
-    border-color: ${({ theme }) => theme.colors.primary};
+    &:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 2px;
+      bottom: 1px;
+      background-color: ${({ theme }) => theme.colors.primary};
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+  }
+
+  input:checked + span {
+    background-color: ${({ theme }) => theme.colors.primary}20;
+  }
+
+  input:checked + span:before {
+    transform: translateX(20px);
   }
 `;
 
-const FilePreview = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.sm};
-  padding: ${({ theme }) => theme.spacing.sm};
-  background-color: ${({ theme }) => theme.colors.background};
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
-`;
-
-const FileName = styled.span`
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-  color: ${({ theme }) => theme.colors.text};
-`;
-
-const FileSize = styled.span`
-  font-size: ${({ theme }) => theme.fontSizes.xs};
-  color: ${({ theme }) => theme.colors.textSecondary};
-`;
-
-const RemoveFileButton = styled.button`
-  background-color: transparent;
-  color: ${({ theme }) => theme.colors.error};
-  border: none;
-  cursor: pointer;
-  padding: ${({ theme }) => theme.spacing.xs};
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-
-  &:hover {
-    opacity: 0.8;
-  }
-`;
-
-const DraggablePartContainer = styled.div<{ isDragging: boolean }>`
-  opacity: ${({ isDragging }) => (isDragging ? 0.5 : 1)};
-  cursor: move;
-`;
-
-const URLInput = styled.input`
-  width: 100%;
-  padding: ${({ theme }) => theme.spacing.sm};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
-  background-color: ${({ theme }) => theme.colors.background};
-  color: ${({ theme }) => theme.colors.text};
-  margin-bottom: ${({ theme }) => theme.spacing.sm};
-
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.colors.primary};
-  }
-`;
-
-const FileSourceSelector = styled.div`
-  display: flex;
-  gap: ${({ theme }) => theme.spacing.sm};
-  margin-bottom: ${({ theme }) => theme.spacing.sm};
-`;
-
-const SourceButton = styled.button<{ isActive: boolean }>`
-  flex: 1;
-  padding: ${({ theme }) => theme.spacing.sm};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
-  background-color: ${({ isActive, theme }) =>
-    isActive ? theme.colors.primary : theme.colors.background};
-  color: ${({ theme }) => theme.colors.text};
-  cursor: pointer;
-
-  &:hover {
-    opacity: 0.9;
-  }
-`;
-
-type FileSource = "upload" | "url";
-
-interface PartItemProps {
-  part: Part;
-  index: number;
-  movePart: (dragIndex: number, hoverIndex: number) => void;
-  updatePartType: (index: number, type: Part["type"]) => void;
-  updatePartContent: (index: number, content: string) => void;
-  updateFilePart: (index: number, file: File) => void;
-  removeFile: (index: number) => void;
-  removePart: (index: number) => void;
-  isPending: boolean;
-  taskSendParams: TaskSendParams;
-  setTaskSendParams: React.Dispatch<React.SetStateAction<TaskSendParams>>;
-}
-
-const PartItem = ({
-  part,
-  index,
-  movePart,
-  updatePartType,
-  updatePartContent,
-  updateFilePart,
-  removeFile,
-  removePart,
-  isPending,
-}: PartItemProps) => {
-  const [fileSource, setFileSource] = useState<FileSource>("upload");
-  const [url, setUrl] = useState("");
-
-  const [{ isDragging }, drag] = useDrag({
-    type: "PART",
-    item: { index },
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
-  });
-
-  const [, drop] = useDrop({
-    accept: "PART",
-    hover: (item: { index: number }) => {
-      if (item.index !== index) {
-        movePart(item.index, index);
-        item.index = index;
-      }
-    },
-  });
-
+const NewTaskComponent = ({ onClick }: { onClick: () => void }) => {
   return (
-    <DraggablePartContainer
-      ref={(node) => {
-        if (node) {
-          drag(node);
-          drop(node);
-        }
+    <NewTaskButton
+      onClick={() => {
+        onClick();
       }}
-      isDragging={isDragging}
     >
-      <PartContainer>
-        <PartHeader>
-          <PartTypeSelect
-            value={part.type}
-            onChange={(e) =>
-              updatePartType(index, e.target.value as Part["type"])
-            }
-            disabled={isPending}
-          >
-            <option value="text">Text</option>
-            <option value="file">File</option>
-            <option value="data">Data</option>
-          </PartTypeSelect>
-          <RemoveButton onClick={() => removePart(index)} disabled={isPending}>
-            Remove
-          </RemoveButton>
-        </PartHeader>
-        {part.type === "text" && (
-          <TextArea
-            value={(part as TextPart).text}
-            onChange={(e) => updatePartContent(index, e.target.value)}
-            placeholder="Enter your message"
-            disabled={isPending}
-          />
-        )}
-        {part.type === "file" && (
-          <FileInputContainer>
-            <FileSourceSelector>
-              <SourceButton
-                isActive={fileSource === "upload"}
-                onClick={() => setFileSource("upload")}
-              >
-                Upload File
-              </SourceButton>
-              <SourceButton
-                isActive={fileSource === "url"}
-                onClick={() => setFileSource("url")}
-              >
-                URL
-              </SourceButton>
-            </FileSourceSelector>
-            {fileSource === "upload" ? (
-              !(part as FilePart).file.bytes ? (
-                <FileInputLabel>
-                  <FileInput
-                    type="file"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        updateFilePart(index, file);
-                      }
-                    }}
-                    disabled={isPending}
-                  />
-                  Click to select a file or drag and drop
-                </FileInputLabel>
-              ) : (
-                <FilePreview>
-                  <FileName>{(part as FilePart).file.name}</FileName>
-                  <FileSize>
-                    {Math.round(
-                      ((part as FilePart).file.bytes!.length * 0.75) / 1024
-                    )}{" "}
-                    KB
-                  </FileSize>
-                  <RemoveFileButton
-                    onClick={() => removeFile(index)}
-                    disabled={isPending}
-                  >
-                    Remove
-                  </RemoveFileButton>
-                </FilePreview>
-              )
-            ) : (
-              <>
-                <URLInput
-                  type="url"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="Enter file URL"
-                  disabled={isPending}
-                />
-                {(part as FilePart).file.uri && (
-                  <FilePreview>
-                    <FileName>URL File</FileName>
-                    <RemoveFileButton
-                      onClick={() => removeFile(index)}
-                      disabled={isPending}
-                    >
-                      Remove
-                    </RemoveFileButton>
-                  </FilePreview>
-                )}
-              </>
-            )}
-          </FileInputContainer>
-        )}
-        {part.type === "data" && (
-          <div>Data input functionality coming soon ... </div>
-        )}
-      </PartContainer>
-    </DraggablePartContainer>
+      New Task
+    </NewTaskButton>
   );
 };
 
+const Separator = styled.div`
+  height: 1px;
+  background-color: ${({ theme }) => theme.colors.border};
+`;
+
 const SendTaskPanel = () => {
-  const [taskSendParams, setTaskSendParams] = useState<TaskSendParams>({
-    message: {
-      role: "user",
-      parts: [
-        {
-          type: "text",
-          text: "",
-        } as TextPart,
-      ],
-    },
-    sessionId: "",
-    id: "",
-  });
-
   const { endpoint } = useUrl();
+
   const apiClient = new A2AClient(endpoint);
-
-  const sendQueryMutation = useMutation({
-    mutationFn: (params: TaskSendParams) => {
-      return apiClient.sendTask(params);
-    },
-  });
-
-  const movePart = (dragIndex: number, hoverIndex: number) => {
-    const newParts = [...taskSendParams.message.parts];
-    const [removed] = newParts.splice(dragIndex, 1);
-    newParts.splice(hoverIndex, 0, removed);
-    setTaskSendParams({
-      ...taskSendParams,
-      message: {
-        ...taskSendParams.message,
-        parts: newParts,
-      },
-    });
-  };
-
-  const addPart = () => {
-    setTaskSendParams({
-      ...taskSendParams,
-      message: {
-        ...taskSendParams.message,
-        parts: [
-          ...taskSendParams.message.parts,
-          { type: "text", text: "" } as TextPart,
-        ],
-      },
-    });
-  };
-
-  const removePart = (index: number) => {
-    setTaskSendParams({
-      ...taskSendParams,
-      message: {
-        ...taskSendParams.message,
-        parts: taskSendParams.message.parts.filter((_, i) => i !== index),
-      },
-    });
-  };
-
-  const updatePartType = (index: number, type: Part["type"]) => {
-    const newParts = [...taskSendParams.message.parts];
-    switch (type) {
-      case "text":
-        newParts[index] = { type: "text", text: "" } as TextPart;
-        break;
-      case "file":
-        newParts[index] = { type: "file", file: {} } as FilePart;
-        break;
-      case "data":
-        newParts[index] = { type: "data", data: {} } as DataPart;
-        break;
-    }
-    setTaskSendParams({
-      ...taskSendParams,
-      message: {
-        ...taskSendParams.message,
-        parts: newParts,
-      },
-    });
-  };
-
-  const updatePartContent = (index: number, content: string) => {
-    const newParts = [...taskSendParams.message.parts];
-    if (newParts[index].type === "text") {
-      (newParts[index] as TextPart).text = content;
-    }
-    setTaskSendParams({
-      ...taskSendParams,
-      message: {
-        ...taskSendParams.message,
-        parts: newParts,
-      },
-    });
-  };
-
-  const updateFilePart = (index: number, file: File) => {
-    const newParts = [...taskSendParams.message.parts];
-    if (newParts[index].type === "file") {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64String = reader.result as string;
-        (newParts[index] as FilePart).file = {
-          name: file.name,
-          mimeType: file.type,
-          bytes: base64String.split(",")[1], // Remove the data URL prefix
-        };
-        setTaskSendParams({
-          ...taskSendParams,
-          message: {
-            ...taskSendParams.message,
-            parts: newParts,
-          },
-        });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const removeFile = (index: number) => {
-    const newParts = [...taskSendParams.message.parts];
-    if (newParts[index].type === "file") {
-      (newParts[index] as FilePart).file = {};
-      setTaskSendParams({
-        ...taskSendParams,
-        message: {
-          ...taskSendParams.message,
-          parts: newParts,
-        },
+  const [searchParams, setSearchParams] = useSearchParams();
+  const taskId = searchParams.get("taskId");
+  const [newTaskId, setNewTaskId] = useState<string>(taskId ?? uuidv4());
+  useEffect(() => {
+    if (taskId === null) {
+      const newTaskId = uuidv4();
+      setSearchParams({
+        taskId: newTaskId,
       });
     }
-  };
+  }, [taskId]);
+  // const [newTaskId, setNewTaskId] = useState<string>(taskId);
+  const [task, setTask] = useState<Task | null>(null);
+  const [streaming, setStreaming] = useState<boolean>(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [streamingMessages, setStreamingMessages] = useState<
+    (TaskStatusUpdateEvent | TaskArtifactUpdateEvent)[]
+  >([]);
+  console.log("taskId", taskId);
 
-  const isSendDisabled = () => {
-    return (
-      sendQueryMutation.isPending ||
-      taskSendParams.message.parts.length === 0 ||
-      taskSendParams.message.parts.some((part) => {
-        if (part.type === "text") {
-          return !(part as TextPart).text.trim();
-        }
-        if (part.type === "file") {
-          return !(part as FilePart).file.bytes;
-        }
-        return false;
-      })
-    );
-  };
+  const getTaskClientQuery = useQuery({
+    queryKey: ["tasks", taskId],
+    queryFn: () => {
+      return apiClient.getTask(taskId);
+    },
+    retry: false,
+  });
+  useEffect(() => {
+    if (getTaskClientQuery.data) {
+      setMessages(getTaskClientQuery.data?.history ?? []);
+      setTask(getTaskClientQuery.data);
+    } else {
+      setMessages([]);
+      setTask(null);
+    }
+  }, [getTaskClientQuery.isSuccess, getTaskClientQuery.data]);
+
+  const sendTaskMutation = useMutation({
+    mutationFn: async (TaskSendParams: TaskSendParams) => {
+      if (streaming) {
+        await apiClient.streamTask(TaskSendParams, (data) => {
+          setStreamingMessages((prev) => [...prev, data]);
+          getTaskClientQuery.refetch();
+        });
+        return;
+      }
+      return apiClient.sendTask(TaskSendParams);
+    },
+
+    // onSuccess(data) {
+    //   setMessages(data?.history ?? []);
+    // },
+    onSettled() {
+      getTaskClientQuery.refetch();
+    },
+  });
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <SplitContentLayout
-        input={
-          <PanelContainer>
-            <AddPartButton
-              onClick={addPart}
-              disabled={sendQueryMutation.isPending}
+    <SplitContentLayout
+      input={
+        <Container>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "0.5rem",
+              height: "100%",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
             >
-              Add Part
-            </AddPartButton>
-            {taskSendParams.message.parts.map((part, index) => (
-              <PartItem
-                key={index}
-                part={part}
-                index={index}
-                movePart={movePart}
-                updatePartType={updatePartType}
-                updatePartContent={updatePartContent}
-                updateFilePart={updateFilePart}
-                removeFile={removeFile}
-                removePart={removePart}
-                isPending={sendQueryMutation.isPending}
-                taskSendParams={taskSendParams}
-                setTaskSendParams={setTaskSendParams}
+              <NewTaskComponent
+                onClick={() => {
+                  const newTaskId = uuidv4();
+                  setSearchParams({
+                    taskId: newTaskId,
+                  });
+                  setMessages([]);
+                  setTask(null);
+                }}
               />
-            ))}
-            <Button
-              onClick={() =>
-                sendQueryMutation.mutate({
-                  ...taskSendParams,
-                  id: uuidv4(),
-                  sessionId: uuidv4(),
-                })
-              }
-              disabled={isSendDisabled()}
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  gap: "0.5rem",
+                  alignItems: "center",
+                }}
+              >
+                <SwitchContainer>
+                  <span>Streaming</span>
+                  <Switch>
+                    <input
+                      type="checkbox"
+                      checked={streaming}
+                      onChange={(e) => setStreaming(e.target.checked)}
+                    />
+                    <span></span>
+                  </Switch>
+                </SwitchContainer>
+                <Input
+                  type="text"
+                  value={newTaskId}
+                  onChange={(e) => setNewTaskId(e.target.value)}
+                  placeholder="Enter task ID"
+                />
+                <NewTaskButton
+                  onClick={() => {
+                    setSearchParams({
+                      taskId: newTaskId,
+                    });
+                  }}
+                >
+                  Get Task
+                </NewTaskButton>
+              </div>
+            </div>
+            <Separator />
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.5rem",
+                overflowY: "auto",
+                flex: 1,
+                padding: "0.5rem",
+              }}
             >
-              {sendQueryMutation.isPending ? "Sending..." : "Send Task"}
-            </Button>
-          </PanelContainer>
-        }
-        output={
-          sendQueryMutation.data && (
-            <TaskResultPanel task={sendQueryMutation.data} />
-          )
-        }
-      />
-    </DndProvider>
+              {messages.map((m, i) => {
+                return <MessageComponent key={i} message={m} />;
+              })}
+            </div>
+          </div>
+
+          <SendMessageArea
+            taskId={taskId}
+            sessionId={null}
+            sendTaskMutation={sendTaskMutation}
+            setMessages={setMessages}
+          />
+        </Container>
+      }
+      output={
+        <FullTaskPanel
+          task={task}
+          streamingEvents={streamingMessages}
+          isCurrentlyStreaming={sendTaskMutation.isPending}
+          isStreamingActive={true}
+          taskError={getTaskClientQuery.error?.message || null}
+          isTaskLoading={getTaskClientQuery.isLoading}
+        />
+      }
+    />
   );
 };
 
 export default SendTaskPanel;
+
+const UserMessageContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+`;
+
+const UserMessage = styled.div`
+  background-color: ${({ theme }) => theme.colors.background};
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 0.75rem;
+`;
+
+const AgentMessageContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+`;
+
+const AgentMessage = styled.div`
+  background-color: ${({ theme }) => theme.colors.surface};
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+`;
+
+function MessageComponent({ message }: { message: Message }) {
+  const textParts = message.parts.filter((p) => p.type === "text");
+  const fileParts = message.parts.filter((p) => p.type === "file");
+  const isAgent = message.role === "agent";
+  const MessageContainer = isAgent
+    ? AgentMessageContainer
+    : UserMessageContainer;
+  const MessageLayout = isAgent ? AgentMessage : UserMessage;
+  return (
+    <MessageContainer>
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+        <MessageLayout>
+          {textParts.map((p) => {
+            return <div>{p.text}</div>;
+          })}
+        </MessageLayout>
+        {fileParts.map((p) => {
+          return (
+            <FilePartInInputArea
+              key={p.file.name}
+              filePart={p}
+              canRemove={false}
+              onRemove={() => {}}
+            />
+          );
+        })}
+      </div>
+    </MessageContainer>
+  );
+}
+
+const FilePartContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: fit-content;
+  font-size: 0.8rem;
+  gap: 0.5rem;
+  background-color: ${({ theme }) => theme.colors.background};
+  border-radius: 0.05rem;
+  padding-left: 0.3rem;
+  padding-right: 0.3rem;
+  padding-top: 0.1rem;
+  padding-bottom: 0.1rem;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+`;
+
+const FilePartInInputArea = ({
+  filePart,
+  canRemove = true,
+  onRemove,
+}: {
+  filePart: FilePart;
+  canRemove: boolean;
+  onRemove: () => void;
+}) => {
+  const theme = useTheme();
+  return (
+    <FilePartContainer>
+      <div>{filePart.file.name}</div>
+      {canRemove && (
+        <IoMdClose
+          style={{ cursor: "pointer" }}
+          color={theme.colors.error}
+          onClick={() => {
+            onRemove();
+          }}
+        />
+      )}
+    </FilePartContainer>
+  );
+};

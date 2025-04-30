@@ -1,13 +1,19 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
+
+import { PartDisplay } from "../common/partDisplay";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useUrl } from "../../contexts/UrlContext";
+import A2AClient from "../../services/a2aClient";
+import { StreamingPanel } from "./StreamingTask";
 import {
-  Task,
   TaskState,
+  Task,
   TaskStatus,
   Artifact,
-  Message,
+  TaskStatusUpdateEvent,
+  TaskArtifactUpdateEvent,
 } from "../../types/a2aTypes";
-import { PartDisplay } from "../common/partDisplay";
 
 const Title = styled.h3`
   font-size: ${({ theme }) => theme.fontSizes.md};
@@ -47,19 +53,6 @@ const Label = styled.strong`
   color: ${({ theme }) => theme.colors.textSecondary};
 `;
 
-const CodeBlock = styled.pre`
-  background-color: ${({ theme }) => theme.colors.background};
-  padding: ${({ theme }) => theme.spacing.md};
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
-  overflow-x: auto;
-  font-family: "Fira Code", monospace;
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-  line-height: 1.5;
-  margin-top: ${({ theme }) => theme.spacing.md};
-  flex: 1;
-  height: 100%;
-`;
-
 const ArtifactContainer = styled.div`
   margin-top: ${({ theme }) => theme.spacing.md};
   padding: ${({ theme }) => theme.spacing.md};
@@ -78,27 +71,6 @@ const ArtifactTitle = styled.h4`
   font-size: ${({ theme }) => theme.fontSizes.sm};
   color: ${({ theme }) => theme.colors.text};
   margin: 0;
-`;
-
-const HistoryItemContainer = styled.div`
-  margin-top: ${({ theme }) => theme.spacing.md};
-  padding: ${({ theme }) => theme.spacing.md};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
-`;
-
-const HistoryItemHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: ${({ theme }) => theme.spacing.sm};
-`;
-
-const HistoryItemRole = styled.span<{ $role: "user" | "agent" }>`
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-  font-weight: 600;
-  color: ${({ $role, theme }) =>
-    $role === "user" ? theme.colors.primary : theme.colors.secondary};
 `;
 
 interface ArtifactDisplayProps {
@@ -127,31 +99,6 @@ const ArtifactDisplay: React.FC<ArtifactDisplayProps> = ({ artifact }) => {
   );
 };
 
-interface HistoryItemProps {
-  historyItem: Message;
-}
-
-const HistoryItem: React.FC<HistoryItemProps> = ({ historyItem }) => {
-  return (
-    <HistoryItemContainer>
-      <HistoryItemHeader>
-        <HistoryItemRole $role={historyItem.role}>
-          {historyItem.role.charAt(0).toUpperCase() + historyItem.role.slice(1)}
-        </HistoryItemRole>
-      </HistoryItemHeader>
-      {historyItem.parts.map((part, index) => (
-        <PartDisplay key={index} part={part} index={index} />
-      ))}
-      {/* {historyItem.metadata && (
-        <PartContainer>
-          <PartType>Metadata:</PartType>
-          <CodeBlock>{JSON.stringify(historyItem.metadata, null, 2)}</CodeBlock>
-        </PartContainer>
-      )} */}
-    </HistoryItemContainer>
-  );
-};
-
 interface TaskResultPanelProps {
   task: Task;
 }
@@ -163,10 +110,110 @@ const TaskResultPanelContainer = styled.div`
   height: 100%;
 `;
 
+const CancelButton = styled.button`
+  background-color: ${({ theme }) => theme.colors.error};
+  color: ${({ theme }) => theme.colors.text};
+  border: none;
+  padding: ${({ theme }) => theme.spacing.xs} ${({ theme }) => theme.spacing.sm};
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  cursor: pointer;
+  width: fit-content;
+  font-weight: 500;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  margin-bottom: ${({ theme }) => theme.spacing.sm};
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.error};
+  }
+  &:disabled {
+    background-color: ${({ theme }) => theme.colors.error};
+    cursor: not-allowed;
+  }
+  &:active {
+    background-color: ${({ theme }) => theme.colors.error};
+  }
+`;
+type TabType = "streaming" | "results";
+const TabContainer = styled.div`
+  display: flex;
+  gap: ${({ theme }) => theme.spacing.sm};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+`;
+
+const TabButton = styled.button<{ $isActive: boolean }>`
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
+  background-color: ${({ $isActive, theme }) =>
+    $isActive ? theme.colors.primary : theme.colors.surface};
+  color: ${({ $isActive, theme }) =>
+    $isActive ? theme.colors.text : theme.colors.textSecondary};
+  border: none;
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:hover {
+    opacity: 0.9;
+  }
+`;
+const TabSelector: React.FC<{
+  activeTab: TabType;
+
+  onTabChange: (tab: TabType) => void;
+  disabled: boolean;
+}> = ({ activeTab, onTabChange, disabled }) => {
+  return (
+    <TabContainer>
+      <TabButton
+        $isActive={activeTab === "streaming"}
+        onClick={() => onTabChange("streaming")}
+        disabled={disabled}
+      >
+        Streaming Events
+      </TabButton>
+      <TabButton
+        $isActive={activeTab === "results"}
+        onClick={() => onTabChange("results")}
+        disabled={disabled}
+      >
+        Task
+      </TabButton>
+    </TabContainer>
+  );
+};
+
 const TaskResultPanel: React.FC<TaskResultPanelProps> = ({ task }) => {
+  const { endpoint } = useUrl();
+  const apiClient = new A2AClient(endpoint);
+  const queryClient = useQueryClient();
+  const cancelTaskMutation = useMutation({
+    mutationFn: () => {
+      return apiClient.cancelTask({ id: task.id });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks", task.id] });
+    },
+  });
   return (
     <TaskResultPanelContainer>
-      <Title>Task Result</Title>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "space-between",
+        }}
+      >
+        <Title>Task Result</Title>
+        <CancelButton
+          onClick={() => cancelTaskMutation.mutate()}
+          disabled={cancelTaskMutation.isPending}
+        >
+          {cancelTaskMutation.isPending ? "Cancelling..." : "Cancel"}
+        </CancelButton>
+      </div>
       <InfoRow>
         <Label>Status:</Label>
         <StatusBadge $status={task.status}>{task.status.state}</StatusBadge>
@@ -181,12 +228,7 @@ const TaskResultPanel: React.FC<TaskResultPanelProps> = ({ task }) => {
           <span>{task.sessionId}</span>
         </InfoRow>
       )}
-      {task.result && (
-        <>
-          <Label>Result:</Label>
-          <CodeBlock>{JSON.stringify(task.result, null, 2)}</CodeBlock>
-        </>
-      )}
+
       {task.artifacts && (
         <>
           <Label>Artifacts:</Label>
@@ -195,16 +237,78 @@ const TaskResultPanel: React.FC<TaskResultPanelProps> = ({ task }) => {
           ))}
         </>
       )}
-      {task.history && (
-        <>
-          <Label>History:</Label>
-          {task.history.map((historyItem, index) => (
-            <HistoryItem key={index} historyItem={historyItem} />
-          ))}
-        </>
-      )}
     </TaskResultPanelContainer>
   );
 };
 
 export default TaskResultPanel;
+
+const TabContent = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+`;
+
+const ContentContainer = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+`;
+
+const Separator = styled.div`
+  height: 1px;
+  background-color: ${({ theme }) => theme.colors.border};
+  margin: ${({ theme }) => theme.spacing.sm} 0;
+`;
+
+export function FullTaskPanel({
+  task,
+  streamingEvents,
+  isCurrentlyStreaming,
+  isStreamingActive,
+  isTaskLoading,
+  taskError,
+}: {
+  task: Task | null;
+  streamingEvents: (TaskStatusUpdateEvent | TaskArtifactUpdateEvent)[];
+  isCurrentlyStreaming: boolean;
+  isStreamingActive: boolean;
+  taskError: string | null;
+  isTaskLoading: boolean;
+}) {
+  const [activeTab, setActiveTab] = useState<TabType>("results");
+
+  const renderTask = () => {
+    if (isTaskLoading) {
+      return <div>Loading...</div>;
+    }
+    if (taskError) {
+      return <div>{taskError}</div>;
+    }
+    if (task) {
+      return <TaskResultPanel task={task} />;
+    }
+    return <div>No task</div>;
+  };
+  return (
+    <TabContent>
+      <TabSelector
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        disabled={!isStreamingActive}
+      />
+      <Separator />
+      <ContentContainer>
+        {activeTab === "results" && renderTask()}
+
+        {activeTab === "streaming" && (
+          <StreamingPanel
+            events={streamingEvents}
+            isStreaming={isCurrentlyStreaming}
+          />
+        )}
+      </ContentContainer>
+    </TabContent>
+  );
+}

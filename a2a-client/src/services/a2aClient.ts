@@ -14,6 +14,7 @@ import {
   TaskArtifactUpdateEvent,
   AgentCard,
 } from "../types/a2aTypes";
+import { PaginatedResponse, TaskResponse } from "../types/customTypes";
 
 class A2AClient {
   private baseUrl: string;
@@ -64,7 +65,7 @@ class A2AClient {
     }
   }
 
-  public async sendTask(params: TaskSendParams): Promise<Task | null> {
+  public async sendTask(params: TaskSendParams): Promise<Task> {
     const request = createJsonRpcRequest("tasks/send", params);
     const response = await this.sendRequest<SendTaskResponse, TaskSendParams>(
       request
@@ -73,8 +74,11 @@ class A2AClient {
     if (response.error) {
       throw new Error(`Error sending task: ${response.error.message}`);
     }
+    if (!response.result) {
+      throw new Error("No task returned");
+    }
 
-    return response.result || null;
+    return response.result;
   }
 
   public async getTask(
@@ -171,6 +175,11 @@ class A2AClient {
       TaskSendParams,
       TaskStatusUpdateEvent | TaskArtifactUpdateEvent
     >(request, onUpdate);
+  }
+
+  public async listTasks(): Promise<PaginatedResponse<TaskResponse>> {
+    const response = await axios.get(`${this.baseUrl}/tasks/list`);
+    return response.data as PaginatedResponse<TaskResponse>;
   }
 }
 

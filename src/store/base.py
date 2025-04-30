@@ -20,7 +20,9 @@ class StoredTask:
 @dataclass
 class UpdateTaskParams:
     status: TaskStatus | None = None
-    artifacts: list[Artifact] | None = None
+    artifacts_updates: list[Artifact] | None = None
+    new_messages: list[Message] | None = None
+    metadata: dict[str, Any] | None = None
     push_notification: PushNotificationConfig | None = None
     caller_id: str | None = None
 
@@ -36,7 +38,7 @@ class ListTasksParams:
     state_in: list[TaskState] | None = None
     order_by: ListTasksOrder = ListTasksOrder.CREATED_AT
     page: int | None = 1
-    page_size: int | None = 1
+    page_size: int | None = 100
 
 
 class TaskManagerStore(Protocol):
@@ -93,7 +95,9 @@ class TaskManagerStore(Protocol):
         ...
 
     @abstractmethod
-    async def list_tasks(self, params: ListTasksParams) -> PaginatedResponse[Task]:
+    async def list_tasks(
+        self, params: ListTasksParams
+    ) -> PaginatedResponse[StoredTask]:
         """
         List tasks with the following rules:
         - If caller_id is provided, return the tasks only if the caller_id matches

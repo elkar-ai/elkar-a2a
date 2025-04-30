@@ -51,12 +51,9 @@ const GlobalStyle = createGlobalStyle`
   input, textarea, button {
     font-family: inherit;
     font-size: inherit;
+    outline: none;
   }
 
-  input:focus, textarea:focus {
-    outline: none;
-    box-shadow: ${({ theme }) => theme.shadows.md};
-  }
 
   pre {
     font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;

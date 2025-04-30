@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+import { Link, useLocation } from "react-router";
 
 const NavContainer = styled.nav`
   display: flex;
@@ -8,7 +9,7 @@ const NavContainer = styled.nav`
   margin-bottom: ${({ theme }) => theme.spacing.lg};
 `;
 
-const NavButton = styled.button<{ active: boolean }>`
+const NavLink = styled(Link)<{ active: boolean }>`
   display: flex;
   align-items: center;
   padding: ${({ theme }) => theme.spacing.sm};
@@ -19,6 +20,7 @@ const NavButton = styled.button<{ active: boolean }>`
     active ? theme.colors.text : theme.colors.textSecondary};
   font-weight: ${({ active }) => (active ? "600" : "400")};
   transition: all 0.2s ease;
+  text-decoration: none;
 
   &:hover {
     background-color: ${({ active, theme }) =>
@@ -26,40 +28,24 @@ const NavButton = styled.button<{ active: boolean }>`
   }
 `;
 
-interface MethodNavProps {
-  activeTab: "sendTask" | "getTask" | "streaming" | "agentCard";
-  onTabChange: (
-    tab: "sendTask" | "getTask" | "streaming" | "agentCard"
-  ) => void;
-}
+const MethodNav: React.FC = () => {
+  const location = useLocation();
 
-const MethodNav: React.FC<MethodNavProps> = ({ activeTab, onTabChange }) => {
   return (
     <NavContainer>
-      <NavButton
-        active={activeTab === "agentCard"}
-        onClick={() => onTabChange("agentCard")}
-      >
+      <NavLink to="/agent-card" active={location.pathname === "/agent-card"}>
         Agent Card
-      </NavButton>
-      <NavButton
-        active={activeTab === "sendTask"}
-        onClick={() => onTabChange("sendTask")}
+      </NavLink>
+      <NavLink
+        to="/send-task"
+        active={location.pathname === "/send-task" || location.pathname === "/"}
       >
         Send Task
-      </NavButton>
-      <NavButton
-        active={activeTab === "getTask"}
-        onClick={() => onTabChange("getTask")}
-      >
-        Get Task
-      </NavButton>
-      <NavButton
-        active={activeTab === "streaming"}
-        onClick={() => onTabChange("streaming")}
-      >
-        Streaming
-      </NavButton>
+      </NavLink>
+
+      <NavLink to="/list-tasks" active={location.pathname === "/list-tasks"}>
+        List Tasks
+      </NavLink>
     </NavContainer>
   );
 };

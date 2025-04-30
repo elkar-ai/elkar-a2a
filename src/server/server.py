@@ -62,10 +62,14 @@ class A2AServer[T: TaskManager]:
     async def _list_tasks(self, request: Request) -> Response:
         if request.method == "OPTIONS":
             return Response(status_code=200)
-        body = await request.json()
-        list_tasks_request = ListTasksRequest.model_validate(body)
+        # query_params = request.query_params
+        # page = query_params.get("page", 1)
+        # page_size = query_params.get("page_size", 10)
+        # page = int(page)
+        list_tasks_request = ListTasksRequest()
         tasks = await self.task_manager.list_tasks(list_tasks_request)
-        return JSONResponse(tasks)
+        tasks_response = tasks.model_dump_json(exclude_none=True)
+        return JSONResponse(json.loads(tasks_response))
 
     def start(self) -> None:
 

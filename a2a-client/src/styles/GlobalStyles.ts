@@ -32,14 +32,9 @@ export const GlobalStyles = createGlobalStyle`
   input, textarea {
     font-family: inherit;
     color: inherit;
-    background-color: ${({ theme }) => theme.colors.surface};
-    border: 1px solid ${({ theme }) => theme.colors.border};
-    border-radius: ${({ theme }) => theme.borderRadius.sm};
+    background-color:transparent;
+    border: none;
     padding: ${({ theme }) => theme.spacing.sm};
     
-    &:focus {
-      outline: none;
-      border-color: ${({ theme }) => theme.colors.primary};
-    }
   }
 `;

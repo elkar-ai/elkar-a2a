@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Generic, TypeVar
 from a2a_types import PushNotificationConfig, Task, TaskState
 from pydantic import BaseModel
 
@@ -17,14 +18,17 @@ class Pagination(BaseModel):
     total: int | None
 
 
-class PaginatedResponse[T](BaseModel):
-    items: list[T]
+DataT = TypeVar("DataT")
+
+
+class PaginatedResponse(BaseModel, Generic[DataT]):
+    items: list[DataT]
     pagination: Pagination
 
 
 class TaskResponse(BaseModel):
     id: str
-    caller_id: str
+    caller_id: str | None
     created_at: datetime
     updated_at: datetime
     state: TaskState

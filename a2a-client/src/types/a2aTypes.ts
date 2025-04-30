@@ -60,15 +60,13 @@ export interface Artifact {
 }
 
 export interface Task {
-  id: string;
-  sessionId?: string;
-  status: TaskStatus;
-  result?: any;
-  artifacts?: Artifact[];
+  id: string; // unique identifier for the task
+  sessionId: string; // client-generated id for the session holding the task.
+  status: TaskStatus; // current status of the task
   history?: Message[];
-  metadata?: Record<string, any>;
+  artifacts?: Artifact[]; // collection of artifacts created by the agent.
+  metadata?: Record<string, any>; // extension metadata
 }
-
 export interface TaskStatusUpdateEvent {
   id: string;
   status: TaskStatus;

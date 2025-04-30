@@ -9,6 +9,7 @@ from store.base import TaskManagerStore
 from task_manager.task_manager_base import RequestContext
 from task_manager.task_manager_with_store import (
     TaskManagerWithStore,
+    TaskSendOutput,
 )
 from store.in_memory import InMemoryClientTaskManagerBackend
 
@@ -51,32 +52,41 @@ queue = InMemoryTaskEventQueue()
 
 async def send_task(
     task: Task, request_context: RequestContext | None, store: TaskManagerStore | None
-) -> Task:
-    return Task(
-        id=task.id,
-        sessionId=task.sessionId,
+) -> TaskSendOutput:
+
+    return TaskSendOutput(
         status=TaskStatus(
             state=TaskState.COMPLETED,
             message=None,
             timestamp=datetime.now(),
         ),
         metadata=task.metadata,
-        artifacts=[
+        new_artifacts=[
             Artifact(
                 parts=[
                     TextPart(
-                        text="Hello, world!",
+                        text="Hello, Artifact!",
                     )
+                ],
+                index=0,
+                lastChunk=True,
+            )
+        ],
+        new_history_messages=[
+            Message(
+                role="agent",
+                parts=[
+                    TextPart(text="Hello, Message!"),
                 ],
             )
         ],
-        history=None,
     )
 
 
 async def send_task_streaming(
     task: Task, request_context: RequestContext | None, store: TaskManagerStore | None
 ) -> AsyncIterable[SendTaskStreamingResponse]:
+
     yield SendTaskStreamingResponse(
         result=TaskStatusUpdateEvent(
             id=task.id,

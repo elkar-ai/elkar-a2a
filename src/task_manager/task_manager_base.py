@@ -18,7 +18,7 @@ from a2a_types import (
     TaskResubscriptionRequest,
     JSONRPCResponse,
 )
-from common import ListTasksRequest, TaskResponse
+from common import ListTasksRequest, PaginatedResponse, TaskResponse
 
 
 @dataclass
@@ -74,5 +74,7 @@ class TaskManager(Protocol):
         request_context: RequestContext | None = None,
     ) -> AsyncIterable[SendTaskResponse] | JSONRPCResponse: ...
 
-    async def list_tasks(self, request: ListTasksRequest) -> list[TaskResponse]:
+    async def list_tasks(
+        self, request: ListTasksRequest
+    ) -> PaginatedResponse[TaskResponse]:
         raise NotImplementedError("list_tasks is not implemented")
