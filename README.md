@@ -1,6 +1,6 @@
 # Elkar
 
-**The open-source protocol to send, track, and orchestrate tasks between AI agents.**
+**The open-source protocol to send, track, and orchestrate tasks between AI agents based on Google's Agent2Agent Protocol (A2A).**
 
 No more silos. Elkar lets your agents collaborate — even across companies or tech stacks.
 
