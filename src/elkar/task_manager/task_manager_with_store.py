@@ -44,6 +44,7 @@ from elkar.a2a_types import (
 
 
 from elkar.common import ListTasksRequest, PaginatedResponse, TaskResponse
+from elkar.store.in_memory import InMemoryTaskManagerStore
 from elkar.task_queue.base import TaskEvent, TaskEventManager
 from elkar.store.base import (
     ListTasksParams,
@@ -54,6 +55,8 @@ from elkar.store.base import (
 from elkar.task_manager.task_manager_base import RequestContext, TaskManager
 
 import logging
+
+from elkar.task_queue.in_memory import InMemoryTaskEventQueue
 
 logger = logging.getLogger(__name__)
 
@@ -69,9 +72,9 @@ class TaskSendOutput:
 class TaskManagerWithStore[T: TaskManagerStore, Q: TaskEventManager](TaskManager):
     def __init__(
         self,
-        store: T,
         agent_card: AgentCard,
-        queue: Q,
+        store: T | None = None,
+        queue: Q | None = None,
         send_task_handler: (
             Callable[
                 [Task, RequestContext | None, TaskManagerStore | None],
@@ -87,9 +90,9 @@ class TaskManagerWithStore[T: TaskManagerStore, Q: TaskEventManager](TaskManager
             | None
         ) = None,
     ):
-        self.store = store
+        self.store = store or InMemoryTaskManagerStore()
+        self.queue = queue or InMemoryTaskEventQueue()
         self.agent_card = agent_card
-        self.queue = queue
         self._send_task_handler = send_task_handler
         self._send_task_streaming_handler = send_task_streaming_handler
 
@@ -100,13 +103,18 @@ class TaskManagerWithStore[T: TaskManagerStore, Q: TaskEventManager](TaskManager
         self, request: GetTaskRequest, request_context: RequestContext | None = None
     ) -> GetTaskResponse:
         stored_task = await self.store.get_task(request.params.id)
+        if stored_task is None:
+            return GetTaskResponse(
+                result=None,
+                error=TaskNotFoundError(),
+            )
         if (
             request_context is not None
             and stored_task.caller_id != request_context.caller_id
         ):
             return GetTaskResponse(
                 result=None,
-                error=JSONRPCError(code=-32003, message="Task not found", data=None),
+                error=TaskNotFoundError(),
             )
         return GetTaskResponse(result=stored_task.task)
 
@@ -114,6 +122,11 @@ class TaskManagerWithStore[T: TaskManagerStore, Q: TaskEventManager](TaskManager
         self, request: CancelTaskRequest, request_context: RequestContext | None = None
     ) -> CancelTaskResponse:
         stored_task = await self.store.get_task(request.params.id)
+        if stored_task is None:
+            return CancelTaskResponse(
+                result=None,
+                error=TaskNotFoundError(),
+            )
         error = self._check_caller_id(stored_task, request_context)
         if error is not None:
             return CancelTaskResponse(
@@ -334,6 +347,11 @@ class TaskManagerWithStore[T: TaskManagerStore, Q: TaskEventManager](TaskManager
             )
         task_id = request.params.id
         task = await self.store.get_task(task_id)
+        if task is None:
+            return SetTaskPushNotificationResponse(
+                result=None,
+                error=TaskNotFoundError(),
+            )
         error = self._check_caller_id(task, request_context)
         if error is not None:
             return SetTaskPushNotificationResponse(
@@ -365,9 +383,15 @@ class TaskManagerWithStore[T: TaskManagerStore, Q: TaskEventManager](TaskManager
     ) -> GetTaskPushNotificationResponse:
         task_id = request.params.id
         task = await self.store.get_task(task_id)
+        if task is None:
+            return GetTaskPushNotificationResponse(
+                result=None,
+                error=TaskNotFoundError(),
+            )
         if task.push_notification is None:
             return GetTaskPushNotificationResponse(
                 result=None,
+                error=PushNotificationNotSupportedError(),
             )
         return GetTaskPushNotificationResponse(
             result=TaskPushNotificationConfig(

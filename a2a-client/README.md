@@ -1,77 +1,42 @@
-# A2A API Client
 
-This is a React + TypeScript client application for testing the Agent-to-Agent (A2A) protocol implementation. It provides a simple UI to interact with an A2A-compatible server.
+## 🖥️ Elkar A2A Client
 
-## Features
+The Elkar A2A client is a React + TypeScript application for testing and interacting with A2A-compatible servers.
 
-- Configure server URL and API key
-- Send messages to an A2A agent
-- View task status and response
+### 🔧 Features
+- Configure server URL (authentication coming soon)
+- Send/Debug messages to A2A Servers
+- Evaluate all A2A methods
+- View task status and responses
 - Get task details by ID
-- Cancel tasks
-- Display artifacts returned by the agent
+- Display artifacts returned by agents
+- Task management
 
-## Getting Started
 
-### Prerequisites
 
-- Node.js 16+
-- npm or yarn
 
-### Installation
+### 🚀 Getting Started
 
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd a2a-client
-```
-
-2. Install dependencies:
+1. **Install dependencies**
 ```bash
 npm install
 ```
 
-3. Start the development server:
+2. **Start the development server**
 ```bash
 npm run dev
 ```
 
-4. Open your browser and navigate to `http://localhost:5173` (or the URL shown in your terminal)
+3. **Open your browser** at `http://localhost:5173`
 
-## Usage
+### 📚 Usage
+- Configure your A2A server URL and API key
+- Send tasks and messages to agents
+- Monitor task status and responses
+- Manage task history and artifacts
 
-1. Configure the API:
-   - Enter your A2A server URL (default: http://localhost:8000)
-   - Enter your API key if required
+### 🚧 Coming soon
+- Authentication
+- Host agents for real case testing (i.e. an agent that communicates with one or more other agents via the A2A protocol)
+- Push notifications
 
-2. Send a Task:
-   - Type your message in the text area
-   - Click "Send Task"
-
-3. Get Task Details:
-   - Enter a task ID
-   - Click "Get Task" to view the details
-
-4. Cancel a Task:
-   - Enter a task ID
-   - Click "Cancel Task"
-
-## Development
-
-### Available Scripts
-
-- `npm run dev` - Start the development server
-- `npm run build` - Build the application for production
-- `npm run lint` - Run ESLint
-- `npm run preview` - Preview the production build locally
-
-### Project Structure
-
-- `src/types/a2aTypes.ts` - TypeScript definitions for A2A protocol
-- `src/services/a2aClient.ts` - Client service for interacting with A2A server
-- `src/App.tsx` - Main application component
-- `src/App.css` - Styling for the application
-
-## License
-
-MIT

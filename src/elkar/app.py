@@ -1,9 +1,6 @@
 import asyncio
-import logging
 from typing import AsyncIterable
 from elkar.a2a_types import *
-import colorlog
-from elkar.task_queue.in_memory import InMemoryTaskEventQueue
 from elkar.server.server import A2AServer
 from elkar.store.base import TaskManagerStore
 from elkar.task_manager.task_manager_base import RequestContext
@@ -11,28 +8,7 @@ from elkar.task_manager.task_manager_with_store import (
     TaskManagerWithStore,
     TaskSendOutput,
 )
-from elkar.store.in_memory import InMemoryTaskManagerStore
 
-store = InMemoryTaskManagerStore()
-
-handler = colorlog.StreamHandler()
-handler.setFormatter(
-    colorlog.ColoredFormatter(
-        "%(log_color)s%(levelname)s%(reset)s - %(asctime)s - %(name)s - %(funcName)s - %(pathname)s:%(lineno)d - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-        log_colors={
-            "DEBUG": "cyan",
-            "INFO": "green",
-            "WARNING": "yellow",
-            "ERROR": "red",
-            "CRITICAL": "red,bg_white",
-        },
-    )
-)
-
-logger = logging.getLogger()
-logger.addHandler(handler)
-logger.setLevel(logging.DEBUG)
 
 agent_card = AgentCard(
     name="Test Agent",
@@ -46,8 +22,6 @@ agent_card = AgentCard(
         stateTransitionHistory=True,
     ),
 )
-
-queue = InMemoryTaskEventQueue()
 
 
 async def send_task(
@@ -161,10 +135,8 @@ async def send_task_streaming(
     )
 
 
-task_manager = TaskManagerWithStore(
-    store,
+task_manager: TaskManagerWithStore = TaskManagerWithStore(
     agent_card,
-    queue,
     send_task_handler=send_task,
     send_task_streaming_handler=send_task_streaming,
 )

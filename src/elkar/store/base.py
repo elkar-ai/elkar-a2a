@@ -72,7 +72,7 @@ class TaskManagerStore(Protocol):
         task_id: str,
         history_length: int | None = None,
         caller_id: str | None = None,
-    ) -> StoredTask:
+    ) -> StoredTask | None:
         """
         Get the task with the following rules:
         - If history_length is provided, return the last N messages

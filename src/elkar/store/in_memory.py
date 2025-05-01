@@ -43,12 +43,8 @@ class InMemoryTaskManagerStore(TaskManagerStore):
                     )
                 if task.task.history is None:
                     task.task.history = []
+
                 task.task.history.append(params.message)
-                task.task.status = TaskStatus(
-                    state=TaskState.SUBMITTED,
-                    message=None,
-                    timestamp=datetime.now(),
-                )
                 task.updated_at = datetime.now()
                 return task
             self.tasks[params.id] = StoredTask(
@@ -77,11 +73,9 @@ class InMemoryTaskManagerStore(TaskManagerStore):
         task_id: str,
         history_length: int | None = None,
         caller_id: str | None = None,
-    ) -> StoredTask:
+    ) -> StoredTask | None:
         async with self.lock:
-            if task_id not in self.tasks:
-                raise ValueError(f"Task {task_id} does not exist")
-            return self.tasks[task_id]
+            return self.tasks.get(task_id)
 
     async def update_task(self, task_id: str, params: UpdateTaskParams) -> StoredTask:
         async with self.lock:
@@ -95,6 +89,10 @@ class InMemoryTaskManagerStore(TaskManagerStore):
                     )
             if params.status is not None:
                 mutable_task.status = params.status
+                if mutable_task.history is None:
+                    mutable_task.history = []
+                if params.status.message is not None:
+                    mutable_task.history.append(params.status.message)
             if params.new_messages is not None:
                 if mutable_task.history is None:
                     mutable_task.history = []
