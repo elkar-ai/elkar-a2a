@@ -1,15 +1,23 @@
 # Elkar
 
 
-**The open-source protocol for sending, tracking, and orchestrating tasks across AI agents** — based on Google's Agent2Agent Protocol (A2A).
+**Elkar is an open-source task manager for AI agents — based on Google's Agent2Agent Protocol (A2A).
+
+🎯 **Send, track, and orchestrate tasks** across AI agents — effortlessly.
 
 [Website](http://www.elkar.co) &nbsp;&nbsp;&nbsp; [💬 Discord](https://discord.gg/f5Znhcvm) &nbsp;&nbsp;&nbsp; [Open Issues](https://github.com/elkar-ai/elkar/issues) &nbsp;&nbsp;&nbsp; [Open PRs](https://github.com/elkar-ai/elkar/pulls)
 
 ## ✨ What is Elkar? 
 
-Elkar is an open-source task manager for **AI agents** based on the A2A protocol.  Elkar provides a Python package to build and connect AI agents and a UI client to manage tasks and their history in a web interface (see in [a2a-client](https://github.com/elkar-ai/elkar/tree/main/a2a-client)).
+Elkar helps developers build collaborative, autonomous multi-agent systems without the complexity of managing infrastructure.
 
-Built on Google’s A2A Protocol, Elkar simplifies agent orchestration so developers can focus on building collaborative and autonomous multi-agent systems — not infrastructure. No more silos. 
+It provides:
+- A Python package to build and connect AI agents using the A2A protocol.
+- A web-based UI to monitor, manage, and track task history between agents (see in [a2a-client](https://github.com/elkar-ai/elkar/tree/main/a2a-client)).
+
+By simplifying agent orchestration, Elkar eliminates silos and lets you focus on what matters: making your agents work together.
+
+
 
 ## 🔧 What can you do with Elkar?
 Collaborate across teams or tech stacks — even outside your org.
