@@ -1,7 +1,7 @@
 # Elkar
 
 
-**Elkar is an open-source task manager for AI agents — based on Google's Agent2Agent Protocol (A2A).
+**Elkar is an open-source task-management layer for AI agents** — based on Google's Agent2Agent Protocol (A2A).
 
 🎯 **Send, track, and orchestrate tasks** across AI agents — effortlessly.
 
