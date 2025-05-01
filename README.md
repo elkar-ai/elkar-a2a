@@ -1,9 +1,7 @@
 # Elkar
-
-
 **Elkar is an open-source task-management layer for AI agents** — based on Google's Agent2Agent Protocol (A2A).
 
-🎯 **Send, track, and orchestrate tasks** across AI agents — effortlessly.
+**Send, track, and orchestrate tasks** across AI agents — effortlessly.
 
 [Website](http://www.elkar.co) &nbsp;&nbsp;&nbsp; [💬 Discord](https://discord.gg/f5Znhcvm) &nbsp;&nbsp;&nbsp; [Open Issues](https://github.com/elkar-ai/elkar/issues) &nbsp;&nbsp;&nbsp; [Open PRs](https://github.com/elkar-ai/elkar/pulls)
 
@@ -11,21 +9,24 @@
 
 Elkar helps developers build collaborative, autonomous multi-agent systems without the complexity of managing infrastructure.
 
-It provides:
-- A Python package to build and connect AI agents using the A2A protocol.
-- A web-based UI to monitor, manage, and track task history between agents (see in [a2a-client](https://github.com/elkar-ai/elkar/tree/main/a2a-client)).
+Elkar provides:
+- 🐍 A Python package to build and connect AI agents using the A2A protocol.
+- 🖥️ A web-based UI to manage tasks, history, and agent interactions (see in [a2a-client](https://github.com/elkar-ai/elkar/tree/main/a2a-client)).
 
 By simplifying agent orchestration, Elkar eliminates silos and lets you focus on what matters: making your agents work together.
 
+Whether you’re debugging agent behaviors or streaming tasks — Elkar makes it easy.
 
 
 ## 🔧 What can you do with Elkar?
 Collaborate across teams or tech stacks — even outside your org.
 Use it to:
-- **Track and manage long-running tasks** synchronously or asynchronously
-- **Task debugging** with history and artifacts
+- **Track and manage long-running tasks** (sync or async)
+- **Debug agent tasks** with full history and artifacts
 - **Stream tasks** between agents in real-time
 - **Browse and manage task history** for observability and debugging
+- **Collaborate** across teams, tech stacks — or even organizations
+
 
 **Disclaimer:** This project is still in early development.
 
@@ -45,7 +46,6 @@ The Python package provides a simple implementation of the A2A protocol for buil
 - Built-in and simplified task management with queue and store
 - Support for streaming responses 
 - Custom authentication via `RequestContext`
-
 
 
 ### Basic Usage
@@ -161,38 +161,31 @@ await task.add_messages_to_history(
 
 
 ### 📚 Roadmap
-- Documentation
+- Full Documentation
 - Task stores:
-    - Hosted Task store
-    - PostgreSQL Task store
-    - Redis Task store
+    - PostgreSQL, Redis, Hosted
 - Task queues:
-    - Hosted Task Queue
-    - PostgreSQL Task Queue
-    - Redis Task Queue
-- Tests 
-- Code samples
+    - PostgreSQL, Redis, Hosted
+- More tests and code samples
 - Push notifications
 - Task history search
 - Tasks MCP (Model Context Protocol) for task management for agents
 
-
 ## 💬 Community
-Join our [Discord server](https://discord.gg/f5Znhcvm)
+Join our [Discord server](https://discord.gg/f5Znhcvm)to get help, share ideas, and get updates
 
 ## 🤝 Contribute
-We ❤️ feedback, issues, PRs, and ideas!
-Open a [pull request](https://github.com/elkar-ai/elkar/pulls), and we'll review it as soon as possible.
 
-We ❤️ feedback, issues, PRs, and ideas! Here's how you can help:
+We ❤️ feedback, PRs, and ideas! Here's how to help:
 
-Join our [Discord server](https://discord.gg/f5Znhcvm) to ask questions, share ideas, and get updates
-- If you find Elkar useful, a GitHub ⭐️ would mean a lot! — it helps others discover the project and join the journey!
+- If you find Elkar useful, a GitHub ⭐️ would mean a lot! — it helps to support the project!
 - Report bugs or request features via [issues](https://github.com/elkar-ai/elkar/issues).
-- Build something with Elkar — and show it [here](https://discord.com/channels/1366517666054934589/1366528135730040862)! 
-- Open a [pull request](https://github.com/elkar-ai/elkar/pulls), and we'll review it as soon as possible.
+- Show off what you’ve built with Elkar [here](https://discord.com/channels/1366517666054934589/1366528135730040862)! 
+- Submit [pull requests](https://github.com/elkar-ai/elkar/pulls), and we'll review it as soon as possible.
 
+##  🙌 Thanks
+Elkar is powered by community collaboration and inspired by Google’s A2A protocol.
 
-
+Join us in building a better ecosystem for AI agent workflows.
 
 
