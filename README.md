@@ -93,14 +93,18 @@ npm run dev
 - Monitor task status and responses
 - Manage task history and artifacts
 
-## Community
-Join our [Discord server](https://discord.gg/f5Znhcvm)
 
 ## Contribute
-We ❤️ feedback, issues, PRs, and ideas!
-Open a [pull request](https://github.com/elkar-ai/elkar/pulls), and we'll review it as soon as possible.
 
-If you find Elkar useful, a GitHub ⭐️ would mean a lot!
-It helps more people discover the project and join the journey! 
+We ❤️ feedback, issues, PRs, and ideas! Here's how you can help:
+
+Join our [Discord server](https://discord.gg/f5Znhcvm) to ask questions, share ideas, and get updates
+- If you find Elkar useful, a GitHub ⭐️ would mean a lot! — it helps others discover the project and join the journey!
+- Report bugs or request features via [issues](https://github.com/elkar-ai/elkar/issues).
+- Build something with Elkar — and show it [here](https://discord.com/channels/1366517666054934589/1366528135730040862)! 
+- Open a [pull request](https://github.com/elkar-ai/elkar/pulls), and we'll review it as soon as possible.
+
+
+
 
 
