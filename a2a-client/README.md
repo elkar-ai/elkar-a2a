@@ -3,11 +3,13 @@
 
 The Elkar A2A client is a React + TypeScript application for testing and interacting with A2A-compatible servers.
 
+![Elkar A2A Client](../images/ui.png)
+
+
 ### 🔧 Features
 - Configure server URL (authentication coming soon)
-- Send/Debug messages to A2A Servers
-- Evaluate all A2A methods
-- View task status and responses
+- Send/Debug messages to A2A Servers with/without streaming
+- Debug task status and responses
 - Get task details by ID
 - Display artifacts returned by agents
 - Task management
@@ -39,4 +41,5 @@ npm run dev
 - Authentication
 - Host agents for real case testing (i.e. an agent that communicates with one or more other agents via the A2A protocol)
 - Push notifications
+- Resubscribe to tasks
 
