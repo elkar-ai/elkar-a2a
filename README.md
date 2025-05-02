@@ -172,7 +172,7 @@ await task.add_messages_to_history(
 - Tasks MCP (Model Context Protocol) for task management for agents
 
 ## 💬 Community
-Join our [Discord server](https://discord.gg/f5Znhcvm)to get help, share ideas, and get updates
+Join our [Discord server](https://discord.gg/f5Znhcvm) to get help, share ideas, and get updates
 
 ## 🤝 Contribute
 
