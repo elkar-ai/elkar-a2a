@@ -43,7 +43,7 @@ from elkar.a2a_types import (
 )
 
 
-from elkar.common import ListTasksRequest, PaginatedResponse, TaskResponse
+from elkar.common import ListTasksRequest, PaginatedResponse
 from elkar.store.in_memory import InMemoryTaskManagerStore
 from elkar.task_queue.base import TaskEvent, TaskEventManager
 from elkar.store.base import (
@@ -159,6 +159,7 @@ class TaskManagerWithStore[T: TaskManagerStore, Q: TaskEventManager](TaskManager
             caller_id=(
                 request_context.caller_id if request_context is not None else None
             ),
+            is_streaming=False,
         )
         try:
             task_response = await self._send_task_handler(
@@ -218,7 +219,9 @@ class TaskManagerWithStore[T: TaskManagerStore, Q: TaskEventManager](TaskManager
                 raise ValueError("send_task_streaming_handler is not set")
 
             # Convert the awaitable AsyncIterable to an actual AsyncIterable
-            stored_task = await self.store.upsert_task(request.params)
+            stored_task = await self.store.upsert_task(
+                request.params, is_streaming=True
+            )
 
             current_task = stored_task.task
             async for response in self._send_task_streaming_handler(
@@ -438,29 +441,6 @@ class TaskManagerWithStore[T: TaskManagerStore, Q: TaskEventManager](TaskManager
             if task.caller_id != request_context.caller_id:
                 return TaskNotFoundError()
         return None
-
-    async def list_tasks(
-        self, request: ListTasksRequest
-    ) -> PaginatedResponse[TaskResponse]:
-        params = ListTasksParams()
-
-        tasks = await self.store.list_tasks(params)
-        tasks_response = PaginatedResponse[TaskResponse](
-            items=[
-                TaskResponse(
-                    id=task.id,
-                    state=task.task.status.state,
-                    task=task.task,
-                    notification=task.push_notification,
-                    caller_id=task.caller_id,
-                    created_at=task.created_at,
-                    updated_at=task.updated_at,
-                )
-                for task in tasks.items
-            ],
-            pagination=tasks.pagination,
-        )
-        return tasks_response
 
     async def dequeue_task_events(
         self, request_id: int | str | None, task_id: str, subscriber_identifier: str

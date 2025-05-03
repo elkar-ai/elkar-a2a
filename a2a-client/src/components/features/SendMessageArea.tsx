@@ -6,25 +6,19 @@ import {
   TextPart,
 } from "../../types/a2aTypes";
 import { Dispatch, SetStateAction, useRef, useState } from "react";
-import styled, { useTheme } from "styled-components";
+import styled from "styled-components";
 import { IoMdClose } from "react-icons/io";
 import { ImAttachment } from "react-icons/im";
 
 const PanelContainer = styled.div`
   display: flex;
   flex-direction: column;
-
-  gap: 0.5rem;
-  background-color: ${({ theme }) => theme.colors.background};
-  border-top: 1px solid ${({ theme }) => theme.colors.border};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  margin: 3px;
+  gap: ${({ theme }) => theme.spacing.sm};
   background-color: ${({ theme }) => theme.colors.surface};
-  color: ${({ theme }) => theme.colors.text};
   border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: 0.75rem;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
-  padding: 0.5rem;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  padding: ${({ theme }) => theme.spacing.md};
+  box-shadow: ${({ theme }) => theme.shadows.sm};
 `;
 
 const TextArea = styled.textarea`
@@ -33,32 +27,54 @@ const TextArea = styled.textarea`
   max-height: 200px;
   resize: none;
   font-family: inherit;
-  font-size: 1rem;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
   line-height: 1.5;
+  padding: ${({ theme }) => theme.spacing.sm};
+  background-color: ${({ theme }) => theme.colors.background};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  color: ${({ theme }) => theme.colors.text};
+  transition: all 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary}20;
+  }
+
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.textSecondary};
+  }
 `;
 
 const Button = styled.button`
   background-color: ${({ theme }) => theme.colors.primary};
-  color: white;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  width: 28px;
-  height: 28px;
+  color: ${({ theme }) => theme.colors.text};
+  padding: ${({ theme }) => theme.spacing.sm};
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-
   cursor: pointer;
   transition: all 0.2s ease;
-  opacity: 0.8;
+  border: none;
+  font-weight: 500;
 
   &:hover {
-    opacity: 1;
+    background-color: ${({ theme }) => theme.colors.secondary};
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    transform: none;
   }
 
   &::before {
@@ -67,191 +83,203 @@ const Button = styled.button`
   }
 `;
 
-const UploadButton = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: ${({ theme }) => theme.colors.background};
-  color: white;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
+const AttachmentButton = styled.button`
+  background: none;
+  border: none;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  padding: ${({ theme }) => theme.spacing.sm};
   cursor: pointer;
   transition: all 0.2s ease;
-  opacity: 0.8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
 
   &:hover {
-    opacity: 1;
+    color: ${({ theme }) => theme.colors.text};
+    background-color: ${({ theme }) => theme.colors.surface};
   }
 
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  svg {
+    width: 20px;
+    height: 20px;
   }
 `;
 
-export function SendMessageArea({
+const FileList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.sm};
+  margin-bottom: ${({ theme }) => theme.spacing.sm};
+`;
+
+const FilePreview = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+  padding: ${({ theme }) => theme.spacing.sm};
+  background-color: ${({ theme }) => theme.colors.background};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+`;
+
+const FileName = styled.span`
+  color: ${({ theme }) => theme.colors.text};
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const RemoveButton = styled.button`
+  background: none;
+  border: none;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  padding: ${({ theme }) => theme.spacing.xs};
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.error};
+    background-color: ${({ theme }) => theme.colors.surface};
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+`;
+
+const InputContainer = styled.div`
+  display: flex;
+  gap: ${({ theme }) => theme.spacing.sm};
+  align-items: flex-end;
+`;
+
+interface SendMessageAreaProps {
+  taskId: string | null;
+  sessionId: string | null;
+  sendTaskMutation: UseMutationResult<
+    Message | undefined,
+    Error,
+    TaskSendParams,
+    unknown
+  >;
+  setMessages: Dispatch<SetStateAction<Message[]>>;
+}
+
+export const SendMessageArea: React.FC<SendMessageAreaProps> = ({
   taskId,
   sessionId,
   sendTaskMutation,
   setMessages,
-}: {
-  taskId: string;
-  sessionId: string | null;
-  sendTaskMutation: UseMutationResult<any, Error, TaskSendParams>;
-  setMessages: Dispatch<SetStateAction<Message[]>>;
-}) {
-  const theme = useTheme();
-  const [textPart, setTextPart] = useState<TextPart>({
-    type: "text",
-    text: "",
-  });
-
-  const [fileParts, setFileParts] = useState<FilePart[]>([]);
+}) => {
+  const [message, setMessage] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const message = {
-    role: "user",
-    parts: [textPart, ...fileParts],
+
+  const handleSend = () => {
+    if (!taskId) return;
+
+    const parts: (TextPart | FilePart)[] = [];
+    if (message) {
+      parts.push({ type: "text", text: message });
+    }
+    files.forEach((file) => {
+      parts.push({
+        type: "file",
+        file: {
+          name: file.name,
+          mimeType: file.type,
+          uri: URL.createObjectURL(file),
+        },
+      });
+    });
+
+    if (parts.length === 0) return;
+
+    sendTaskMutation.mutate(
+      {
+        id: taskId,
+        sessionId: sessionId ?? "",
+        message: { role: "user", parts },
+      },
+      {
+        onSuccess: (data) => {
+          if (data) {
+            setMessages((prev) => [...prev, data]);
+          }
+          setMessage("");
+          setFiles([]);
+        },
+      }
+    );
   };
 
-  const TaskSendParams: TaskSendParams = {
-    id: taskId,
-    sessionId: sessionId ?? "",
-    message: message as Message,
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      const newFileParts = await Promise.all(
-        Array.from(files).map(async (file) => {
-          const bytes = await file.arrayBuffer();
-          const uint8Array = new Uint8Array(bytes);
-          const base64String = btoa(
-            String.fromCharCode.apply(null, Array.from(uint8Array))
-          );
-          return {
-            type: "file" as const,
-            file: {
-              name: file.name,
-              mimeType: file.type,
-              bytes: base64String,
-            },
-          };
-        })
-      );
-      setFileParts((prev) => [...prev, ...newFileParts]);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    if (selectedFiles.length > 0) {
+      setFiles((prev) => [...prev, ...selectedFiles]);
     }
   };
 
-  const handleUploadClick = () => {
-    fileInputRef.current?.click();
+  const handleRemoveFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
   };
 
   return (
     <PanelContainer>
-      {fileParts.length > 0 && (
-        <div style={{ display: "flex", flexDirection: "row", gap: "0.5rem" }}>
-          {fileParts.map((filePart) => {
-            return (
-              <FilePartInInputArea
-                key={filePart.file.name}
-                filePart={filePart}
-                canRemove={true}
-                onRemove={() => {
-                  setFileParts(fileParts.filter((f) => f !== filePart));
-                }}
-              />
-            );
-          })}
-        </div>
+      {files.length > 0 && (
+        <FileList>
+          {files.map((file, index) => (
+            <FilePreview key={index}>
+              <FileName>{file.name}</FileName>
+              <RemoveButton onClick={() => handleRemoveFile(index)}>
+                <IoMdClose />
+              </RemoveButton>
+            </FilePreview>
+          ))}
+        </FileList>
       )}
-      <TextArea
-        value={textPart.text}
-        onChange={(e) => {
-          setTextPart({ ...textPart, text: e.target.value });
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.ctrlKey && !e.shiftKey && !e.metaKey) {
-            e.preventDefault();
-            sendTaskMutation.mutate(TaskSendParams);
-            setMessages((prev) => [...prev, message as Message]);
-            setTextPart({ ...textPart, text: "" });
-            setFileParts([]);
-          }
-        }}
-        placeholder="Message"
-        disabled={false}
-      />
-
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          style={{ display: "none" }}
-          multiple
+      <InputContainer>
+        <TextArea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyPress={handleKeyPress}
+          placeholder="Type your message..."
         />
-        <UploadButton onClick={handleUploadClick}>
-          <ImAttachment color={theme.colors.text} />
-        </UploadButton>
+        <AttachmentButton
+          onClick={() => fileInputRef.current?.click()}
+          title="Attach files"
+        >
+          <ImAttachment />
+        </AttachmentButton>
         <Button
-          onClick={() => {
-            sendTaskMutation.mutate(TaskSendParams);
-            setMessages((prev) => [...prev, message as Message]);
-            setTextPart({ ...textPart, text: "" });
-            setFileParts([]);
-          }}
-          disabled={sendTaskMutation.isPending}
+          onClick={handleSend}
+          disabled={
+            (!message && files.length === 0) || sendTaskMutation.isPending
+          }
         />
-      </div>
+      </InputContainer>
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        style={{ display: "none" }}
+        multiple
+      />
     </PanelContainer>
-  );
-}
-
-const FilePartContainer = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  width: fit-content;
-  font-size: 0.8rem;
-  gap: 0.5rem;
-  background-color: ${({ theme }) => theme.colors.background};
-  border-radius: 0.05rem;
-  padding-left: 0.3rem;
-  padding-right: 0.3rem;
-  padding-top: 0.1rem;
-  padding-bottom: 0.1rem;
-  border: 1px solid ${({ theme }) => theme.colors.border};
-`;
-
-const FilePartInInputArea = ({
-  filePart,
-  canRemove = true,
-  onRemove,
-}: {
-  filePart: FilePart;
-  canRemove: boolean;
-  onRemove: () => void;
-}) => {
-  const theme = useTheme();
-  return (
-    <FilePartContainer>
-      <div>{filePart.file.name}</div>
-      {canRemove && (
-        <IoMdClose
-          style={{ cursor: "pointer" }}
-          color={theme.colors.error}
-          onClick={() => {
-            onRemove();
-          }}
-        />
-      )}
-    </FilePartContainer>
   );
 };

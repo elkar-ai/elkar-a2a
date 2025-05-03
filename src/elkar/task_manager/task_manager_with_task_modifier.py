@@ -45,7 +45,7 @@ from elkar.a2a_types import (
 )
 
 
-from elkar.common import ListTasksRequest, PaginatedResponse, TaskResponse
+from elkar.common import ListTasksRequest, PaginatedResponse
 from elkar.store.in_memory import InMemoryTaskManagerStore
 
 from elkar.task_modifier.base import TaskModifierBase
@@ -141,6 +141,7 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
         params: TaskSendParams,
         request_context: RequestContext | None,
         with_queue: bool = False,
+        is_streaming: bool = False,
     ) -> TaskModifier[S, Q] | SendTaskResponse:
         if self._send_task_handler is None:
             raise ValueError("send_task_handler is not set")
@@ -160,6 +161,7 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
                 caller_id=(
                     request_context.caller_id if request_context is not None else None
                 ),
+                is_streaming=is_streaming,
             )
         task_modifier: TaskModifier[S, Q] = TaskModifier(
             task=stored_task.task,
@@ -373,29 +375,6 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
             if task.caller_id != request_context.caller_id:
                 return TaskNotFoundError()
         return None
-
-    async def list_tasks(
-        self, request: ListTasksRequest
-    ) -> PaginatedResponse[TaskResponse]:
-        params = ListTasksParams()
-
-        tasks = await self.store.list_tasks(params)
-        tasks_response = PaginatedResponse[TaskResponse](
-            items=[
-                TaskResponse(
-                    id=task.id,
-                    state=task.task.status.state,
-                    task=task.task,
-                    notification=task.push_notification,
-                    caller_id=task.caller_id,
-                    created_at=task.created_at,
-                    updated_at=task.updated_at,
-                )
-                for task in tasks.items
-            ],
-            pagination=tasks.pagination,
-        )
-        return tasks_response
 
     async def dequeue_task_events(
         self, request_id: int | str | None, task_id: str, subscriber_identifier: str

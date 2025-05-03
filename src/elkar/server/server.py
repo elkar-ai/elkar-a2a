@@ -53,24 +53,6 @@ class A2AServer[T: TaskManager]:
             methods=["GET", "OPTIONS"],
         )
 
-        self.app.add_route(
-            "/tasks/list",
-            self._list_tasks,
-            methods=["GET", "OPTIONS"],
-        )
-
-    async def _list_tasks(self, request: Request) -> Response:
-        if request.method == "OPTIONS":
-            return Response(status_code=200)
-        # query_params = request.query_params
-        # page = query_params.get("page", 1)
-        # page_size = query_params.get("page_size", 10)
-        # page = int(page)
-        list_tasks_request = ListTasksRequest()
-        tasks = await self.task_manager.list_tasks(list_tasks_request)
-        tasks_response = tasks.model_dump_json(exclude_none=True)
-        return JSONResponse(json.loads(tasks_response))
-
     def start(self) -> None:
 
         if self.task_manager is None:

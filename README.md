@@ -11,7 +11,7 @@ Elkar helps developers build collaborative, autonomous multi-agent systems witho
 
 Elkar provides:
 - 🐍 A Python package to build and connect AI agents using the A2A protocol.
-- 🖥️ A web-based UI to manage tasks, history, and agent interactions (see in [a2a-client](https://github.com/elkar-ai/elkar/tree/main/a2a-client)).
+- 🖥️ A web-based UI to manage/debug tasks, history, and agent interactions (see in [a2a-client](https://github.com/elkar-ai/elkar/tree/main/a2a-client)).
 
 By simplifying agent orchestration, Elkar eliminates silos and lets you focus on what matters: making your agents work together.
 
@@ -19,7 +19,7 @@ Whether you’re debugging agent behaviors or streaming tasks — Elkar makes it
 
 
 ## 🔧 What can you do with Elkar?
-Collaborate across teams or tech stacks — even outside your org.
+Make your agents work together — even outside your org.
 Use it to:
 - **Track and manage long-running tasks** (sync or async)
 - **Debug agent tasks** with full history and artifacts
@@ -126,9 +126,11 @@ server.start()
 
 ### Supported task updates
 
-1. **Status update**
 
-It describes the state of the task and the agent's progress. If there is a message in the status, it will be appended to the task's history.
+1. **Status Update**
+
+Describes the state of the task and the agent's progress. Messages in the status are appended to the task's history.
+
 ```python
 await task.set_status(
     TaskStatus(
@@ -138,19 +140,20 @@ await task.set_status(
 )
 ```
 
+2. **Artifact Update**
 
-2. **Artifact update**  
+Artifacts represent the result of the task. Indices are used to identify artifacts within a task. Updates append to existing artifacts if the index matches and the chunk is not the last one.
 
-Artifacts are the result of the task. Note that indices are important: they are used to identify the artifact in the task. An update works as an append operation: if an artifact with the same index already exists, it will be appended to the existing artifact if the chunk is not the last one.
 ```python
 await task.upsert_artifact(
     Artifact(parts=[TextPart(text="I've finished the task!")], index=0)
 )
 ```
 
-3. **Append messages to history**
+3. **Append Messages to History**
 
-It is used to store relevant information as thoughts or past communications on the task.
+Stores relevant information, such as thoughts or past communications, related to the task. ([elkarbackup/elkarbackup-docker - GitHub](https://github.com/elkarbackup/elkarbackup-docker?utm_source=chatgpt.com))
+
 ```python
 await task.add_messages_to_history(
     [Message(parts=[TextPart(text="I'm working on the task...")])]
@@ -166,10 +169,10 @@ await task.add_messages_to_history(
     - PostgreSQL, Redis, Hosted
 - Task queues:
     - PostgreSQL, Redis, Hosted
-- More tests and code samples
-- Push notifications
-- Task history search
-- Tasks MCP (Model Context Protocol) for task management for agents
+- Tests and code samples
+- Push notifications support
+- Task history search functionality
+- Integration with Model Context Protocol (MCP) for enhanced task management.
 
 ## 💬 Community
 Join our [Discord server](https://discord.gg/f5Znhcvm)to get help, share ideas, and get updates

@@ -12,13 +12,14 @@ const GlobalStyle = createGlobalStyle`
   html, body {
     height: 100%;
     min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-      Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
     color: ${({ theme }) => theme.colors.text};
-    line-height: 1.6;
+    line-height: 1.5;
     background-color: ${({ theme }) => theme.colors.background};
     overflow-x: hidden;
   }
@@ -32,16 +33,18 @@ const GlobalStyle = createGlobalStyle`
     font-weight: 600;
     line-height: 1.2;
     margin-bottom: 0.5em;
+    color: ${({ theme }) => theme.colors.text};
   }
 
   p {
     margin-bottom: 1em;
+    color: ${({ theme }) => theme.colors.textSecondary};
   }
 
   a {
     color: ${({ theme }) => theme.colors.primary};
     text-decoration: none;
-    transition: color 0.2s ease;
+    transition: all 0.2s ease;
 
     &:hover {
       color: ${({ theme }) => theme.colors.secondary};
@@ -54,17 +57,49 @@ const GlobalStyle = createGlobalStyle`
     outline: none;
   }
 
+  button {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  input, textarea {
+    background-color: ${({ theme }) => theme.colors.surface};
+    border: 1px solid ${({ theme }) => theme.colors.border};
+    border-radius: ${({ theme }) => theme.borderRadius.sm};
+    padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) =>
+  theme.spacing.md};
+    color: ${({ theme }) => theme.colors.text};
+    transition: all 0.2s ease;
+
+    &:focus {
+      border-color: ${({ theme }) => theme.colors.primary};
+      box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary}20;
+    }
+
+    &::placeholder {
+      color: ${({ theme }) => theme.colors.textSecondary};
+    }
+  }
 
   pre {
-    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-family: "Fira Code", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    background-color: ${({ theme }) => theme.colors.surface};
+    padding: ${({ theme }) => theme.spacing.md};
+    border-radius: ${({ theme }) => theme.borderRadius.sm};
+    overflow-x: auto;
   }
 
   ::selection {
-    background-color: ${({ theme }) => theme.colors.primary};
-    color: white;
+    background-color: ${({ theme }) => theme.colors.primary}40;
+    color: ${({ theme }) => theme.colors.text};
   }
 
-  /* Make scrollbars more modern */
+  /* Modern scrollbar styling */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -72,15 +107,17 @@ const GlobalStyle = createGlobalStyle`
 
   ::-webkit-scrollbar-track {
     background: ${({ theme }) => theme.colors.surface};
+    border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb {
     background: ${({ theme }) => theme.colors.border};
     border-radius: 4px;
+    transition: all 0.2s ease;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: ${({ theme }) => theme.colors.secondary};
+    background: ${({ theme }) => theme.colors.textSecondary};
   }
 `;
 

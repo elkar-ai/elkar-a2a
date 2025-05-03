@@ -70,15 +70,18 @@ const StreamingPanelContainer = styled.div`
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.md};
   height: 100%;
+  min-height: 0;
 `;
 
 const StreamingHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: ${({ theme }) => theme.spacing.sm};
+  padding: ${({ theme }) => theme.spacing.md};
   background-color: ${({ theme }) => theme.colors.surface};
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  flex-shrink: 0;
 `;
 
 const StreamingTitle = styled.h3`
@@ -99,9 +102,11 @@ const StreamingContent = styled.div`
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.sm};
   overflow-y: auto;
-  padding: ${({ theme }) => theme.spacing.sm};
+  padding: ${({ theme }) => theme.spacing.md};
   background-color: ${({ theme }) => theme.colors.background};
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  min-height: 0;
 `;
 
 const renderPart = (part: Part) => {

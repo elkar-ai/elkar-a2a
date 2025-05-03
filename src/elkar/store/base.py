@@ -1,16 +1,23 @@
 from abc import abstractmethod
 from dataclasses import dataclass
+from re import S
 from typing import Protocol
 
 from elkar.a2a_types import *
 from elkar.common import PaginatedResponse
 
 
+class TaskType(str, Enum):
+    OUTGOING = "outgoing"
+    INCOMING = "incoming"
+
+
 @dataclass
 class StoredTask:
     id: str
     caller_id: str | None
-    session_id: str | None
+    task_type: TaskType
+    is_streaming: bool
     task: Task
     push_notification: PushNotificationConfig | None
     created_at: datetime
@@ -41,11 +48,28 @@ class ListTasksParams:
     page_size: int | None = 100
 
 
+@dataclass
+class UpdateStoredTaskClient:
+    state: TaskState
+    task: Task
+    push_notification: PushNotificationConfig | None
+
+
+@dataclass
+class CreateTaskForClientParams:
+    task: Task
+    is_streaming: bool
+    push_notification: PushNotificationConfig | None
+
+
 class TaskManagerStore(Protocol):
 
     @abstractmethod
     async def upsert_task(
-        self, params: TaskSendParams, caller_id: str | None = None
+        self,
+        params: TaskSendParams,
+        is_streaming: bool,
+        caller_id: str | None = None,
     ) -> StoredTask:
         """
         Upsert a task. Should create a new task if it doesn't exist, or update an existing task.
@@ -101,5 +125,24 @@ class TaskManagerStore(Protocol):
         """
         List tasks with the following rules:
         - If caller_id is provided, return the tasks only if the caller_id matches
+        """
+        ...
+
+    @abstractmethod
+    async def update_task_for_client(
+        self, task_id: str, params: UpdateStoredTaskClient
+    ) -> StoredTask:
+        """
+        Update the task for the client with the following rules:
+        - If the task does not exist, raise an error
+        """
+        ...
+
+    @abstractmethod
+    async def create_task_for_client(
+        self, task: CreateTaskForClientParams
+    ) -> StoredTask:
+        """
+        Create a task for the client with the following rules:
         """
         ...
