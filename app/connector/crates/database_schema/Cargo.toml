@@ -1,0 +1,20 @@
+[package]
+name = "database_schema"
+version = "0.1.1"
+edition = "2021"
+
+[dependencies]
+diesel = { git = "https://github.com/breezy-ai/diesel-all.git", branch = "2.2.7-tweaked", features = [
+    "postgres",
+    "chrono",
+    "serde_json",
+    "uuid",
+    "32-column-tables",
+], default-features = false }
+uuid = "*"
+diesel-derive-enum = { version = "*", default-features = false, features = [
+    "postgres",
+] }
+serde = { version = "*", features = ["derive"] }
+serde_json = "*"
+utoipa = { version = "*", features = ["axum_extras", "uuid", "chrono"] }

@@ -1,0 +1,118 @@
+[package]
+name = "elkar-app"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+members = ["crates/*"]
+
+
+[[bin]]
+name = "elkar"
+path = "src/main.rs"
+
+
+[profile.dev]
+opt-level = 0
+debug = false
+overflow-checks = false
+incremental = true
+
+[profile.release]
+debug = true
+strip = "debuginfo"
+split-debuginfo = "packed"
+
+
+[dependencies]
+supabase = { path = "crates/supabase" }
+tower = "*"
+tower-http = { version = "*", features = [
+    "add-extension",
+    "fs",
+    "catch-panic",
+    "timeout",
+    "compression-full",
+    "trace",
+    "cors",
+] }
+chrono = "*"
+serde = { version = "*", features = ["derive"] }
+serde_json = "*"
+tokio = { version = "*", features = ["macros", "rt-multi-thread", "signal"] }
+uuid = { version = "1.4.1", features = ["serde", "v4"] }
+axum = { version = "*", features = ["macros", "matched-path", "multipart"] }
+sea-query = { version = "0.32.1", features = [
+    "attr",
+    "with-uuid",
+    "with-chrono",
+    "postgres-array",
+    "backend-postgres",
+] }
+jsonwebtoken = "*"
+diesel = { git = "https://github.com/breezy-ai/diesel-all.git", features = [
+    "r2d2",
+    "postgres",
+    "chrono",
+    "serde_json",
+    "uuid",
+], branch = "2.2.7-tweaked" }
+secrecy = { version = "*", features = ["serde"] }
+dotenv = "*"
+url = { version = "*" }
+itertools = "*"
+
+serde-querystring = "*"
+anyhow = "*"
+reqwest = { version = "*", default-features = false, features = [
+    "json",
+    "native-tls-vendored",
+] }
+http = "1.0.0"
+tracing = { version = "*", features = ["attributes"] }
+tracing-subscriber = { version = "*", features = ["env-filter"] }
+tokio-util = "*"
+sentry = { version = "*", features = [
+    "backtrace",
+    "debug-images",
+    "tracing",
+    "tower",
+    "tower-axum-matched-path",
+    "tower-http",
+] }
+bytes = "1.5.0"
+diesel_migrations = { git = "https://github.com/breezy-ai/diesel-all.git", branch = "2.2.7-tweaked" }
+lazy_static = "1.4.0"
+async-trait = "0.1.76"
+handlebars = "5.0.0"
+regex = "1.10.4"
+thiserror = "1.0.58"
+utoipa = { version = "*", features = ["axum_extras", "uuid", "chrono"] }
+utoipauto = "0.1.11"
+utoipa-redoc = { version = "4.0.0", features = ["axum"] }
+utoipa-swagger-ui = { version = "9.0.0", features = ["axum"] }
+diesel-async = { version = "0.5.2", features = [
+    "postgres",
+    "deadpool",
+    "async-connection-wrapper",
+] }
+deadpool = "0.12.1"
+tokio-postgres-rustls = "0.12.0"
+rustls = { version = "0.23.12", features = ["ring"] }
+tokio-postgres = "0.7.11"
+rustls-pemfile = "2.1.3"
+database_schema = { path = "crates/database_schema" }
+futures = "*"
+rustls-platform-verifier = "*"
+rustls-pki-types = "*"
+
+[patch.crates-io]
+diesel = { git = "https://github.com/breezy-ai/diesel-all.git", branch = "2.2.7-tweaked" }
+
+
+[dev-dependencies]
+serial_test = "3.1.1"
+rstest = "*"
+insta = { version = "1.36.1", features = ["yaml", "json", "redactions"] }
+base64 = "*"
+tracing-test = "0.2.5"
