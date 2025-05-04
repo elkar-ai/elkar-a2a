@@ -2,6 +2,7 @@ use crate::{
     extensions::{
         errors::{AppResult, ServiceError},
         extractors::user_context::UserContext,
+        pagination::output::UnpaginatedOutput,
     },
     service::tenant::{
         create::{create_tenant, CreateTenantServiceInput as ServiceCreateTenantInput},
@@ -13,18 +14,25 @@ use crate::{
 use axum::{extract::Path, Json};
 use http::StatusCode;
 
+use utoipa_axum::{router::OpenApiRouter, routes};
 use uuid::Uuid;
 
-use super::schemas::{CreateTenantInput, RetrieveTenantsOutput, TenantOutput};
-use axum::routing::{get, post, Router};
+use super::schemas::{CreateTenantInput, TenantOutput};
 
-pub fn tenant_router() -> Router {
-    Router::new()
-        .route("/tenants", post(ep_create_tenant))
-        .route("/tenants", get(ep_retrieve_tenants))
-        .route("/tenants/{id}", get(ep_retrieve_tenant))
+pub fn tenant_router() -> OpenApiRouter {
+    OpenApiRouter::new()
+        .routes(routes!(ep_create_tenant))
+        .routes(routes!(ep_retrieve_tenants))
+        .routes(routes!(ep_retrieve_tenant))
 }
 
+#[utoipa::path(
+    post,
+    path = "/tenants",
+    responses(
+        (status = 200, description = "Tenant created successfully", body = TenantOutput),
+    ),
+)]
 pub async fn ep_create_tenant(
     user_ctx: UserContext,
     Json(create_tenant_input): Json<CreateTenantInput>,
@@ -49,7 +57,16 @@ pub async fn ep_create_tenant(
     Ok(Json(tenant_output))
 }
 
-pub async fn ep_retrieve_tenants(user_ctx: UserContext) -> AppResult<Json<RetrieveTenantsOutput>> {
+#[utoipa::path(
+    get,
+    path = "/tenants",
+    responses(
+        (status = 200, description = "Tenants retrieved successfully", body = UnpaginatedOutput<TenantOutput>),
+    ),
+)]
+pub async fn ep_retrieve_tenants(
+    user_ctx: UserContext,
+) -> AppResult<Json<UnpaginatedOutput<TenantOutput>>> {
     // Ensure the user is authenticated
     let user_id = user_ctx.user_id.ok_or(
         ServiceError::new()
@@ -64,11 +81,18 @@ pub async fn ep_retrieve_tenants(user_ctx: UserContext) -> AppResult<Json<Retrie
         .into_iter()
         .map(TenantOutput::from)
         .collect::<Vec<TenantOutput>>();
-    Ok(Json(RetrieveTenantsOutput {
-        tenants: tenants_output,
+    Ok(Json(UnpaginatedOutput {
+        records: tenants_output,
     }))
 }
 
+#[utoipa::path(
+    get,
+    path = "/tenants/{id}",
+    responses(
+        (status = 200, description = "Tenant retrieved successfully", body = TenantOutput),
+    ),
+)]
 pub async fn ep_retrieve_tenant(
     user_ctx: UserContext,
     Path(id): Path<Uuid>,

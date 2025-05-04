@@ -1,5 +1,6 @@
 use crate::extensions::extractors::user_context::UserContext;
 
+use crate::handler::agent::routes::agent_router;
 use crate::handler::tenant::routes::tenant_router;
 use crate::handler::user::routes::user_router;
 use crate::state::AppState;
@@ -10,6 +11,7 @@ use bytes::Bytes;
 use http::{Request, Response};
 use sentry::integrations::tower as sentry_tower;
 use std::time::Duration;
+use utoipa_axum::router::OpenApiRouter;
 
 use tower_http::body::UnsyncBoxBody;
 use tower_http::catch_panic::CatchPanicLayer;
@@ -19,10 +21,11 @@ use tracing::Span;
 
 use uuid::Uuid;
 
-pub fn build_router() -> axum::Router {
-    axum::Router::new()
+pub fn build_router() -> OpenApiRouter {
+    OpenApiRouter::new()
         .merge(user_router())
         .merge(tenant_router())
+        .merge(agent_router())
 }
 
 type ResponseBody = UnsyncBoxBody<Bytes, Box<(dyn std::error::Error + Send + Sync + 'static)>>;
@@ -52,7 +55,7 @@ pub fn apply_middleware(app_state: AppState, router: axum::Router) -> axum::Rout
     let middleware = tower::ServiceBuilder::new()
         .layer(trace_layer)
         .layer(CatchPanicLayer::custom(|error| {
-            tracing::error!("Panic Error: {:?}", error);
+            tracing::error!(message = "Panic Error", error = ?error);
             Response::builder()
                 .status(http::StatusCode::INTERNAL_SERVER_ERROR)
                 .body(Body::empty())

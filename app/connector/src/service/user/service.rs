@@ -160,23 +160,16 @@ pub async fn register_user(
     user_info: &UserInfo,
     conn: &mut AsyncPgConnection,
 ) -> AppResult<ApplicationUser> {
-    let user = get_application_user_by_id(user_info.supabase_user_id, conn).await?;
-    match user {
-        Some(user) => {
-            if user.status != ApplicationUserStatus::Invited {
-                return Err(ServiceError::new()
-                    .status_code(StatusCode::BAD_REQUEST)
-                    .details("Can not register user".to_string())
-                    .into());
-            }
-        }
-        None => {
-            return Err(ServiceError::new()
-                .status_code(StatusCode::BAD_REQUEST)
-                .details("Can not register user".to_string())
-                .into());
-        }
-    }
+    // let user = get_application_user_by_id(user_info.supabase_user_id, conn).await?;
+    // match user {
+    //     Some(user) => {}
+    //     None => {
+    //         return Err(ServiceError::new()
+    //             .status_code(StatusCode::BAD_REQUEST)
+    //             .details("Can not register user".to_string())
+    //             .into());
+    //     }
+    // }
 
     let application_user_insert_stmt = diesel::insert_into(application_user::table)
         .values(ApplicationUserInput {

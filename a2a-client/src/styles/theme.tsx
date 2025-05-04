@@ -15,6 +15,10 @@ declare module "styled-components" {
       error: string;
       warning: string;
       info: string;
+      white: string;
+      transparent: string;
+      overlay: string;
+      errorLight: string;
     };
     spacing: {
       xs: string;
@@ -40,6 +44,7 @@ declare module "styled-components" {
       md: string;
       lg: string;
     };
+    cursor: string;
   }
 }
 
@@ -56,6 +61,10 @@ export const lightTheme: DefaultTheme = {
     error: "#EF4444",
     warning: "#F59E0B",
     info: "#3B82F6",
+    white: "#FFFFFF",
+    transparent: "transparent",
+    overlay: "rgba(0, 0, 0, 0.5)",
+    errorLight: "rgba(255, 0, 0, 0.05)",
   },
   spacing: {
     xs: "4px",
@@ -81,6 +90,7 @@ export const lightTheme: DefaultTheme = {
     md: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
     lg: "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
   },
+  cursor: "pointer",
 };
 
 export const darkTheme: DefaultTheme = {
@@ -96,6 +106,10 @@ export const darkTheme: DefaultTheme = {
     error: "#EF4444",
     warning: "#F59E0B",
     info: "#3B82F6",
+    white: "#FFFFFF",
+    transparent: "transparent",
+    overlay: "rgba(0, 0, 0, 0.5)",
+    errorLight: "rgba(255, 0, 0, 0.05)",
   },
   spacing: {
     xs: "4px",
@@ -121,6 +135,7 @@ export const darkTheme: DefaultTheme = {
     md: "0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4)",
     lg: "0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4)",
   },
+  cursor: "pointer",
 };
 
 export type Theme = typeof lightTheme;

@@ -1,5 +1,4 @@
 pub mod async_database;
-
 pub mod errors;
 pub mod extractors;
 pub mod filters_common;
@@ -9,6 +8,7 @@ pub mod query_common;
 pub mod sentry;
 pub mod sql_functions;
 pub mod token;
+
 use secrecy::SecretString;
 
 #[derive(Debug, Clone)]

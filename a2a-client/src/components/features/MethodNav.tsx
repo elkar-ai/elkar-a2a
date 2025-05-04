@@ -59,6 +59,10 @@ const MethodNav: React.FC = () => {
         <RiListCheck />
         List Tasks
       </NavLink>
+      <NavLink to="/list-agents" $active={location.pathname === "/list-agents"}>
+        <RiRobot2Line />
+        List Agents
+      </NavLink>
     </NavContainer>
   );
 };

@@ -28,7 +28,7 @@ dependencies = [
     "mcp>=1.7.0",
     "supabase>=2.15.1",
     "pyjwt>=2.10.1",
-
+    "requests>=2.32.3",
 ]
 
 [project.urls]

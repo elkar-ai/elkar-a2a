@@ -27,11 +27,12 @@ impl From<ApplicationUserServiceOutput> for ApplicationUserOutput {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, ToSchema)]
 pub struct IsRegisteredOutput {
     pub is_registered: bool,
 }
-#[derive(Deserialize, Serialize, Debug)]
+
+#[derive(Deserialize, Serialize, Debug, ToSchema)]
 pub struct RegisterUserInput {
     pub first_name: String,
     pub last_name: String,
@@ -46,7 +47,7 @@ pub struct TenantUserOutput {
     pub email: Option<String>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, ToSchema)]
 pub struct InviteUserInput {
     pub email: String,
 }

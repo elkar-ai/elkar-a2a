@@ -9,11 +9,6 @@ pub struct TenantOutput {
     pub name: String,
 }
 
-#[derive(Serialize, Debug, ToSchema)]
-pub struct RetrieveTenantsOutput {
-    pub tenants: Vec<TenantOutput>,
-}
-
 impl From<TenantServiceOutput> for TenantOutput {
     fn from(tenant: TenantServiceOutput) -> Self {
         Self {
@@ -23,7 +18,7 @@ impl From<TenantServiceOutput> for TenantOutput {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, ToSchema)]
 pub struct CreateTenantInput {
     pub name: String,
 }

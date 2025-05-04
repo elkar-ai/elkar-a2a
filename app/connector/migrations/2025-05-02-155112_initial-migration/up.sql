@@ -13,7 +13,7 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
-CREATE OR REPLACE FUNCTION set_updated_at_ontable(_tbl regclass)
+CREATE OR REPLACE FUNCTION set_updated_at_on_table(_tbl regclass)
     RETURNS VOID
     AS $$
 BEGIN

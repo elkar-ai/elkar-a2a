@@ -1,7 +1,12 @@
 use axum::routing::*;
+use elkar_app::api_doc::PrivateApiDoc;
 use elkar_app::extensions::async_database::make_manager_config;
 use elkar_app::extensions::APP_CONFIG;
+use elkar_app::handler::tenant::routes::tenant_router;
+use elkar_app::handler::user::routes::user_router;
 use secrecy::ExposeSecret;
+use utoipa::OpenApi;
+use utoipa_axum::router::OpenApiRouter;
 
 use diesel::{Connection, PgConnection};
 use diesel_migrations::MigrationHarness;
@@ -15,6 +20,7 @@ use elkar_app::{
 
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pooled_connection::AsyncDieselConnectionManager;
+use utoipa_swagger_ui::SwaggerUi;
 
 const EMBEDDED_MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
@@ -65,8 +71,14 @@ fn main() {
         .expect("Failed to install rustls crypto provider");
     // init app
     tracing::info!("Initializing App.");
+    let (router, api): (axum::Router, utoipa::openapi::OpenApi) =
+        OpenApiRouter::with_openapi(PrivateApiDoc::openapi())
+            .merge(build_router())
+            .split_for_parts();
 
-    let app = apply_middleware(app_state, build_router()).route("/health", get(health_check));
+    let app = apply_middleware(app_state, router)
+        .route("/health", get(health_check))
+        .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", api.clone()));
 
     // build rt
     let mut builder = tokio::runtime::Builder::new_multi_thread();
