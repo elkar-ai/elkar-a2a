@@ -188,4 +188,8 @@ Elkar is powered by community collaboration and inspired by Google’s A2A proto
 
 Join us in building a better ecosystem for AI agent workflows.
 
+## 🔒 License  
+This project is licensed under the MIT License – see the [LICENSE](https://github.com/elkar-ai/elkar-a2a/blob/main/LICENCE) file for details.
+
+
 
