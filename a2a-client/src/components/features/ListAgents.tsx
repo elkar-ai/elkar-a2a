@@ -5,6 +5,7 @@ import { api } from "../../api/api";
 import { AgentOutput } from "../../../generated-api";
 import styled from "styled-components";
 import CreateAgentModal from "./CreateAgentModal";
+import { useNavigate } from "react-router-dom";
 
 const ActionsContainer = styled.div`
   display: flex;
@@ -42,6 +43,7 @@ const ErrorMessage = styled.div`
 
 export function ListAgents() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const agentsQuery = useQuery({
     queryKey: ["agents"],
@@ -117,6 +119,7 @@ export function ListAgents() {
         }
         onRowClick={(agent) => {
           console.log("Selected agent:", agent);
+          navigate(`/agent/${agent.id}`);
         }}
         columns={columns}
       />

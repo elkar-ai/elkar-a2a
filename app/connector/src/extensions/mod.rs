@@ -8,7 +8,6 @@ pub mod query_common;
 pub mod sentry;
 pub mod sql_functions;
 pub mod token;
-
 use secrecy::SecretString;
 
 #[derive(Debug, Clone)]
@@ -22,6 +21,7 @@ pub struct SupabaseConfig {
 pub struct DatabaseConfig {
     pub app_user_url: SecretString,
     pub admin_url: SecretString,
+    pub no_rls_user_url: SecretString,
 }
 #[derive(Debug, Clone)]
 pub struct NotionConfig {
@@ -52,6 +52,7 @@ lazy_static! {
         database: DatabaseConfig {
             app_user_url: dotenv::var("APP_USER_DATABASE_URL").unwrap().into(),
             admin_url: dotenv::var("DATABASE_URL").unwrap().into(),
+            no_rls_user_url: dotenv::var("NO_RLS_USER_DATABASE_URL").unwrap().into(),
         },
     };
 }

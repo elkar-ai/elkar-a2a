@@ -16,33 +16,45 @@
 import * as runtime from '../runtime';
 import type {
   AgentOutput,
+  ApiKeyOutput,
   ApplicationUserOutput,
   CreateAgentInput,
+  CreateApiKeyInput,
   CreateTenantInput,
   InviteUserInput,
   IsRegisteredOutput,
+  ListApiKeysInput,
   TenantOutput,
   UnpaginatedOutputAgentOutput,
+  UnpaginatedOutputApiKeyOutput,
   UnpaginatedOutputApplicationUserOutput,
   UnpaginatedOutputTenantOutput,
 } from '../models/index';
 import {
     AgentOutputFromJSON,
     AgentOutputToJSON,
+    ApiKeyOutputFromJSON,
+    ApiKeyOutputToJSON,
     ApplicationUserOutputFromJSON,
     ApplicationUserOutputToJSON,
     CreateAgentInputFromJSON,
     CreateAgentInputToJSON,
+    CreateApiKeyInputFromJSON,
+    CreateApiKeyInputToJSON,
     CreateTenantInputFromJSON,
     CreateTenantInputToJSON,
     InviteUserInputFromJSON,
     InviteUserInputToJSON,
     IsRegisteredOutputFromJSON,
     IsRegisteredOutputToJSON,
+    ListApiKeysInputFromJSON,
+    ListApiKeysInputToJSON,
     TenantOutputFromJSON,
     TenantOutputToJSON,
     UnpaginatedOutputAgentOutputFromJSON,
     UnpaginatedOutputAgentOutputToJSON,
+    UnpaginatedOutputApiKeyOutputFromJSON,
+    UnpaginatedOutputApiKeyOutputToJSON,
     UnpaginatedOutputApplicationUserOutputFromJSON,
     UnpaginatedOutputApplicationUserOutputToJSON,
     UnpaginatedOutputTenantOutputFromJSON,
@@ -53,6 +65,10 @@ export interface EpCreateAgentRequest {
     createAgentInput: CreateAgentInput;
 }
 
+export interface EpCreateApiKeyRequest {
+    createApiKeyInput: CreateApiKeyInput;
+}
+
 export interface EpCreateTenantRequest {
     createTenantInput: CreateTenantInput;
 }
@@ -61,8 +77,20 @@ export interface EpDeleteAgentRequest {
     id: string;
 }
 
+export interface EpDeleteApiKeyRequest {
+    id: string;
+}
+
+export interface EpGetApiKeyRequest {
+    id: string;
+}
+
 export interface EpInviteUserRequest {
     inviteUserInput: InviteUserInput;
+}
+
+export interface EpListApiKeysRequest {
+    listApiKeysInput: ListApiKeysInput;
 }
 
 export interface EpRetrieveAgentRequest {
@@ -109,6 +137,40 @@ export class DefaultApi extends runtime.BaseAPI {
      */
     async epCreateAgent(requestParameters: EpCreateAgentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AgentOutput> {
         const response = await this.epCreateAgentRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async epCreateApiKeyRaw(requestParameters: EpCreateApiKeyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiKeyOutput>> {
+        if (requestParameters['createApiKeyInput'] == null) {
+            throw new runtime.RequiredError(
+                'createApiKeyInput',
+                'Required parameter "createApiKeyInput" was null or undefined when calling epCreateApiKey().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/api-keys`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CreateApiKeyInputToJSON(requestParameters['createApiKeyInput']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiKeyOutputFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async epCreateApiKey(requestParameters: EpCreateApiKeyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiKeyOutput> {
+        const response = await this.epCreateApiKeyRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -174,6 +236,67 @@ export class DefaultApi extends runtime.BaseAPI {
      */
     async epDeleteAgent(requestParameters: EpDeleteAgentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.epDeleteAgentRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     */
+    async epDeleteApiKeyRaw(requestParameters: EpDeleteApiKeyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling epDeleteApiKey().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api-keys/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async epDeleteApiKey(requestParameters: EpDeleteApiKeyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.epDeleteApiKeyRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     */
+    async epGetApiKeyRaw(requestParameters: EpGetApiKeyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ApiKeyOutput>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling epGetApiKey().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api-keys/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiKeyOutputFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async epGetApiKey(requestParameters: EpGetApiKeyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ApiKeyOutput> {
+        const response = await this.epGetApiKeyRaw(requestParameters, initOverrides);
+        return await response.value();
     }
 
     /**
@@ -259,6 +382,40 @@ export class DefaultApi extends runtime.BaseAPI {
      */
     async epIsRegistered(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<IsRegisteredOutput> {
         const response = await this.epIsRegisteredRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async epListApiKeysRaw(requestParameters: EpListApiKeysRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UnpaginatedOutputApiKeyOutput>> {
+        if (requestParameters['listApiKeysInput'] == null) {
+            throw new runtime.RequiredError(
+                'listApiKeysInput',
+                'Required parameter "listApiKeysInput" was null or undefined when calling epListApiKeys().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/api-keys/list`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ListApiKeysInputToJSON(requestParameters['listApiKeysInput']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => UnpaginatedOutputApiKeyOutputFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async epListApiKeys(requestParameters: EpListApiKeysRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UnpaginatedOutputApiKeyOutput> {
+        const response = await this.epListApiKeysRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

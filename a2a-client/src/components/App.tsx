@@ -28,6 +28,7 @@ import SettingsSidebar from "./features/SettingsSidebar";
 import ProfileSettings from "./pages/settings/ProfileSettings";
 import TenantsSettings from "./pages/settings/TenantsSettings";
 import TenantUsersSettings from "./pages/settings/TenantUsersSettings";
+import AgentDetail from "./pages/agent-detail";
 
 const ServerUrlContainer = styled.div`
   margin-bottom: ${({ theme }) => theme.spacing.md};
@@ -165,6 +166,16 @@ const App: React.FC = () => {
                         <ProtectedRoute>
                           <Layout sidebar={<MainSidebarContent />}>
                             <ListAgents />
+                          </Layout>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/agent/:id"
+                      element={
+                        <ProtectedRoute>
+                          <Layout sidebar={<MainSidebarContent />}>
+                            <AgentDetail />
                           </Layout>
                         </ProtectedRoute>
                       }

@@ -26,6 +26,7 @@ split-debuginfo = "packed"
 
 [dependencies]
 supabase = { path = "crates/supabase" }
+agent2agent = { path = "crates/agent2agent", features = ["documentation"] }
 tower = "*"
 tower-http = { version = "*", features = [
     "add-extension",
@@ -107,6 +108,10 @@ database_schema = { path = "crates/database_schema" }
 futures = "*"
 rustls-platform-verifier = "*"
 rustls-pki-types = "*"
+base64 = "*"
+rand = "*"
+sha2 = "0.10.9"
+hex = "0.4.3"
 
 [patch.crates-io]
 diesel = { git = "https://github.com/breezy-ai/diesel-all.git", branch = "2.2.7-tweaked" }
@@ -116,5 +121,4 @@ diesel = { git = "https://github.com/breezy-ai/diesel-all.git", branch = "2.2.7-
 serial_test = "3.1.1"
 rstest = "*"
 insta = { version = "1.36.1", features = ["yaml", "json", "redactions"] }
-base64 = "*"
 tracing-test = "0.2.5"

@@ -3,9 +3,9 @@ extern crate diesel_migrations;
 extern crate lazy_static;
 pub mod api_doc;
 pub mod certs;
-
 pub mod extensions;
 pub mod handler;
+pub mod handler_api;
 pub mod models;
 pub mod router;
 pub mod service;

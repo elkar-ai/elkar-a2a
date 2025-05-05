@@ -41,8 +41,8 @@ CREATE TABLE IF NOT EXISTS task(
     task_type task_type NOT NULL,
     push_notification jsonb,
     a2a_task jsonb,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now(),
+    created_at timestamp NOT NULL DEFAULT now(),
+    updated_at timestamp NOT NULL DEFAULT now(),
     UNIQUE (agent_id, counterparty_id, task_id)
 );
 
@@ -51,4 +51,25 @@ SELECT
 
 SELECT
     set_updated_at_on_table('task');
+
+CREATE TABLE IF NOT EXISTS api_key(
+    tenant_id uuid NOT NULL REFERENCES tenant(id),
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    agent_id uuid REFERENCES agent(id),
+    name text NOT NULL,
+    hash text NOT NULL UNIQUE,
+    created_by uuid REFERENCES application_user(id),
+    is_deleted boolean NOT NULL DEFAULT FALSE,
+    expires_at timestamp,
+    created_at timestamp NOT NULL DEFAULT now(),
+    updated_at timestamp NOT NULL DEFAULT now()
+);
+
+SELECT
+    set_rls_on_table('api_key');
+
+SELECT
+    set_updated_at_on_table('api_key');
+
+GRANT SELECT ON api_key TO no_rls_user;
 

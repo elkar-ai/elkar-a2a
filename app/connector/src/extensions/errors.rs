@@ -1,10 +1,10 @@
 use axum::{
+    Json,
     body::Body,
     response::{IntoResponse, Response},
-    Json,
 };
 
-use diesel::{result::Error as DieselError, ConnectionError};
+use diesel::{ConnectionError, result::Error as DieselError};
 use handlebars::RenderError;
 use http::StatusCode;
 use serde::Serialize;
@@ -77,8 +77,8 @@ impl ServiceError {
         self.status_code = status_code;
         self
     }
-    pub fn error_type(mut self, error_type: String) -> Self {
-        self.error_type = error_type;
+    pub fn error_type(mut self, error_type: impl ToString) -> Self {
+        self.error_type = error_type.to_string();
         self
     }
     pub fn details(mut self, details: impl ToString) -> Self {

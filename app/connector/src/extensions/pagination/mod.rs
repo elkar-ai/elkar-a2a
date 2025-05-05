@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 pub mod output;
-pub mod query;
 pub mod query_async;
 
 pub fn default_per_page() -> i64 {
@@ -62,6 +61,18 @@ pub struct Paginated<T> {
     pub total: i64,
     pub has_more: bool,
     pub options: Option<PaginationOptions>,
+}
+
+impl<T, E> Paginated<Result<T, E>> {
+    pub fn transpose(self) -> Result<Paginated<T>, E> {
+        let records = self.records.into_iter().collect::<Result<Vec<_>, _>>()?;
+        Ok(Paginated {
+            records,
+            total: self.total,
+            has_more: self.has_more,
+            options: self.options,
+        })
+    }
 }
 
 impl<T: 'static> IntoIterator for Paginated<T> {

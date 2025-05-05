@@ -4,11 +4,46 @@ use diesel::{sql_query, QueryResult, QueryableByName};
 
 use diesel_async::AsyncConnection;
 use sea_query::{Alias, Asterisk, Expr, PostgresQueryBuilder, QueryStatementWriter, SeaRc};
+use serde::{Deserialize, Serialize};
 
 use crate::extensions::errors::AppResult;
 
-use super::query::{compute_paginated, CountedOutput, PaginatedQuery};
 use super::{Paginated, PaginationOptions};
+
+pub fn compute_paginated<U>(
+    mut records_and_total: Vec<(U, i64)>,
+    options: Option<PaginationOptions>,
+) -> Paginated<U> {
+    let has_more = match options {
+        Some(options) => records_and_total.len() as i64 > options.per_page,
+        None => false,
+    };
+
+    if has_more {
+        records_and_total.pop();
+    }
+    let total = records_and_total
+        .first()
+        .map(|(_, total)| *total)
+        .unwrap_or(0);
+    let records = records_and_total
+        .into_iter()
+        .map(|(record, _)| record)
+        .collect();
+
+    Paginated {
+        records,
+        total,
+        has_more,
+        options,
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct PaginatedQuery<T> {
+    pub query: T,
+    pub options: PaginationOptions,
+}
 
 impl<T> PaginatedQuery<T> {
     pub fn load_all_async<'a, U, AsyncConn>(
@@ -30,7 +65,13 @@ impl<T> PaginatedQuery<T> {
         }
     }
 }
-
+#[derive(QueryableByName, Debug, Clone, Serialize, Deserialize)]
+pub struct CountedOutput<T> {
+    #[diesel(embed)]
+    pub record: T,
+    #[diesel(sql_type = diesel::sql_types::BigInt)]
+    pub total_count: i64,
+}
 pub fn load_with_pagination_async<'a, U, AsyncConn>(
     select_statement: sea_query::SelectStatement,
     pagination: Option<&'a PaginationOptions>,

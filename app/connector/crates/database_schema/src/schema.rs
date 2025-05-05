@@ -31,6 +31,23 @@ diesel::table! {
 
 diesel::table! {
     use diesel::sql_types::*;
+
+    api_key (id) {
+        tenant_id -> Uuid,
+        id -> Uuid,
+        agent_id -> Nullable<Uuid>,
+        name -> Text,
+        hash -> Text,
+        created_by -> Nullable<Uuid>,
+        is_deleted -> Bool,
+        expires_at -> Nullable<Timestamp>,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
     use super::sql_types::ApplicationUserStatus;
 
     application_user (id) {
@@ -59,8 +76,8 @@ diesel::table! {
         task_type -> TaskType,
         push_notification -> Nullable<Jsonb>,
         a2a_task -> Nullable<Jsonb>,
-        created_at -> Nullable<Timestamptz>,
-        updated_at -> Nullable<Timestamptz>,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
     }
 }
 
@@ -89,6 +106,9 @@ diesel::table! {
 
 diesel::joinable!(agent -> application_user (created_by));
 diesel::joinable!(agent -> tenant (tenant_id));
+diesel::joinable!(api_key -> agent (agent_id));
+diesel::joinable!(api_key -> application_user (created_by));
+diesel::joinable!(api_key -> tenant (tenant_id));
 diesel::joinable!(task -> agent (agent_id));
 diesel::joinable!(task -> tenant (tenant_id));
 diesel::joinable!(tenant_user -> application_user (user_id));
@@ -96,6 +116,7 @@ diesel::joinable!(tenant_user -> tenant (tenant_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     agent,
+    api_key,
     application_user,
     task,
     tenant,

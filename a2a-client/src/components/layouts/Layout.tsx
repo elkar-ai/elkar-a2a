@@ -222,7 +222,7 @@ const Layout: React.FC<LayoutProps> = ({ children, sidebar, header }) => {
               <IoMenuOutline size={24} />
             )}
           </MenuButton>
-          <AppTitle onClick={() => navigate("/")}>A2A Client</AppTitle>
+          <AppTitle onClick={() => navigate("/")}>Elkar A2A</AppTitle>
           <Divider />
           <TenantSelector />
         </HeaderLeft>
