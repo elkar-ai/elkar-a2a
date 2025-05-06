@@ -19,18 +19,14 @@ where
 {
     type Rejection = BoxedAppError;
 
-    async fn from_request_parts(
-        parts: &mut Parts,
-        _state: &S,
-    ) -> Result<Self, Self::Rejection> {
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         let query = parts.uri.query().unwrap_or("");
-        let qs_value =
-            serde_querystring::from_str(query, ParseMode::Duplicate).map_err(|e| {
-                ServiceError::new()
-                    .status_code(StatusCode::BAD_REQUEST)
-                    .error_type("Invalid query string".to_string())
-                    .details(e.to_string())
-            })?;
+        let qs_value = serde_querystring::from_str(query, ParseMode::Duplicate).map_err(|e| {
+            ServiceError::new()
+                .status_code(StatusCode::BAD_REQUEST)
+                .error_type("Invalid query string".to_string())
+                .details(e.to_string())
+        })?;
         Ok(Qs(qs_value))
     }
 }

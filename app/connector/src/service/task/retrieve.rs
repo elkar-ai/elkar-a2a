@@ -67,11 +67,7 @@ pub async fn retrieve_tasks(
         load_with_pagination_async(query, params.pagination.as_ref(), conn).await?;
 
     let output = tasks.map(|task| {
-        let a2a_task = task
-            .task
-            .a2a_task
-            .map(serde_json::from_value)
-            .transpose()?;
+        let a2a_task = task.task.a2a_task.map(serde_json::from_value).transpose()?;
         Ok::<_, BoxedAppError>(TaskServiceOutput {
             id: task.task.id,
             task_id: task.task.task_id,

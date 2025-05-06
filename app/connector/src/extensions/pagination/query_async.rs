@@ -204,8 +204,6 @@ where
 }
 
 pub fn build_diesel_query<T: QueryStatementWriter>(sea_query_stmt: T) -> SqlQuery {
-    
-
     {
         let q_string = sea_query_stmt.to_string(PostgresQueryBuilder);
         sql_query(q_string)

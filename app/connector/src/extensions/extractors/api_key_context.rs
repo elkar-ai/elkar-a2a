@@ -1,4 +1,3 @@
-
 use axum::{
     extract::FromRequestParts,
     http::{request::Parts, StatusCode},
@@ -38,10 +37,7 @@ where
 {
     type Rejection = BoxedAppError;
 
-    async fn from_request_parts(
-        parts: &mut Parts,
-        _: &S,
-    ) -> Result<Self, Self::Rejection> {
+    async fn from_request_parts(parts: &mut Parts, _: &S) -> Result<Self, Self::Rejection> {
         let app_state = parts.extensions.get::<AppState>();
         let app_state = match app_state {
             Some(app_state) => app_state,
