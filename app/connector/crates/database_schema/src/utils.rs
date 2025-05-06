@@ -4,7 +4,7 @@ use serde_json::Value;
 pub fn list_enum_to_string<T: Serialize>(list: &[T]) -> Vec<String> {
     list.iter()
         .map(|item| {
-            let i = serde_json::to_value(&item).unwrap();
+            let i = serde_json::to_value(item).unwrap();
             if let Value::String(s) = i {
                 s
             } else {

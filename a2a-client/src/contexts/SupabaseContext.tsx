@@ -103,7 +103,6 @@ export const SupabaseProvider: React.FC<SupabaseProviderProps> = ({
 
       return { error: error };
     } catch (error) {
-      console.error("Error signing in with password:", error);
       return {
         error:
           error instanceof Error
@@ -115,8 +114,6 @@ export const SupabaseProvider: React.FC<SupabaseProviderProps> = ({
 
   const signUpWithPassword = async (email: string, password: string) => {
     try {
-      console.log("Attempting to sign up user with email:", email);
-
       // Validate email and password before sending to Supabase
       if (!email || !email.includes("@")) {
         return { error: new Error("Please enter a valid email address") };
