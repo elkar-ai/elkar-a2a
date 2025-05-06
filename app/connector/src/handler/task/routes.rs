@@ -31,7 +31,7 @@ pub async fn ep_retrieve_tasks(
     let mut conn = context.async_pool.get().await?;
 
     let tasks = retrieve_tasks(retrieve_tasks_input.into(), &mut conn).await?;
-    let tasks = tasks.map(|task| TaskResponse::from(task));
+    let tasks = tasks.map(TaskResponse::from);
     Ok(Json(tasks.into()))
 }
 

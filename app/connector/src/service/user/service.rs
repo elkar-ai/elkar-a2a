@@ -20,7 +20,7 @@ use http::StatusCode;
 use supabase::{SupabaseClient, SupabaseInviteUser};
 use uuid::Uuid;
 
-use super::application_user::service::{get_application_user_by_id, ApplicationUserServiceOutput};
+use super::application_user::service::ApplicationUserServiceOutput;
 
 pub struct SlackUserInfo {
     pub first_name: Option<String>,

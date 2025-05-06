@@ -14,7 +14,6 @@ use super::schema::TaskServiceOutput;
 use crate::extensions::async_database::AsyncDataBaseConnection;
 use crate::extensions::errors::{AppResult, ServiceError};
 use crate::models::task::Task;
-use diesel_async::SaveChangesDsl;
 
 #[derive(Debug, Clone)]
 pub struct UpdateTaskParams {
@@ -30,7 +29,7 @@ pub async fn update_task(
     task_id: String,
     params: UpdateTaskParams,
     conn: &mut AsyncDataBaseConnection<
-        impl std::ops::Deref<Target = diesel_async::AsyncPgConnection> + std::ops::DerefMut + Send,
+        impl std::ops::DerefMut<Target = diesel_async::AsyncPgConnection> + Send,
     >,
 ) -> AppResult<TaskServiceOutput> {
     tracing::info!(message="Updating task", task_id = task_id, params = ?params);
@@ -44,7 +43,7 @@ pub async fn update_task(
 
     let mut a2a_task = task
         .a2a_task
-        .map(|a2a_task| serde_json::from_value::<A2ATask>(a2a_task))
+        .map(serde_json::from_value::<A2ATask>)
         .transpose()?;
 
     if let Some(a2a_task) = a2a_task.as_mut() {
@@ -79,7 +78,7 @@ pub async fn update_task(
         task_type: task.task_type,
         a2a_task: task
             .a2a_task
-            .map(|a2a_task| serde_json::from_value::<A2ATask>(a2a_task))
+            .map(serde_json::from_value::<A2ATask>)
             .transpose()?,
         agent_id: task.agent_id,
         created_at: task.created_at,

@@ -9,7 +9,6 @@ use diesel::{
 use uuid::Uuid;
 #[derive(Insertable, Debug)]
 #[diesel(table_name = application_user)]
-
 pub struct ApplicationUserInput {
     pub id: Uuid,
     pub first_name: Option<String>,

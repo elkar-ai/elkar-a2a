@@ -87,6 +87,6 @@ pub async fn retrieve_api_keys(
 
     Ok(api_keys
         .into_iter()
-        .map(|api_key| ApiKeyServiceOutput::from(api_key))
+        .map(ApiKeyServiceOutput::from)
         .collect())
 }

@@ -1,4 +1,3 @@
-use std::future::Future;
 
 use axum::{
     extract::FromRequestParts,
@@ -33,73 +32,70 @@ pub struct ApiKeyContext {
     pub async_pool: AsyncUserPgPool,
 }
 
-#[async_trait::async_trait]
 impl<S> FromRequestParts<S> for ApiKeyContext
 where
     S: Send + Sync,
 {
     type Rejection = BoxedAppError;
 
-    fn from_request_parts(
+    async fn from_request_parts(
         parts: &mut Parts,
         _: &S,
-    ) -> impl Future<Output = Result<Self, Self::Rejection>> + Send {
-        async {
-            let app_state = parts.extensions.get::<AppState>();
-            let app_state = match app_state {
-                Some(app_state) => app_state,
-                None => {
-                    return Err(ServiceError::new()
-                        .status_code(StatusCode::INTERNAL_SERVER_ERROR)
-                        .error_type("Internal server Error".to_string())
-                        .details("Failed to get app state".to_string())
-                        .into())
-                }
-            };
-
-            // let uri_path = parts.uri.path();
-
-            // let splitted_path = uri_path
-            //     .split('/')
-            //     .filter(|x| !x.is_empty())
-            //     .collect::<Vec<&str>>();
-
-            // let first_path = splitted_path.first().unwrap_or(&"");
-
-            // if *first_path != "api" {
-            //     return Err(ServiceError::new()
-            //         .status_code(StatusCode::UNAUTHORIZED)
-            //         .error_type("API key authentication not applicable".to_string())
-            //         .details("This endpoint does not use API key authentication".to_string())
-            //         .into());
-            // }
-
-            let headers = &parts.headers;
-
-            // Extract API key from headers
-            let api_key = extract_api_key(headers).map_err(|status_code| {
-                ServiceError::new()
-                    .status_code(status_code)
-                    .error_type("Missing or invalid API key".to_string())
-                    .details("API key must be provided in the x-api-key header".to_string())
-            })?;
-
-            // Get a connection from the pool
-            let mut conn = app_state.no_rls_user_pool.get().await.map_err(|e| {
-                ServiceError::new()
+    ) -> Result<Self, Self::Rejection> {
+        let app_state = parts.extensions.get::<AppState>();
+        let app_state = match app_state {
+            Some(app_state) => app_state,
+            None => {
+                return Err(ServiceError::new()
                     .status_code(StatusCode::INTERNAL_SERVER_ERROR)
-                    .error_type("Failed to get DB connection".to_string())
-                    .details(e.to_string())
-            })?;
-            let api_key = retrieve_api_key_by_key(&api_key, &mut conn).await?;
-            // Set tenant ID for row-level security
-            let tenant_id = api_key.tenant_id;
+                    .error_type("Internal server Error".to_string())
+                    .details("Failed to get app state".to_string())
+                    .into())
+            }
+        };
 
-            Ok(ApiKeyContext {
-                agent_id: api_key.agent_id,
-                tenant_id,
-                async_pool: AsyncUserPgPool::new(app_state.async_pool.clone()).tenant_id(tenant_id),
-            })
-        }
+        // let uri_path = parts.uri.path();
+
+        // let splitted_path = uri_path
+        //     .split('/')
+        //     .filter(|x| !x.is_empty())
+        //     .collect::<Vec<&str>>();
+
+        // let first_path = splitted_path.first().unwrap_or(&"");
+
+        // if *first_path != "api" {
+        //     return Err(ServiceError::new()
+        //         .status_code(StatusCode::UNAUTHORIZED)
+        //         .error_type("API key authentication not applicable".to_string())
+        //         .details("This endpoint does not use API key authentication".to_string())
+        //         .into());
+        // }
+
+        let headers = &parts.headers;
+
+        // Extract API key from headers
+        let api_key = extract_api_key(headers).map_err(|status_code| {
+            ServiceError::new()
+                .status_code(status_code)
+                .error_type("Missing or invalid API key".to_string())
+                .details("API key must be provided in the x-api-key header".to_string())
+        })?;
+
+        // Get a connection from the pool
+        let mut conn = app_state.no_rls_user_pool.get().await.map_err(|e| {
+            ServiceError::new()
+                .status_code(StatusCode::INTERNAL_SERVER_ERROR)
+                .error_type("Failed to get DB connection".to_string())
+                .details(e.to_string())
+        })?;
+        let api_key = retrieve_api_key_by_key(&api_key, &mut conn).await?;
+        // Set tenant ID for row-level security
+        let tenant_id = api_key.tenant_id;
+
+        Ok(ApiKeyContext {
+            agent_id: api_key.agent_id,
+            tenant_id,
+            async_pool: AsyncUserPgPool::new(app_state.async_pool.clone()).tenant_id(tenant_id),
+        })
     }
 }

@@ -204,12 +204,12 @@ where
 }
 
 pub fn build_diesel_query<T: QueryStatementWriter>(sea_query_stmt: T) -> SqlQuery {
-    let diesel_query = {
+    
+
+    {
         let q_string = sea_query_stmt.to_string(PostgresQueryBuilder);
         sql_query(q_string)
-    };
-
-    diesel_query
+    }
 }
 
 pub fn build_diesel_query_with_cte(sea_query_stmt: sea_query::WithQuery) -> SqlQuery {

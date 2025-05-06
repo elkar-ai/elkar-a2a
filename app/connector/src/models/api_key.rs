@@ -1,4 +1,4 @@
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{NaiveDateTime, Utc};
 use database_schema::schema::api_key;
 use diesel::prelude::*;
 use uuid::Uuid;

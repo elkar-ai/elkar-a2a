@@ -1,6 +1,5 @@
-use std::{fmt::Debug, future::Future};
+use std::fmt::Debug;
 
-use async_trait::async_trait;
 use axum::{
     extract::FromRequestParts,
     http::{request::Parts, StatusCode},
@@ -20,21 +19,19 @@ where
 {
     type Rejection = BoxedAppError;
 
-    fn from_request_parts(
+    async fn from_request_parts(
         parts: &mut Parts,
         _state: &S,
-    ) -> impl Future<Output = Result<Self, Self::Rejection>> + Send {
-        async {
-            let query = parts.uri.query().unwrap_or("");
-            let qs_value =
-                serde_querystring::from_str(query, ParseMode::Duplicate).map_err(|e| {
-                    ServiceError::new()
-                        .status_code(StatusCode::BAD_REQUEST)
-                        .error_type("Invalid query string".to_string())
-                        .details(e.to_string())
-                })?;
-            Ok(Qs(qs_value))
-        }
+    ) -> Result<Self, Self::Rejection> {
+        let query = parts.uri.query().unwrap_or("");
+        let qs_value =
+            serde_querystring::from_str(query, ParseMode::Duplicate).map_err(|e| {
+                ServiceError::new()
+                    .status_code(StatusCode::BAD_REQUEST)
+                    .error_type("Invalid query string".to_string())
+                    .details(e.to_string())
+            })?;
+        Ok(Qs(qs_value))
     }
 }
 

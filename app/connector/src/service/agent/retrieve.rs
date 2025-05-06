@@ -14,7 +14,7 @@ use super::schema::AgentServiceOutput;
 pub struct RetrieveAgentInput {}
 
 pub async fn retrieve_agents(
-    input: RetrieveAgentInput,
+    _input: RetrieveAgentInput,
     conn: &mut AsyncPgConnection,
 ) -> AppResult<Vec<AgentServiceOutput>> {
     let agents = agent::table.select(Agent::as_select()).load(conn).await?;

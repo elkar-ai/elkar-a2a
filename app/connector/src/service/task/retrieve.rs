@@ -70,7 +70,7 @@ pub async fn retrieve_tasks(
         let a2a_task = task
             .task
             .a2a_task
-            .map(|a2a_task| serde_json::from_value(a2a_task))
+            .map(serde_json::from_value)
             .transpose()?;
         Ok::<_, BoxedAppError>(TaskServiceOutput {
             id: task.task.id,

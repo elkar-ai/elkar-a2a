@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{fmt::Display, str::FromStr};
 
 use serde::*;
 
@@ -21,6 +21,18 @@ pub enum ComparisonOperator {
     Lte,
 }
 
+impl Display for ComparisonOperator {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Eq => write!(f, "eq"),
+            Self::Ne => write!(f, "ne"),
+            Self::Gt => write!(f, "gt"),
+            Self::Gte => write!(f, "gte"),
+            Self::Lt => write!(f, "lt"),
+            Self::Lte => write!(f, "lte"),
+        }
+    }
+}
 impl FromStr for ComparisonOperator {
     type Err = anyhow::Error;
 
@@ -37,19 +49,6 @@ impl FromStr for ComparisonOperator {
     }
 }
 
-impl ToString for ComparisonOperator {
-    fn to_string(&self) -> String {
-        match self {
-            Self::Eq => "eq".to_string(),
-            Self::Ne => "ne".to_string(),
-            Self::Gt => "gt".to_string(),
-            Self::Gte => "gte".to_string(),
-            Self::Lt => "lt".to_string(),
-            Self::Lte => "lte".to_string(),
-        }
-    }
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CounterFilter<T, V> {
     pub filter: T,
@@ -57,14 +56,9 @@ pub struct CounterFilter<T, V> {
     pub value: V,
 }
 
-impl<T: ToString, V: ToString> ToString for CounterFilter<T, V> {
-    fn to_string(&self) -> String {
-        format!(
-            "{}:{}:{}",
-            self.filter.to_string(),
-            self.operator.to_string(),
-            self.value.to_string()
-        )
+impl<T: Display, V: Display> Display for CounterFilter<T, V> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}:{}", self.filter, self.operator, self.value)
     }
 }
 

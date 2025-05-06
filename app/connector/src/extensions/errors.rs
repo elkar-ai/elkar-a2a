@@ -1,10 +1,10 @@
 use axum::{
-    Json,
     body::Body,
     response::{IntoResponse, Response},
+    Json,
 };
 
-use diesel::{ConnectionError, result::Error as DieselError};
+use diesel::{result::Error as DieselError, ConnectionError};
 use handlebars::RenderError;
 use http::StatusCode;
 use serde::Serialize;

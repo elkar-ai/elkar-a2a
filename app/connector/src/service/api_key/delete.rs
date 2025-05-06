@@ -12,7 +12,7 @@ pub async fn delete_api_key(id: Uuid, conn: &mut AsyncPgConnection) -> AppResult
     let affected_rows = diesel::update(api_key::table)
         .filter(api_key::id.eq(id))
         .filter(api_key::is_deleted.eq(false))
-        .set((api_key::is_deleted.eq(true)))
+        .set(api_key::is_deleted.eq(true))
         .execute(conn)
         .await?;
 

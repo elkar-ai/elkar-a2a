@@ -43,5 +43,5 @@ pub async fn create_tenant(
             .scope_boxed()
         })
         .await?;
-    Ok(tenant.into())
+    Ok(tenant)
 }

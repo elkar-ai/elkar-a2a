@@ -38,7 +38,7 @@ pub async fn retrieve_task_a2a(
     };
     let a2a_task = task
         .a2a_task
-        .map(|a2a_task| serde_json::from_value(a2a_task))
+        .map(serde_json::from_value)
         .transpose()?;
     let task = TaskServiceOutput {
         id: task.id,

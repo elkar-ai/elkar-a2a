@@ -35,7 +35,7 @@ pub async fn create_api_key(
     let new_api_key = ApiKeyInput {
         agent_id: input.agent_id,
         name: input.name,
-        hash: hash,
+        hash,
         created_by: input.created_by,
         is_deleted: false,
         expires_at: expires_at.map(|dt| dt.naive_utc()),

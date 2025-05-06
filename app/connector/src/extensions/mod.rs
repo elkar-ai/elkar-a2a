@@ -42,7 +42,7 @@ pub struct AppConfig {
 lazy_static! {
     pub static ref APP_CONFIG: AppConfig = AppConfig {
         environment: Environment::try_from(dotenv::var("ENVIRONMENT").unwrap_or_default()).unwrap(),
-        frontend_url: dotenv::var("FRONT_URL").unwrap().into(),
+        frontend_url: dotenv::var("FRONT_URL").unwrap(),
         sentry_dsn: dotenv::var("SENTRY_DSN").unwrap().into(),
         supabase: SupabaseConfig {
             url: dotenv::var("SUPABASE_URL").unwrap().into(),

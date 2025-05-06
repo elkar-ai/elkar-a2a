@@ -23,13 +23,12 @@ pub fn enum_to_string<T: Serialize>(enum_value: T) -> String {
     }
 }
 pub fn list_string_to_enum<T: DeserializeOwned>(
-    list: &Vec<String>,
+    list: &[String],
 ) -> Result<Vec<T>, serde_json::Error> {
     list.iter()
         .map(|item| {
             let formatted_item = format!("\"{}\"", item);
-            let i = serde_json::from_str(&formatted_item);
-            i
+            serde_json::from_str(&formatted_item)
         })
         .collect()
 }

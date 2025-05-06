@@ -7,7 +7,6 @@ use crate::{
     service::tenant::{
         create::{create_tenant, CreateTenantServiceInput as ServiceCreateTenantInput},
         retrieve::{retrieve_tenant, retrieve_tenants, RetrieveTenantInput},
-        schema::TenantServiceOutput,
     },
 };
 
@@ -53,7 +52,7 @@ pub async fn ep_create_tenant(
     // Call the service
     let tenant_model = create_tenant(service_input, &mut conn).await?;
     // Convert service model to handler output
-    let tenant_output = TenantOutput::from(TenantServiceOutput::from(tenant_model));
+    let tenant_output = TenantOutput::from(tenant_model);
     Ok(Json(tenant_output))
 }
 
