@@ -3,7 +3,11 @@ name: Rust CI
 on:
   push:
     branches: [main]
+  paths:
+    - "app/connector/**"
   pull_request:
+    paths:
+      - "app/connector/**"
 
 env:
   CARGO_TERM_COLOR: always
@@ -13,11 +17,11 @@ env:
   DATABASE_URL: postgres://superuser:password@localhost:5432/connector
 
 jobs:
-  changed-files-check:
-    uses: ./.github/workflows/changed-files.yml
-    with:
-      files: |
-        app/connector/**
+  # changed-files-check:
+  #   uses: ./.github/workflows/changed-files.yml
+  #   with:
+  #     files: |
+  #       app/connector/**
   check:
     name: Check Rust Server
     runs-on: ubuntu-latest
@@ -42,10 +46,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set working directory
-        run: |
-          cd app/connector
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
