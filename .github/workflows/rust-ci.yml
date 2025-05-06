@@ -17,11 +17,6 @@ env:
   DATABASE_URL: postgres://superuser:password@localhost:5432/connector
 
 jobs:
-  # changed-files-check:
-  #   uses: ./.github/workflows/changed-files.yml
-  #   with:
-  #     files: |
-  #       app/connector/**
   check:
     name: Check Rust Server
     runs-on: ubuntu-latest
