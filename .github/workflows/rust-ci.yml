@@ -14,7 +14,7 @@ env:
 
 jobs:
   changed-files-check:
-    uses: ./.github/workflows/changed-files.yaml
+    uses: ./.github/workflows/changed-files.yml
     with:
       files: |
         app/connector/**
