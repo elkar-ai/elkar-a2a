@@ -2,11 +2,10 @@ name: Rust CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
     paths:
       - "app/connector/**"
   pull_request:
-    branches: [main, master]
     paths:
       - "app/connector/**"
 
