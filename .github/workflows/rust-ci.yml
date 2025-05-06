@@ -3,11 +3,7 @@ name: Rust CI
 on:
   push:
     branches: [main]
-    paths:
-      - "app/connector/**"
   pull_request:
-    paths:
-      - "app/connector/**"
 
 env:
   CARGO_TERM_COLOR: always
@@ -46,6 +42,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set working directory
+        run: |
+          cd app/connector
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
