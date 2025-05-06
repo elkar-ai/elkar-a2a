@@ -3,10 +3,10 @@ import styled from "styled-components";
 import { useTheme } from "../../contexts/ThemeContext";
 
 const ToggleButton = styled.button`
-  background: none;
+  background: ${({ theme }) => theme.colors.transparent};
   border: none;
   color: ${({ theme }) => theme.colors.text};
-  cursor: pointer;
+  cursor: ${({ theme }) => theme.cursor};
   padding: ${({ theme }) => theme.spacing.sm};
   border-radius: ${({ theme }) => theme.borderRadius.sm};
   display: flex;

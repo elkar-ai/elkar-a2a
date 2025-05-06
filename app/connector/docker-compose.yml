@@ -1,0 +1,24 @@
+version: "3.8"
+services:
+  test-db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_DB: connector
+      POSTGRES_USER: superuser
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./scripts/db/init/sql:/docker-entrypoint-initdb.d/
+    ports:
+      - "1903:5432"
+  data-db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_DB: notification
+      POSTGRES_USER: superuser
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./scripts/db/init/sql:/docker-entrypoint-initdb.d/
+    ports:
+      - "6442:5432"

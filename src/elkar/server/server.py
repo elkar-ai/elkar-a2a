@@ -1,7 +1,7 @@
 import json
 from typing import AsyncIterable, Callable, Any
 from elkar.a2a_types import *
-from elkar.common import ListTasksRequest
+
 from pydantic import ValidationError
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse, Response
@@ -53,32 +53,19 @@ class A2AServer[T: TaskManager]:
             methods=["GET", "OPTIONS"],
         )
 
-        self.app.add_route(
-            "/tasks/list",
-            self._list_tasks,
-            methods=["GET", "OPTIONS"],
-        )
-
-    async def _list_tasks(self, request: Request) -> Response:
-        if request.method == "OPTIONS":
-            return Response(status_code=200)
-        # query_params = request.query_params
-        # page = query_params.get("page", 1)
-        # page_size = query_params.get("page_size", 10)
-        # page = int(page)
-        list_tasks_request = ListTasksRequest()
-        tasks = await self.task_manager.list_tasks(list_tasks_request)
-        tasks_response = tasks.model_dump_json(exclude_none=True)
-        return JSONResponse(json.loads(tasks_response))
-
-    def start(self) -> None:
+    def start(self, reload_server: bool = False) -> None:
 
         if self.task_manager is None:
             raise ValueError("request_handler is not defined")
 
         import uvicorn
 
-        uvicorn.run(self.app, host=self.host, port=self.port, reload=True)
+        uvicorn.run(
+            self.app,
+            host=self.host,
+            port=self.port,
+            reload=reload_server,
+        )
 
     async def extract_request_context(self, request: Request) -> RequestContext:
         """Extracts the context from the request.

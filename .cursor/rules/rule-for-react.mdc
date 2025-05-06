@@ -1,0 +1,13 @@
+---
+description: 
+globs: *.tsx
+alwaysApply: false
+---
+# React Development Guidelines
+
+- Use Types in API: Always define and use TypeScript types for component props, state, and other interfaces. Prefer using types from the generated API when available.
+- You MUST se colors from the theme: Always reference colors from the theme system instead of hardcoding color values, or create new ones BUT ONLY if needed
+- UseEffect only when needed: Avoid unnecessary useEffect calls. Only use when side effects are required.
+- DRY (Don't Repeat Yourself): Extract reusable logic into custom hooks or utility functions.
+- Don't hesitate to split in multiple files if too complex: Break down large components into smaller, more manageable pieces.
+- ALWAYS Use `TreeTable` whenever you need a table/list

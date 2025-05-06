@@ -1,0 +1,16 @@
+name: Deploy Main
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-to-staging:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger deployment
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.DEPLOY_REPO_PAT }}
+          repository: elkar-ai/elkar-deploy
+          event-type: deploy-staging

@@ -1,0 +1,1 @@
+openapi-generator-cli generate   -i http://localhost:1996/api-docs/openapi.json  -g typescript-fetch -o ./generated-api   --skip-validate-spec

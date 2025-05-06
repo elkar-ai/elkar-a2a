@@ -1,0 +1,10 @@
+---
+source: src/extensions/extractors/query_params.rs
+expression: qs_value
+---
+{
+  "per_page": 15,
+  "page": 1,
+  "subject_search": "",
+  "date_gte": "2024-10-08T22:00:00Z"
+}

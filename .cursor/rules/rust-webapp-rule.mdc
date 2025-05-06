@@ -1,0 +1,54 @@
+---
+description: 
+globs: *.rs
+alwaysApply: false
+---
+# Rust Web Application Development Rule
+
+## Project Structure
+- Follow modular architecture with domain-driven organization:
+  ```
+  app/
+  ├── src/
+  │   ├── main.rs              # App entry point, server setup
+  │   ├── router.rs            # Centralized routing
+  │   ├── handler/             # HTTP request handlers by domain
+  │   ├── service/             # Business logic by domain
+  │   ├── models/              # Database models
+  │   └── extensions/          # Middleware, extractors, utils
+  ├── migrations/              # Database migrations
+  └── crates/                  # Workspace member crates
+  ```
+## Linter errors
+- Linter errors are often compiler failures in rust please check everything
+- When doing a modification, please make sure the code compiles 
+
+## Database and ORM
+- Use Diesel for type-safe SQL or Sea-Query if the query is too complicated operations with async support
+- Organize migrations using diesel_migrations
+- Create domain-specific services for database operations
+- Use `diesel_async::RunQueryDsl`for executing queries
+- When creating models, don't set default generated values as Input (created_at, updated_at, etc)
+
+## Error Handling
+- Create custom error type implementing `std::error::Error`
+- Define `AppResult<T>` type alias for consistent error handling
+- Propagate errors with `?` operator instead of `unwrap()`/`expect()`
+- Map errors to appropriate HTTP status codes in handlers
+
+
+## Row Level Security
+- inserting tenant_id on table is not required, it is set in the connection pool
+
+
+## Testing and Observability
+- Write unit and integration tests for each layer
+- Use tracing for structured logging
+- Configure Sentry for error tracking
+- Implement health checks for monitoring
+
+## Configuration
+- Use environment variables with dotenv
+- Create type-safe configuration structures
+- Validate configuration at startup
+- Use secrecy for sensitive configuration 

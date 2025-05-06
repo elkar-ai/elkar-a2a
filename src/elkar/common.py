@@ -24,13 +24,3 @@ DataT = TypeVar("DataT")
 class PaginatedResponse(BaseModel, Generic[DataT]):
     items: list[DataT]
     pagination: Pagination
-
-
-class TaskResponse(BaseModel):
-    id: str
-    caller_id: str | None
-    created_at: datetime
-    updated_at: datetime
-    state: TaskState
-    task: Task
-    notification: PushNotificationConfig | None

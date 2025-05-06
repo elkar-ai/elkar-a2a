@@ -176,11 +176,6 @@ class A2AClient {
       TaskStatusUpdateEvent | TaskArtifactUpdateEvent
     >(request, onUpdate);
   }
-
-  public async listTasks(): Promise<PaginatedResponse<TaskResponse>> {
-    const response = await axios.get(`${this.baseUrl}/tasks/list`);
-    return response.data as PaginatedResponse<TaskResponse>;
-  }
 }
 
 export default A2AClient;

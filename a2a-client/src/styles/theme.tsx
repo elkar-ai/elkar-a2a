@@ -15,6 +15,10 @@ declare module "styled-components" {
       error: string;
       warning: string;
       info: string;
+      white: string;
+      transparent: string;
+      overlay: string;
+      errorLight: string;
     };
     spacing: {
       xs: string;
@@ -40,22 +44,27 @@ declare module "styled-components" {
       md: string;
       lg: string;
     };
+    cursor: string;
   }
 }
 
 export const lightTheme: DefaultTheme = {
   colors: {
-    primary: "#6B4EFF",
-    secondary: "#4A4A4A",
+    primary: "#3ECF8E",
+    secondary: "#24B47E",
     background: "#FFFFFF",
-    surface: "#F5F5F5",
-    text: "#1E1E1E",
-    textSecondary: "#666666",
-    border: "#E0E0E0",
-    success: "#00C853",
-    error: "#FF3B30",
-    warning: "#FFB300",
-    info: "#2196F3",
+    surface: "#F8F9FA",
+    text: "#1F2937",
+    textSecondary: "#6B7280",
+    border: "#E5E7EB",
+    success: "#3ECF8E",
+    error: "#EF4444",
+    warning: "#F59E0B",
+    info: "#3B82F6",
+    white: "#FFFFFF",
+    transparent: "transparent",
+    overlay: "rgba(0, 0, 0, 0.5)",
+    errorLight: "rgba(255, 0, 0, 0.05)",
   },
   spacing: {
     xs: "4px",
@@ -65,7 +74,7 @@ export const lightTheme: DefaultTheme = {
     xl: "32px",
   },
   borderRadius: {
-    sm: "4px",
+    sm: "6px",
     md: "8px",
     lg: "12px",
   },
@@ -77,25 +86,30 @@ export const lightTheme: DefaultTheme = {
     xl: "20px",
   },
   shadows: {
-    sm: "0 2px 4px rgba(0,0,0,0.1)",
-    md: "0 4px 8px rgba(0,0,0,0.1)",
-    lg: "0 8px 16px rgba(0,0,0,0.1)",
+    sm: "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+    md: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+    lg: "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
   },
+  cursor: "pointer",
 };
 
 export const darkTheme: DefaultTheme = {
   colors: {
-    primary: "#6B4EFF",
-    secondary: "#4A4A4A",
-    background: "#1E1E1E",
-    surface: "#2D2D2D",
-    text: "#FFFFFF",
-    textSecondary: "#A0A0A0",
-    border: "#3D3D3D",
-    success: "#00C853",
-    error: "#FF3B30",
-    warning: "#FFB300",
-    info: "#2196F3",
+    primary: "#3ECF8E",
+    secondary: "#24B47E",
+    background: "#1F2937",
+    surface: "#374151",
+    text: "#F9FAFB",
+    textSecondary: "#D1D5DB",
+    border: "#4B5563",
+    success: "#3ECF8E",
+    error: "#EF4444",
+    warning: "#F59E0B",
+    info: "#3B82F6",
+    white: "#FFFFFF",
+    transparent: "transparent",
+    overlay: "rgba(0, 0, 0, 0.5)",
+    errorLight: "rgba(255, 0, 0, 0.05)",
   },
   spacing: {
     xs: "4px",
@@ -105,7 +119,7 @@ export const darkTheme: DefaultTheme = {
     xl: "32px",
   },
   borderRadius: {
-    sm: "4px",
+    sm: "6px",
     md: "8px",
     lg: "12px",
   },
@@ -117,10 +131,11 @@ export const darkTheme: DefaultTheme = {
     xl: "20px",
   },
   shadows: {
-    sm: "0 2px 4px rgba(0,0,0,0.2)",
-    md: "0 4px 8px rgba(0,0,0,0.2)",
-    lg: "0 8px 16px rgba(0,0,0,0.2)",
+    sm: "0 1px 2px 0 rgb(0 0 0 / 0.3)",
+    md: "0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4)",
+    lg: "0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4)",
   },
+  cursor: "pointer",
 };
 
 export type Theme = typeof lightTheme;

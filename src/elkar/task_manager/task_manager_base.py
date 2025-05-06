@@ -18,7 +18,6 @@ from elkar.a2a_types import (
     TaskResubscriptionRequest,
     JSONRPCResponse,
 )
-from elkar.common import ListTasksRequest, PaginatedResponse, TaskResponse
 
 
 @dataclass
@@ -73,8 +72,3 @@ class TaskManager(Protocol):
         request: TaskResubscriptionRequest,
         request_context: RequestContext | None = None,
     ) -> AsyncIterable[SendTaskStreamingResponse] | JSONRPCResponse: ...
-
-    async def list_tasks(
-        self, request: ListTasksRequest
-    ) -> PaginatedResponse[TaskResponse]:
-        raise NotImplementedError("list_tasks is not implemented")

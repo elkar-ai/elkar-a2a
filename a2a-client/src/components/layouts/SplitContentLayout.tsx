@@ -14,6 +14,9 @@ const InputSection = styled.div`
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background-color: ${({ theme }) => theme.colors.surface};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
 `;
 
 const OutputSection = styled.div`
@@ -24,7 +27,7 @@ const OutputSection = styled.div`
   overflow: hidden;
   background-color: ${({ theme }) => theme.colors.surface};
   border-radius: ${({ theme }) => theme.borderRadius.md};
-  padding: ${({ theme }) => theme.spacing.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
 `;
 
 interface SplitContentLayoutProps {

@@ -11,10 +11,13 @@ from elkar.a2a_types import (
 )
 from elkar.common import PaginatedResponse, Pagination
 from elkar.store.base import (
+    CreateTaskForClientParams,
     ListTasksOrder,
     ListTasksParams,
     StoredTask,
     TaskManagerStore,
+    TaskType,
+    UpdateStoredTaskClient,
     UpdateTaskParams,
 )
 
@@ -28,15 +31,14 @@ class InMemoryTaskManagerStore(TaskManagerStore):
         self.lock = asyncio.Lock()
 
     async def upsert_task(
-        self, params: TaskSendParams, caller_id: str | None = None
+        self,
+        params: TaskSendParams,
+        is_streaming: bool = False,
+        caller_id: str | None = None,
     ) -> StoredTask:
         async with self.lock:
             task = self.tasks.get(params.id)
             if task is not None:
-                if task.session_id != params.sessionId:
-                    raise ValueError(
-                        f"Task {params.id} is already owned by session {task.session_id}"
-                    )
                 if task.caller_id != caller_id:
                     raise ValueError(
                         f"Task {params.id} is already owned by caller {task.caller_id}"
@@ -50,7 +52,8 @@ class InMemoryTaskManagerStore(TaskManagerStore):
             self.tasks[params.id] = StoredTask(
                 id=params.id,
                 caller_id=caller_id,
-                session_id=params.sessionId,
+                task_type=TaskType.INCOMING,
+                is_streaming=is_streaming,
                 task=Task(
                     id=params.id,
                     status=TaskStatus(
@@ -152,3 +155,35 @@ class InMemoryTaskManagerStore(TaskManagerStore):
                     total=len(task_values),
                 ),
             )
+
+    async def update_task_for_client(
+        self, task_id: str, params: UpdateStoredTaskClient
+    ) -> StoredTask:
+        async with self.lock:
+            if task_id not in self.tasks:
+                raise ValueError(f"Task {task_id} does not exist")
+            curr_task = self.tasks.get(task_id)
+            if curr_task is None:
+                raise ValueError(f"Task {task_id} does not exist")
+            curr_task.task = params.task
+            curr_task.push_notification = params.push_notification
+            curr_task.updated_at = datetime.now()
+            return curr_task
+
+    async def create_task_for_client(
+        self, params: CreateTaskForClientParams
+    ) -> StoredTask:
+        async with self.lock:
+            if params.task.id in self.tasks:
+                raise ValueError(f"Task {params.task.id} already exists")
+            self.tasks[params.task.id] = StoredTask(
+                id=params.task.id,
+                task=params.task,
+                task_type=TaskType.OUTGOING,
+                is_streaming=params.is_streaming,
+                push_notification=params.push_notification,
+                created_at=datetime.now(),
+                updated_at=datetime.now(),
+                caller_id=None,
+            )
+            return self.tasks[params.task.id]

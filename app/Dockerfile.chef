@@ -1,0 +1,56 @@
+FROM rust:1.83 AS chef
+RUN cargo install cargo-chef 
+WORKDIR /usr/src
+
+FROM chef AS planner
+COPY connector/ .
+COPY connector/.env .env
+RUN cargo chef prepare  --bin connector --recipe-path recipe.json
+
+
+
+FROM chef AS builder
+COPY connector/ .
+COPY --from=planner /usr/src/recipe.json recipe.json
+RUN cargo chef cook  --bin elkar --release --recipe-path recipe.json
+RUN cargo build --release  --bin  elkar
+
+
+
+
+FROM debian:latest AS runner
+
+COPY --from=builder /usr/src/target/release/elkar .
+COPY --from=planner /usr/src/.env .env
+
+COPY requirements.txt .
+# Install python
+RUN apt-get update --allow-insecure-repositories \
+    && apt-get install -y python3-venv \
+    && apt-get clean -y \
+    && apt-get autoremove -y
+# Create a virtual environment
+RUN python3 -m venv /opt/venv
+
+# Activate the virtual environment and update pip
+RUN /opt/venv/bin/pip install --upgrade pip
+
+# Ensure all following commands use the virtual environment
+ENV PATH="/opt/venv/bin:$PATH"
+
+
+
+# Now install packages in the virtual environment
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
+
+
+
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    ca-certificates \
+    && apt-get clean -y \
+    && apt-get autoremove -y
+EXPOSE 1996 1996
+
+CMD ["./elkar"]
