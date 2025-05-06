@@ -158,11 +158,26 @@ const NewTaskComponent = ({ onClick }: { onClick: () => void }) => {
   );
 };
 
-const SendTaskPanel = () => {
+interface SendTaskPanelProps {
+  taskId?: string;
+  readOnly?: boolean;
+  showNewTaskButton?: boolean;
+  showGetTaskButton?: boolean;
+}
+
+const SendTaskPanel: React.FC<SendTaskPanelProps> = ({
+  taskId: propTaskId,
+  readOnly = false,
+  showNewTaskButton = true,
+  showGetTaskButton = true,
+}) => {
   const { endpoint } = useUrl();
   const apiClient = new A2AClient(endpoint);
   const [searchParams, setSearchParams] = useSearchParams();
-  const taskId = searchParams.get("taskId");
+  // Use the taskId from props if provided, otherwise from search params
+  const taskIdFromSearch = searchParams.get("taskId");
+  const taskId = propTaskId || taskIdFromSearch;
+
   const [newTaskId, setNewTaskId] = useState<string>(taskId ?? uuidv4());
   const [task, setTask] = useState<Task | null>(null);
   const [streaming, setStreaming] = useState<boolean>(false);
@@ -172,13 +187,13 @@ const SendTaskPanel = () => {
   >([]);
 
   useEffect(() => {
-    if (taskId === null) {
+    if (!propTaskId && taskIdFromSearch === null && !readOnly) {
       const newTaskId = uuidv4();
       setSearchParams({
         taskId: newTaskId,
       });
     }
-  }, [taskId]);
+  }, [taskIdFromSearch, propTaskId, readOnly, setSearchParams]);
 
   const getTaskClientQuery = useQuery({
     queryKey: ["tasks", taskId],
@@ -215,49 +230,64 @@ const SendTaskPanel = () => {
     },
   });
 
+  // Don't show controls or inputs in read-only mode
+  if (readOnly) {
+    return (
+      <Container>
+        {getTaskClientQuery.isLoading ? (
+          <div>Loading task details...</div>
+        ) : (
+          <FullTaskPanel
+            task={task}
+            streamingEvents={streamingMessages}
+            isCurrentlyStreaming={false}
+            isStreamingActive={streaming}
+            taskError={null}
+            isTaskLoading={getTaskClientQuery.isLoading}
+          />
+        )}
+      </Container>
+    );
+  }
+
   return (
     <SplitContentLayout
       input={
         <Container>
           <Header>
-            <NewTaskComponent
-              onClick={() => {
-                const newTaskId = uuidv4();
-                setSearchParams({
-                  taskId: newTaskId,
-                });
-                setMessages([]);
-                setTask(null);
-              }}
-            />
-            <ControlsContainer>
-              <SwitchContainer>
-                <span>Streaming</span>
-                <Switch>
-                  <input
-                    type="checkbox"
-                    checked={streaming}
-                    onChange={(e) => setStreaming(e.target.checked)}
-                  />
-                  <span></span>
-                </Switch>
-              </SwitchContainer>
-              <Input
-                type="text"
-                value={newTaskId}
-                onChange={(e) => setNewTaskId(e.target.value)}
-                placeholder="Enter task ID"
-              />
-              <NewTaskButton
+            {showNewTaskButton && (
+              <NewTaskComponent
                 onClick={() => {
+                  const newTaskId = uuidv4();
                   setSearchParams({
                     taskId: newTaskId,
                   });
+                  setMessages([]);
+                  setTask(null);
                 }}
-              >
-                Get Task
-              </NewTaskButton>
-            </ControlsContainer>
+              />
+            )}
+            {showGetTaskButton && (
+              <ControlsContainer>
+                <SwitchContainer>
+                  <span>Streaming</span>
+                  <Switch>
+                    <input
+                      type="checkbox"
+                      checked={streaming}
+                      onChange={(e) => setStreaming(e.target.checked)}
+                    />
+                    <span></span>
+                  </Switch>
+                </SwitchContainer>
+                <Input
+                  type="text"
+                  value={newTaskId}
+                  onChange={(e) => setNewTaskId(e.target.value)}
+                  placeholder="Enter task ID"
+                />
+              </ControlsContainer>
+            )}
           </Header>
           <MessagesContainer>
             {messages.map((m, i) => (

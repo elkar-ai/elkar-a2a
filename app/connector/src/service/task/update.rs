@@ -10,9 +10,11 @@ use diesel_async::RunQueryDsl;
 use http::StatusCode;
 use uuid::Uuid;
 
+use super::schema::TaskServiceOutput;
 use crate::extensions::async_database::AsyncDataBaseConnection;
 use crate::extensions::errors::{AppResult, ServiceError};
 use crate::models::task::Task;
+use diesel_async::SaveChangesDsl;
 
 #[derive(Debug, Clone)]
 pub struct UpdateTaskParams {
@@ -30,7 +32,8 @@ pub async fn update_task(
     conn: &mut AsyncDataBaseConnection<
         impl std::ops::Deref<Target = diesel_async::AsyncPgConnection> + std::ops::DerefMut + Send,
     >,
-) -> AppResult<Task> {
+) -> AppResult<TaskServiceOutput> {
+    tracing::info!(message="Updating task", task_id = task_id, params = ?params);
     let task_stmt = task::table
         .for_update()
         .filter(task::task_id.eq(&task_id))
@@ -64,8 +67,27 @@ pub async fn update_task(
     if let Some(push_notification) = params.push_notification {
         task.push_notification = Some(serde_json::to_value(push_notification)?);
     }
+    let update_stmt = diesel::update(&task)
+        .set(&task)
+        .returning(Task::as_select());
+    let task: Task = diesel_async::RunQueryDsl::get_result(update_stmt, conn).await?;
 
-    Ok(task)
+    let task_service_output = TaskServiceOutput {
+        id: task.id,
+        task_id: task.task_id,
+        task_state: task.task_state,
+        task_type: task.task_type,
+        a2a_task: task
+            .a2a_task
+            .map(|a2a_task| serde_json::from_value::<A2ATask>(a2a_task))
+            .transpose()?,
+        agent_id: task.agent_id,
+        created_at: task.created_at,
+        updated_at: task.updated_at,
+        counterparty_id: task.counterparty_id,
+    };
+
+    Ok(task_service_output)
 }
 
 pub fn update_a2a_task(a2a_task: &mut A2ATask, params: UpdateTaskParams) -> AppResult<()> {

@@ -1,5 +1,5 @@
 use crate::{
-    extensions::errors::AppResult,
+    extensions::errors::{AppResult, BoxedAppError},
     models::task::{Task, TaskInput},
 };
 use agent2agent::{Task as A2ATask, TaskSendParams, TaskState as A2ATaskState, TaskStatus};
@@ -9,7 +9,7 @@ use database_schema::{
 };
 
 use diesel::prelude::*;
-use diesel_async::AsyncPgConnection;
+use diesel_async::{scoped_futures::ScopedFutureExt, AsyncConnection, AsyncPgConnection};
 use uuid::Uuid;
 
 use super::schema::TaskServiceOutput;
@@ -25,35 +25,45 @@ pub async fn create_task_a2a(
     params: CreateTaskA2AParams,
     conn: &mut AsyncPgConnection,
 ) -> AppResult<TaskServiceOutput> {
-    let existing_tasks_stmt = task::table
-        .for_update()
-        .filter(task::task_id.eq(&params.send_task_params.id))
-        .filter(task::agent_id.eq(&params.agent_id))
-        .select(Task::as_select());
+    let task_output = conn
+        .transaction(|conn| {
+            async move {
+                let existing_tasks_stmt = task::table
+                    .for_update()
+                    .filter(task::task_id.eq(&params.send_task_params.id))
+                    .filter(task::agent_id.eq(&params.agent_id))
+                    .select(Task::as_select());
 
-    let mut existing_tasks =
-        diesel_async::RunQueryDsl::get_results::<Task>(existing_tasks_stmt, conn).await?;
+                let mut existing_tasks =
+                    diesel_async::RunQueryDsl::get_results::<Task>(existing_tasks_stmt, conn)
+                        .await?;
 
-    let existing_task = existing_tasks.pop();
-    let task = match existing_task {
-        Some(task) => update_task(task, params.send_task_params, conn).await?,
-        None => insert_new_task(params, conn).await?,
-    };
+                let existing_task = existing_tasks.pop();
+                let task = match existing_task {
+                    Some(task) => update_task(task, params.send_task_params, conn).await?,
+                    None => insert_new_task(params, conn).await?,
+                };
 
-    let a2a_task = serde_json::from_value::<A2ATask>(
-        task.a2a_task
-            .ok_or(anyhow::anyhow!("Task has no A2A task"))?,
-    )?;
-    Ok(TaskServiceOutput {
-        id: task.id,
-        task_id: task.task_id,
-        task_state: task.task_state,
-        task_type: task.task_type,
-        a2a_task: Some(a2a_task),
-        agent_id: task.agent_id,
-        created_at: task.created_at,
-        updated_at: task.updated_at,
-    })
+                let a2a_task = serde_json::from_value::<A2ATask>(
+                    task.a2a_task
+                        .ok_or(anyhow::anyhow!("Task has no A2A task"))?,
+                )?;
+                Ok::<_, BoxedAppError>(TaskServiceOutput {
+                    id: task.id,
+                    task_id: task.task_id,
+                    task_state: task.task_state,
+                    task_type: task.task_type,
+                    a2a_task: Some(a2a_task),
+                    agent_id: task.agent_id,
+                    created_at: task.created_at,
+                    updated_at: task.updated_at,
+                    counterparty_id: task.counterparty_id,
+                })
+            }
+            .scope_boxed()
+        })
+        .await?;
+    Ok(task_output)
 }
 
 async fn insert_new_task(

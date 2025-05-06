@@ -1,14 +1,15 @@
 use axum::routing::*;
-use elkar_app::api_doc::PrivateApiDoc;
-use elkar_app::extensions::APP_CONFIG;
+use elkar_app::api_doc::{PrivateApiDoc, PublicApiDoc};
 use elkar_app::extensions::async_database::make_manager_config;
+use elkar_app::extensions::APP_CONFIG;
+use elkar_app::router::build_api_router;
 use secrecy::ExposeSecret;
 use utoipa::OpenApi;
 use utoipa_axum::router::OpenApiRouter;
 
 use diesel::{Connection, PgConnection};
 use diesel_migrations::MigrationHarness;
-use diesel_migrations::{EmbeddedMigrations, embed_migrations};
+use diesel_migrations::{embed_migrations, EmbeddedMigrations};
 
 use elkar_app::{
     extensions::sentry as sentry_extension,
@@ -16,8 +17,8 @@ use elkar_app::{
     state::AppState,
 };
 
-use diesel_async::pooled_connection::AsyncDieselConnectionManager;
 use diesel_async::pooled_connection::deadpool::Pool;
+use diesel_async::pooled_connection::AsyncDieselConnectionManager;
 use utoipa_swagger_ui::SwaggerUi;
 
 const EMBEDDED_MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
@@ -89,9 +90,18 @@ fn main() {
             .merge(build_router())
             .split_for_parts();
 
+    let (api_router, public_api) = OpenApiRouter::with_openapi(PublicApiDoc::openapi())
+        .nest("/api", build_api_router())
+        .split_for_parts();
+
+    let router = router.merge(api_router);
     let app = apply_middleware(app_state, router)
         .route("/health", get(health_check))
-        .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", api.clone()));
+        .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", api.clone()))
+        .merge(
+            SwaggerUi::new("/public-swagger-ui")
+                .url("/public-api-docs/openapi.json", public_api.clone()),
+        );
 
     // build rt
     let mut builder = tokio::runtime::Builder::new_multi_thread();

@@ -248,6 +248,7 @@ const ArtifactDisplay: React.FC<ArtifactDisplayProps> = ({ artifact }) => {
 
 interface TaskResultPanelProps {
   task: Task;
+  canCancel: boolean;
 }
 
 const TaskResultPanelContainer = styled.div`
@@ -346,7 +347,10 @@ const TabSelector: React.FC<{
   );
 };
 
-const TaskResultPanel: React.FC<TaskResultPanelProps> = ({ task }) => {
+const TaskResultPanel: React.FC<TaskResultPanelProps> = ({
+  task,
+  canCancel,
+}) => {
   const { endpoint } = useUrl();
   const apiClient = new A2AClient(endpoint);
   const queryClient = useQueryClient();
@@ -358,6 +362,7 @@ const TaskResultPanel: React.FC<TaskResultPanelProps> = ({ task }) => {
       queryClient.invalidateQueries({ queryKey: ["tasks", task.id] });
     },
   });
+
   return (
     <TaskResultPanelContainer>
       <div
@@ -368,12 +373,14 @@ const TaskResultPanel: React.FC<TaskResultPanelProps> = ({ task }) => {
         }}
       >
         <Title>Task Result</Title>
-        <CancelButton
-          onClick={() => cancelTaskMutation.mutate()}
-          disabled={cancelTaskMutation.isPending}
-        >
-          {cancelTaskMutation.isPending ? "Cancelling..." : "Cancel"}
-        </CancelButton>
+        {canCancel && (
+          <CancelButton
+            onClick={() => cancelTaskMutation.mutate()}
+            disabled={cancelTaskMutation.isPending}
+          >
+            {cancelTaskMutation.isPending ? "Cancelling..." : "Cancel"}
+          </CancelButton>
+        )}
       </div>
       <InfoRow>
         <Label>Status:</Label>
@@ -449,6 +456,8 @@ export function FullTaskPanel({
   isStreamingActive,
   isTaskLoading,
   taskError,
+  canCancel = true,
+  showStreaming = true,
 }: {
   task: Task | null;
   streamingEvents: (TaskStatusUpdateEvent | TaskArtifactUpdateEvent)[];
@@ -456,6 +465,8 @@ export function FullTaskPanel({
   isStreamingActive: boolean;
   taskError: string | null;
   isTaskLoading: boolean;
+  canCancel?: boolean;
+  showStreaming?: boolean;
 }) {
   const [activeTab, setActiveTab] = useState<TabType>("results");
 
@@ -467,10 +478,18 @@ export function FullTaskPanel({
       return <div>{taskError}</div>;
     }
     if (task) {
-      return <TaskResultPanel task={task} />;
+      return <TaskResultPanel task={task} canCancel={canCancel} />;
     }
     return <div>No task</div>;
   };
+
+  if (!showStreaming) {
+    return (
+      <TabContent>
+        <ContentContainer>{renderTask()}</ContentContainer>
+      </TabContent>
+    );
+  }
   return (
     <TabContent>
       <TabSelector

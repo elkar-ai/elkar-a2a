@@ -6,7 +6,7 @@ import {
   IoLogOutOutline,
   IoSettingsOutline,
 } from "react-icons/io5";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 const Container = styled.div`
   position: relative;

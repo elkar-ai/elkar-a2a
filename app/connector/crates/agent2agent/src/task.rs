@@ -63,6 +63,7 @@ impl TaskStatus {
 #[cfg_attr(feature = "documentation", derive(ToSchema))]
 pub struct Task {
     pub id: String,
+    #[serde(rename = "sessionId")]
     pub session_id: String,
     pub status: TaskStatus,
     #[serde(skip_serializing_if = "Option::is_none")]

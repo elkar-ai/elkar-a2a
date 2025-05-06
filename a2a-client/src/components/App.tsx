@@ -1,12 +1,12 @@
 import React from "react";
 
 import styled from "styled-components";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "../contexts/ThemeContext";
 import { UrlProvider } from "../contexts/UrlContext";
 import { TenantProvider } from "../contexts/TenantContext";
-import { BrowserRouter as Router } from "react-router-dom";
+import { BrowserRouter as Router } from "react-router";
 import { GlobalStyles } from "../styles/GlobalStyles";
 
 import Layout from "./layouts/Layout";
@@ -29,6 +29,7 @@ import ProfileSettings from "./pages/settings/ProfileSettings";
 import TenantsSettings from "./pages/settings/TenantsSettings";
 import TenantUsersSettings from "./pages/settings/TenantUsersSettings";
 import AgentDetail from "./pages/agent-detail";
+import TaskDetailPage from "./pages/task-detail/TaskDetailPage";
 
 const ServerUrlContainer = styled.div`
   margin-bottom: ${({ theme }) => theme.spacing.md};
@@ -171,11 +172,21 @@ const App: React.FC = () => {
                       }
                     />
                     <Route
-                      path="/agent/:id"
+                      path="/agents/:id"
                       element={
                         <ProtectedRoute>
                           <Layout sidebar={<MainSidebarContent />}>
                             <AgentDetail />
+                          </Layout>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/task/:taskId"
+                      element={
+                        <ProtectedRoute>
+                          <Layout sidebar={<MainSidebarContent />}>
+                            <TaskDetailPage />
                           </Layout>
                         </ProtectedRoute>
                       }

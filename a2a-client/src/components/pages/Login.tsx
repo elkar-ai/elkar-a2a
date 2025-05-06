@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useSupabase } from "../../contexts/SupabaseContext";
-import { Navigate, Link } from "react-router-dom";
+import { Navigate, Link } from "react-router";
 import { FcGoogle } from "react-icons/fc";
 import {
   IoMailOutline,

@@ -1,9 +1,7 @@
-import React from "react";
 import styled from "styled-components";
 import { useQuery } from "@tanstack/react-query";
 import { useSupabase } from "../../contexts/SupabaseContext";
 import { IoPersonCircle } from "react-icons/io5";
-// import { api } from "../../api/api";
 
 const SettingsContainer = styled.div`
   padding: ${({ theme }) => theme.spacing.lg};

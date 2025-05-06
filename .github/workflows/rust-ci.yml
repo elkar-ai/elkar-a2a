@@ -1,0 +1,70 @@
+name: Rust CI
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "app/connector/**"
+  pull_request:
+    branches: [main, master]
+    paths:
+      - "app/connector/**"
+
+env:
+  CARGO_TERM_COLOR: always
+  POSTGRES_DB: connector
+  POSTGRES_USER: superuser
+  POSTGRES_PASSWORD: password
+  DATABASE_URL: postgres://superuser:password@localhost:5432/connector
+
+jobs:
+  check:
+    name: Check Rust Server
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./app/connector
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install diesel_cli
+        run: cargo install diesel_cli --no-default-features --features postgres
+
+      - name: Run database migrations
+        run: diesel migration run
+
+      - name: Check code formatting
+        run: cargo fmt --all -- --check
+
+      - name: Check with clippy
+        run: cargo clippy -- -D warnings
+
+      # - name: Run tests
+      #   run: cargo test
+
+      # - name: Build
+      #   run: cargo build --release

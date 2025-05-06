@@ -5,7 +5,7 @@ import { api } from "../../api/api";
 import { AgentOutput } from "../../../generated-api";
 import styled from "styled-components";
 import CreateAgentModal from "./CreateAgentModal";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 const ActionsContainer = styled.div`
   display: flex;
@@ -119,7 +119,7 @@ export function ListAgents() {
         }
         onRowClick={(agent) => {
           console.log("Selected agent:", agent);
-          navigate(`/agent/${agent.id}`);
+          navigate(`/agents/${agent.id}`);
         }}
         columns={columns}
       />

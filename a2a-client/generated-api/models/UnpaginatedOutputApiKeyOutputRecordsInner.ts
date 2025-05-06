@@ -30,13 +30,13 @@ export interface UnpaginatedOutputApiKeyOutputRecordsInner {
      * @type {string}
      * @memberof UnpaginatedOutputApiKeyOutputRecordsInner
      */
-    apiKey: string;
+    apiKey?: string | null;
     /**
      * 
      * @type {Date}
      * @memberof UnpaginatedOutputApiKeyOutputRecordsInner
      */
-    createdAt?: Date | null;
+    createdAt: Date;
     /**
      * 
      * @type {string}
@@ -67,7 +67,7 @@ export interface UnpaginatedOutputApiKeyOutputRecordsInner {
  * Check if a given object implements the UnpaginatedOutputApiKeyOutputRecordsInner interface.
  */
 export function instanceOfUnpaginatedOutputApiKeyOutputRecordsInner(value: object): value is UnpaginatedOutputApiKeyOutputRecordsInner {
-    if (!('apiKey' in value) || value['apiKey'] === undefined) return false;
+    if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('name' in value) || value['name'] === undefined) return false;
     return true;
@@ -84,8 +84,8 @@ export function UnpaginatedOutputApiKeyOutputRecordsInnerFromJSONTyped(json: any
     return {
         
         'agentId': json['agent_id'] == null ? undefined : json['agent_id'],
-        'apiKey': json['api_key'],
-        'createdAt': json['created_at'] == null ? undefined : (new Date(json['created_at'])),
+        'apiKey': json['api_key'] == null ? undefined : json['api_key'],
+        'createdAt': (new Date(json['created_at'])),
         'createdBy': json['created_by'] == null ? undefined : json['created_by'],
         'expiresAt': json['expires_at'] == null ? undefined : (new Date(json['expires_at'])),
         'id': json['id'],
@@ -106,7 +106,7 @@ export function UnpaginatedOutputApiKeyOutputRecordsInnerToJSONTyped(value?: Unp
         
         'agent_id': value['agentId'],
         'api_key': value['apiKey'],
-        'created_at': value['createdAt'] == null ? undefined : ((value['createdAt'] as any).toISOString()),
+        'created_at': ((value['createdAt']).toISOString()),
         'created_by': value['createdBy'],
         'expires_at': value['expiresAt'] == null ? undefined : ((value['expiresAt'] as any).toISOString()),
         'id': value['id'],

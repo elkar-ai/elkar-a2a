@@ -63,6 +63,12 @@ pub struct Paginated<T> {
     pub options: Option<PaginationOptions>,
 }
 
+impl<T> Paginated<T> {
+    pub fn pop(&mut self) -> Option<T> {
+        self.records.pop()
+    }
+}
+
 impl<T, E> Paginated<Result<T, E>> {
     pub fn transpose(self) -> Result<Paginated<T>, E> {
         let records = self.records.into_iter().collect::<Result<Vec<_>, _>>()?;

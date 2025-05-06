@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useSupabase } from "../../contexts/SupabaseContext";
-import { Navigate } from "react-router-dom";
+import { Navigate } from "react-router";
 
 const Container = styled.div`
   display: flex;

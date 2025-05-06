@@ -5,11 +5,13 @@ use database_schema::{
 use diesel::prelude::QueryableByName;
 use diesel_async::AsyncPgConnection;
 
+use http::StatusCode;
 use sea_query::{Expr, SelectStatement};
+use uuid::Uuid;
 
 use crate::{
     extensions::{
-        errors::{AppResult, BoxedAppError},
+        errors::{AppResult, BoxedAppError, ServiceError},
         pagination::{query_async::load_with_pagination_async, Paginated, PaginationOptions},
     },
     models::task::{Task, TaskIden},
@@ -17,12 +19,12 @@ use crate::{
 
 use super::schema::TaskServiceOutput;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct RetrieveTaskParams {
     pub task_id_in: Option<Vec<String>>,
     pub task_state_in: Option<Vec<TaskState>>,
     pub task_type_in: Option<Vec<TaskType>>,
-    pub agent_id_in: Option<Vec<String>>,
+    pub agent_id_in: Option<Vec<Uuid>>,
     pub pagination: Option<PaginationOptions>,
 }
 
@@ -79,10 +81,32 @@ pub async fn retrieve_tasks(
             agent_id: task.task.agent_id,
             created_at: task.task.created_at,
             updated_at: task.task.updated_at,
+            counterparty_id: task.task.counterparty_id,
         })
     });
 
     let output = output.transpose()?;
 
     Ok(output)
+}
+
+pub async fn get_task(
+    task_id: String,
+    conn: &mut AsyncPgConnection,
+) -> AppResult<TaskServiceOutput> {
+    let mut tasks = retrieve_tasks(
+        RetrieveTaskParams {
+            task_id_in: Some(vec![task_id]),
+            ..Default::default()
+        },
+        conn,
+    )
+    .await?;
+    let Some(task) = tasks.pop() else {
+        return Err(ServiceError::new()
+            .status_code(StatusCode::NOT_FOUND)
+            .error_type("task_not_found")
+            .into());
+    };
+    Ok(task)
 }

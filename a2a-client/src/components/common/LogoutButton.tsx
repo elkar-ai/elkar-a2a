@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { useSupabase } from "../../contexts/SupabaseContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { IoLogOutOutline } from "react-icons/io5";
 
 const Button = styled.button`

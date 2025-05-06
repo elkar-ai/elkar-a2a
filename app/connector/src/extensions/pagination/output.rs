@@ -3,7 +3,7 @@ use super::Paginated;
 use serde::Serialize;
 use utoipa::ToSchema;
 
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema)]
 pub struct PaginationInformation {
     pub page: i64,
     pub total_pages: i64,
@@ -11,7 +11,7 @@ pub struct PaginationInformation {
     pub has_more: bool,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema)]
 pub struct PaginatedOutput<T> {
     pub records: Vec<T>,
     pub pagination: PaginationInformation,

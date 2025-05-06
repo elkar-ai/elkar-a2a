@@ -12,4 +12,5 @@ pub struct TaskServiceOutput {
     pub agent_id: Uuid,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
+    pub counterparty_id: Option<String>,
 }

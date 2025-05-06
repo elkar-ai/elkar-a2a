@@ -71,5 +71,23 @@ SELECT
 SELECT
     set_updated_at_on_table('api_key');
 
-GRANT SELECT ON api_key TO no_rls_user;
+-- Grant more comprehensive permissions to no_rls_user for api_key table
+CREATE POLICY api_key_no_rls_user_bypass ON api_key
+    FOR ALL TO no_rls_user
+        USING (TRUE);
+
+CREATE TABLE IF NOT EXISTS task_subscription(
+    tenant_id uuid NOT NULL REFERENCES tenant(id),
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    task_id uuid NOT NULL REFERENCES task(id),
+    created_at timestamp NOT NULL DEFAULT now(),
+    updated_at timestamp NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS task_event(
+    tenant_id uuid NOT NULL REFERENCES tenant(id),
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    created_at timestamp NOT NULL DEFAULT now(),
+    updated_at timestamp NOT NULL DEFAULT now()
+);
 

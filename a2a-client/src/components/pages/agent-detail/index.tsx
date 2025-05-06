@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../../api/api";
 import {
@@ -11,6 +11,7 @@ import {
   Tab,
   ErrorMessage,
 } from "./styles";
+
 import DetailsSection from "./DetailsSection";
 import TasksSection from "./TasksSection";
 import ApiKeySection from "./ApiKeySection";

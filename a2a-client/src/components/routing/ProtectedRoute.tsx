@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate } from "react-router";
 import { useSupabase } from "../../contexts/SupabaseContext";
 import styled from "styled-components";
 import { api } from "../../api/api";

@@ -41,12 +41,17 @@ pub async fn retrieve_api_key_by_key(
     conn: &mut AsyncPgConnection,
 ) -> AppResult<ApiKeyServiceOutput> {
     let hash = hash_api_key(key);
-    let api_key = api_key::table
-        .filter(api_key::hash.eq(hash))
-        .filter(api_key::is_deleted.eq(false))
-        .select(ApiKey::as_select())
-        .first(conn)
-        .await?;
+    let api_key_stmt = api_key::table
+        .filter(api_key::hash.eq(&hash))
+        .filter(api_key::is_deleted.eq(&false))
+        .select(ApiKey::as_select());
+    let mut api_keys = diesel_async::RunQueryDsl::load::<ApiKey>(api_key_stmt, conn).await?;
+    let Some(api_key) = api_keys.pop() else {
+        return Err(ServiceError::new()
+            .status_code(StatusCode::UNAUTHORIZED)
+            .error_type("API key not found".to_string())
+            .into());
+    };
 
     if api_key.is_expired() {
         return Err(ServiceError::new()

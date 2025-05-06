@@ -86,6 +86,7 @@ pub struct TaskQueryParams {
 #[cfg_attr(feature = "documentation", derive(ToSchema))]
 pub struct TaskSendParams {
     pub id: String,
+    #[serde(rename = "sessionId")]
     pub session_id: String,
     pub message: Message,
     #[serde(skip_serializing_if = "Option::is_none")]

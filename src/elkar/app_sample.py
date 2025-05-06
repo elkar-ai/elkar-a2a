@@ -2,6 +2,7 @@ import asyncio
 from elkar.a2a_types import *
 from elkar.api_server import app as api_app
 from elkar.server.server import A2AServer
+from elkar.store.elkar_client_store import ElkarClientStore
 from elkar.task_manager.task_manager_base import RequestContext
 from elkar.task_manager.task_manager_with_task_modifier import TaskManagerWithModifier
 from elkar.task_modifier.base import TaskModifierBase
@@ -57,8 +58,15 @@ async def task_handler(
     )
 
 
+api_key = "sk_elkar_mpqVMKB7S4+PYbKe3DsTUR/x2Plo0O/vQHIUJF7HL6Q="
+
 task_manager: TaskManagerWithModifier = TaskManagerWithModifier(
-    agent_card, send_task_handler=task_handler
+    agent_card,
+    store=ElkarClientStore(
+        base_url="http://localhost:1996/api",
+        api_key=api_key,
+    ),
+    send_task_handler=task_handler,
 )
 
 server = A2AServer(task_manager)
