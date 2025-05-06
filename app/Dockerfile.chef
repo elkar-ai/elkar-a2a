@@ -23,27 +23,6 @@ FROM debian:latest AS runner
 COPY --from=builder /usr/src/target/release/elkar .
 COPY --from=planner /usr/src/.env .env
 
-COPY requirements.txt .
-# Install python
-RUN apt-get update --allow-insecure-repositories \
-    && apt-get install -y python3-venv \
-    && apt-get clean -y \
-    && apt-get autoremove -y
-# Create a virtual environment
-RUN python3 -m venv /opt/venv
-
-# Activate the virtual environment and update pip
-RUN /opt/venv/bin/pip install --upgrade pip
-
-# Ensure all following commands use the virtual environment
-ENV PATH="/opt/venv/bin:$PATH"
-
-
-
-# Now install packages in the virtual environment
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
-
 
 
 RUN apt-get update && apt-get install -y \
