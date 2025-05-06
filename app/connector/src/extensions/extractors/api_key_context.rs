@@ -50,23 +50,6 @@ where
             }
         };
 
-        // let uri_path = parts.uri.path();
-
-        // let splitted_path = uri_path
-        //     .split('/')
-        //     .filter(|x| !x.is_empty())
-        //     .collect::<Vec<&str>>();
-
-        // let first_path = splitted_path.first().unwrap_or(&"");
-
-        // if *first_path != "api" {
-        //     return Err(ServiceError::new()
-        //         .status_code(StatusCode::UNAUTHORIZED)
-        //         .error_type("API key authentication not applicable".to_string())
-        //         .details("This endpoint does not use API key authentication".to_string())
-        //         .into());
-        // }
-
         let headers = &parts.headers;
 
         // Extract API key from headers
