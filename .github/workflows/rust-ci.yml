@@ -3,8 +3,8 @@ name: Rust CI
 on:
   push:
     branches: [main]
-  paths:
-    - "app/connector/**"
+    paths:
+      - "app/connector/**"
   pull_request:
     paths:
       - "app/connector/**"
