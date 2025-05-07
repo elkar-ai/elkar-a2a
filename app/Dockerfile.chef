@@ -19,7 +19,7 @@ RUN cargo build --release  --bin  elkar
 
 
 FROM debian:latest AS runner
-
+ENV RUST_BACKTRACE=1
 COPY --from=builder /usr/src/target/release/elkar .
 COPY --from=planner /usr/src/.env .env
 
