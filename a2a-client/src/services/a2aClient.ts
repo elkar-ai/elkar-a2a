@@ -14,7 +14,6 @@ import {
   TaskArtifactUpdateEvent,
   AgentCard,
 } from "../types/a2aTypes";
-import { PaginatedResponse, TaskResponse } from "../types/customTypes";
 
 class A2AClient {
   private baseUrl: string;

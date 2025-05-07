@@ -99,7 +99,7 @@ const ApiKeySection: React.FC = () => {
     },
     onSuccess: (data) => {
       // Store the key for display (it won't be retrievable again)
-      setNewApiKey(data.apiKey);
+      setNewApiKey(data.apiKey || null);
       // Invalidate the API keys query to refresh the list
       queryClient.invalidateQueries({ queryKey: ["apiKeys", agentId] });
       setIsModalOpen(false);

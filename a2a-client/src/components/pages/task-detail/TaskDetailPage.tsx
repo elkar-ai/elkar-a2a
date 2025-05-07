@@ -8,6 +8,7 @@ import { taskApi } from "../../../api/api";
 
 import TaskHistoryPanel from "../../features/taskHistoryPanel";
 import SplitContentLayout from "../../layouts/SplitContentLayout";
+import { Task } from "../../../types/a2aTypes";
 
 // Styled components
 
@@ -103,15 +104,6 @@ enum TabType {
   EVENTS = "events",
 }
 
-const ContentContainer = styled.div`
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0;
-  padding: ${({ theme }) => theme.spacing.md};
-  background-color: ${({ theme }) => theme.colors.background};
-  border-radius: ${({ theme }) => theme.borderRadius.md};
-`;
-
 const Container = styled.div`
   height: 100%;
   display: flex;
@@ -148,10 +140,14 @@ const TaskDetailPage: React.FC = () => {
               <>
                 {taskQuery.data?.a2aTask && (
                   <FullTaskPanel
-                    task={taskQuery.data.a2aTask}
-                    readOnly={true}
+                    task={taskQuery.data.a2aTask as Task}
                     canCancel={false}
                     showStreaming={false}
+                    streamingEvents={[]}
+                    isCurrentlyStreaming={false}
+                    isStreamingActive={false}
+                    taskError={null}
+                    isTaskLoading={false}
                   />
                 )}
               </>

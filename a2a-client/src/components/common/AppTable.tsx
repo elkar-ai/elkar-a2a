@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { styled } from "styled-components";
 import { useQueries } from "@tanstack/react-query";
 import { UUID } from "crypto";
-import { PaginationComponent } from "./pagination";
+import { PaginationComponent } from "./Pagination";
 
 const TableContainer = styled.div`
   width: 100%;
