@@ -5,7 +5,7 @@ WORKDIR /usr/src
 FROM chef AS planner
 COPY connector/ .
 COPY connector/.env .env
-RUN cargo chef prepare  --bin connector --recipe-path recipe.json
+RUN cargo chef prepare  --bin elkar --recipe-path recipe.json
 
 
 
