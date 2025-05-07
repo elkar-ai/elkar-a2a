@@ -11,7 +11,7 @@ export function ListTasks() {
 
   const tasksQuery = useQuery({
     queryKey: ["tasks"],
-    queryFn: () => apiClient.listTasks(),
+    queryFn: () => [],
   });
   const navigate = useNavigate();
 
@@ -49,7 +49,7 @@ export function ListTasks() {
   return (
     <TreeTable
       data={
-        tasksQuery.data?.items.map((task) => ({
+        tasksQuery.data?.map((task) => ({
           data: task,
           hasChildren: false,
         })) ?? []
