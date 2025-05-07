@@ -79,7 +79,6 @@ export const SupabaseProvider: React.FC<SupabaseProviderProps> = ({
     try {
       // Log where we're redirecting to
       const redirectTo = `${window.location.origin}/auth/callback`;
-      console.log("Redirect URL:", redirectTo);
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",

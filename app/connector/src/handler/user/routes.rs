@@ -4,13 +4,13 @@ use crate::{
         errors::{AppResult, ServiceError},
         extractors::user_context::UserContext,
         pagination::output::UnpaginatedOutput,
-        token::{extract_token, SupabaseToken},
+        token::{SupabaseToken, extract_token},
     },
     service::user::{
         application_user::service::check_registered_user,
         service::{
-            get_all_users, get_user_by_id_async, invite_user, register_user,
-            InviteUserServiceInput, UserInfo, UserQuery,
+            InviteUserServiceInput, UserInfo, UserQuery, get_all_users, get_user_by_id_async,
+            invite_user, register_user,
         },
     },
 };
@@ -42,7 +42,7 @@ pub async fn ep_get_user_me(user_ctx: UserContext) -> AppResult<Json<Application
             return Err(ServiceError::new()
                 .status_code(StatusCode::UNAUTHORIZED)
                 .error_type("Unauthorized User".to_string())
-                .into())
+                .into());
         }
     };
     let mut conn = user_ctx.async_pool.get().await?;
@@ -166,6 +166,7 @@ pub async fn ep_is_registered(
         .get()
         .await
         .map_err(|_| anyhow::anyhow!("Failed to get user pool"))?;
+
     let is_registered = check_registered_user(decoded_token.sub, &mut pg_conn)
         .await
         .map_err(|_| {

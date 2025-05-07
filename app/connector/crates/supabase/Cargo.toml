@@ -4,9 +4,13 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-reqwest = "0.12.15"
-serde = "1.0.219"
+reqwest = { version = "0.12.15", features = ["json"] }
+serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
 serde_urlencoded = "0.7.1"
 url = "2.5.4"
-uuid = "1.16.0"
+uuid = { version = "1.16.0", features = ["v4", "serde"] }
+
+
+[dev-dependencies]
+tokio = { version = "1.41.1", features = ["full"] }
