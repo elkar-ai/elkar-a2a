@@ -3,7 +3,7 @@
     "target": "ESNext",
     "lib": ["dom", "dom.iterable", "ESNext"],
     "module": "esnext",
-    "types": ["node"],
+    "types": ["node", "react", "react-dom"],
     "sourceMap": true,
     "baseUrl": "src",
     "outDir": "dist",
@@ -11,6 +11,7 @@
       "src/*": ["./src/*"]
     },
     "jsx": "react-jsx",
+
     /* Bundler mode */
 
     "moduleResolution": "Bundler",
@@ -20,7 +21,7 @@
     "noEmit": true,
 
     /* Linting */
-    // "skipLibCheck": true,
+    "skipLibCheck": true,
     "allowJs": false,
     // "strict": true,
     "esModuleInterop": true,
@@ -29,6 +30,6 @@
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src"],
+  "include": ["src/", "vite.config.ts"],
   "exclude": ["node_modules/", "dist/", "coverage/"]
 }
