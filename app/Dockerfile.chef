@@ -10,16 +10,15 @@ RUN cargo chef prepare  --bin elkar --recipe-path recipe.json
 
 
 FROM chef AS builder
-COPY connector/ .
 COPY --from=planner /usr/src/recipe.json recipe.json
 RUN cargo chef cook  --bin elkar --release --recipe-path recipe.json
+COPY connector/ .
 RUN cargo build --release  --bin  elkar
 
 
 
 
 FROM debian:latest AS runner
-ENV RUST_BACKTRACE=1
 COPY --from=builder /usr/src/target/release/elkar .
 COPY --from=planner /usr/src/.env .env
 

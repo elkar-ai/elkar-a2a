@@ -1,7 +1,7 @@
 use axum::routing::*;
 use elkar_app::api_doc::{PrivateApiDoc, PublicApiDoc};
-use elkar_app::extensions::async_database::make_manager_config;
 use elkar_app::extensions::APP_CONFIG;
+use elkar_app::extensions::async_database::make_manager_config;
 use elkar_app::router::build_api_router;
 use secrecy::ExposeSecret;
 use utoipa::OpenApi;
@@ -9,7 +9,7 @@ use utoipa_axum::router::OpenApiRouter;
 
 use diesel::{Connection, PgConnection};
 use diesel_migrations::MigrationHarness;
-use diesel_migrations::{embed_migrations, EmbeddedMigrations};
+use diesel_migrations::{EmbeddedMigrations, embed_migrations};
 
 use elkar_app::{
     extensions::sentry as sentry_extension,
@@ -17,8 +17,8 @@ use elkar_app::{
     state::AppState,
 };
 
-use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pooled_connection::AsyncDieselConnectionManager;
+use diesel_async::pooled_connection::deadpool::Pool;
 use utoipa_swagger_ui::SwaggerUi;
 
 const EMBEDDED_MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
