@@ -1,11 +1,11 @@
 use std::fmt::Display;
 
 use http::HeaderMap;
-use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
+use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::{Environment, APP_CONFIG};
+use super::{APP_CONFIG, Environment};
 
 #[derive(Debug)]
 pub struct SupabaseToken<'a>(&'a str);
@@ -60,17 +60,17 @@ impl<'a> SupabaseToken<'a> {
             &validation,
         )?;
 
-        if APP_CONFIG.environment == Environment::Production {
-            let amr = decoded_token.claims.amr.clone().unwrap_or_default();
-            if amr.iter().any(|a| a.method == "password")
-                && decoded_token.claims.aal != Some("aal2".to_string())
-            {
-                return Err(jsonwebtoken::errors::ErrorKind::MissingRequiredClaim(
-                    "Missing 2FA".to_string(),
-                )
-                .into());
-            }
-        }
+        // if APP_CONFIG.environment == Environment::Production {
+        //     let amr = decoded_token.claims.amr.clone().unwrap_or_default();
+        //     if amr.iter().any(|a| a.method == "password")
+        //         && decoded_token.claims.aal != Some("aal2".to_string())
+        //     {
+        //         return Err(jsonwebtoken::errors::ErrorKind::MissingRequiredClaim(
+        //             "Missing 2FA".to_string(),
+        //         )
+        //         .into());
+        //     }
+        // }
         Ok(decoded_token.claims)
     }
 }
