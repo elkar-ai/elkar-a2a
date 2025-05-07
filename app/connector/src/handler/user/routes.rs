@@ -125,7 +125,16 @@ pub async fn ep_register_user(user_ctx: UserContext, headers: HeaderMap) -> AppR
 pub async fn ep_retrieve_tenant_users(
     user_ctx: UserContext,
 ) -> AppResult<Json<UnpaginatedOutput<ApplicationUserOutput>>> {
-    let query = UserQuery::default();
+    let Some(tenant_id) = user_ctx.tenant_id else {
+        return Err(ServiceError::new()
+            .status_code(StatusCode::BAD_REQUEST)
+            .error_type("Tenant ID is required".to_string())
+            .into());
+    };
+    let query = UserQuery {
+        tenant_id,
+        ..Default::default()
+    };
     let mut pg_conn = user_ctx.async_pool.get().await?;
 
     let user_output = get_all_users(query, &mut pg_conn).await?;

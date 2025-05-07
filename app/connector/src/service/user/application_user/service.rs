@@ -44,16 +44,3 @@ pub async fn check_registered_user(
 
     Ok(user.map(ApplicationUserServiceOutput::from))
 }
-
-pub async fn get_application_user_by_id(
-    user_id: Uuid,
-    conn: &mut AsyncPgConnection,
-) -> AppResult<Option<ApplicationUser>> {
-    let user_stmt = application_user::table
-        .filter(application_user::id.eq(&user_id))
-        .select(ApplicationUser::as_select());
-    let mut users = diesel_async::RunQueryDsl::get_results(user_stmt, conn).await?;
-    let user = users.pop();
-
-    Ok(user)
-}

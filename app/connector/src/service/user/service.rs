@@ -71,6 +71,7 @@ pub enum UserOrderBy {
 
 #[derive(Debug, Clone, Default)]
 pub struct UserQuery {
+    pub tenant_id: Uuid,
     pub id_in: Option<Vec<Uuid>>,
     pub order_by: SortBy<UserOrderBy>,
 }
@@ -80,6 +81,8 @@ pub async fn get_all_users(
     conn: &mut AsyncPgConnection,
 ) -> AppResult<Vec<ApplicationUserServiceOutput>> {
     let mut stmt = application_user::table
+        .inner_join(tenant_user::table)
+        .filter(tenant_user::tenant_id.eq(&query.tenant_id))
         .select(ApplicationUser::as_select())
         .into_boxed();
     if let Some(id_in) = query.id_in {
@@ -160,17 +163,6 @@ pub async fn register_user(
     user_info: &UserInfo,
     conn: &mut AsyncPgConnection,
 ) -> AppResult<ApplicationUser> {
-    // let user = get_application_user_by_id(user_info.supabase_user_id, conn).await?;
-    // match user {
-    //     Some(user) => {}
-    //     None => {
-    //         return Err(ServiceError::new()
-    //             .status_code(StatusCode::BAD_REQUEST)
-    //             .details("Can not register user".to_string())
-    //             .into());
-    //     }
-    // }
-
     let application_user_insert_stmt = diesel::insert_into(application_user::table)
         .values(ApplicationUserInput {
             id: user_info.supabase_user_id,
