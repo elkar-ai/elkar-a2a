@@ -11,9 +11,9 @@ Elkar helps developers build collaborative, autonomous multi-agent systems witho
 
 Elkar provides:
 - 🐍 A Python package to build and connect AI agents using the A2A protocol.
-- 🖥️ A web-based UI to manage/debug tasks, history, and agent interactions (see in [a2a-client](https://github.com/elkar-ai/elkar/tree/main/a2a-client)).
+- 🖥️ A web-based UI to manage tasks, view history, and debug agent interactions (see in [a2a-client](https://github.com/elkar-ai/elkar/tree/main/a2a-client)).
 
-By simplifying agent orchestration, Elkar eliminates silos and lets you focus on what matters: making your agents work together.
+Forget about infrastructure concerns—Elkar handles the complexity so your agents can focus on what matters: working together.
 
 Whether you’re debugging agent behaviors or streaming tasks — Elkar makes it easy.
 
@@ -22,12 +22,11 @@ Whether you’re debugging agent behaviors or streaming tasks — Elkar makes it
 Make your agents work together — even outside your org.
 Use it to:
 - **Track and manage long-running tasks** (sync or async)
-- **Debug agent tasks** with full history and artifacts
+- **Debug agent tasks** with full visibility on task history and artifacts
 - **Stream tasks** between agents in real-time
 - **Browse and manage task history** for observability and debugging
-- **Collaborate** across teams, tech stacks — or even organizations
-
-
+- **Collaborate** across teams, tech stacks and organizations
+  
 **Disclaimer:** This project is still in early development.
 
 ![Elkar](./images/ui.png)
@@ -46,6 +45,7 @@ The Python package provides a simple implementation of the A2A protocol for buil
 - Built-in and simplified task management with queue and store
 - Support for streaming responses 
 - Custom authentication via `RequestContext`
+
 
 
 ### Basic Usage
