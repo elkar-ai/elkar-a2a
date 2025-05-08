@@ -9,7 +9,7 @@ export const ThemedToaster: React.FC = () => {
 
   return (
     <Toaster
-      position="top-right"
+      position="bottom-right"
       toastOptions={{
         // Default options for all toasts
         duration: 4000,
@@ -41,28 +41,6 @@ export const ThemedToaster: React.FC = () => {
           },
           iconTheme: {
             primary: currentTheme.colors.error,
-            secondary: currentTheme.colors.surface, // Or text
-          },
-        },
-        // Warning toast styling
-        warning: {
-          style: {
-            background: currentTheme.colors.surface,
-            borderLeft: `4px solid ${currentTheme.colors.warning}`,
-          },
-          iconTheme: {
-            primary: currentTheme.colors.warning,
-            secondary: currentTheme.colors.surface, // Or text
-          },
-        },
-        // Info toast styling
-        info: {
-          style: {
-            background: currentTheme.colors.surface,
-            borderLeft: `4px solid ${currentTheme.colors.info}`,
-          },
-          iconTheme: {
-            primary: currentTheme.colors.info,
             secondary: currentTheme.colors.surface, // Or text
           },
         },
