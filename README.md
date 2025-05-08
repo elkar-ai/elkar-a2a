@@ -3,7 +3,7 @@
 
 **Send, track, and orchestrate tasks** across AI agents — effortlessly.
 
-[Website](https://elkar.co) &nbsp;&nbsp;&nbsp; [💬 Discord](https://discord.gg/f5Znhcvm) &nbsp;&nbsp;&nbsp; [Open Issues](https://github.com/elkar-ai/elkar/issues) &nbsp;&nbsp;&nbsp; [Open PRs](https://github.com/elkar-ai/elkar/pulls)
+[Elkar app](https://app.elkar.co/)  &nbsp;&nbsp;&nbsp; [Website](https://elkar.co) &nbsp;&nbsp;&nbsp; [💬 Discord](https://discord.gg/f5Znhcvm) &nbsp;&nbsp;&nbsp; 
 
 ## ✨ What is Elkar?
 
@@ -33,6 +33,44 @@ Use it to:
 
   
 **Disclaimer:** This project is still in early development.
+
+
+### 🚀 Quickstart 
+
+To connect your agent to Elkar's managed service and benefit from persistent task history, observability and management features, you can use `ElkarClientStore`. 
+
+Sign up for [Elkar platform](https://app.elkar.co/) to create your API key
+
+1. **Create a Tenant** - Go to Settings > Tenants > Create Tenant
+2. **Create an Agent** - Go back to the main menu > Agents > Add a new agent
+3. **Generate an API Key** - Click on your newly created agent > API tab > Generate API Key
+Copy the API key now — it will not be shown again
+
+4.  **Modify your agent code:**
+
+```python
+from elkar.a2a_types import *
+from elkar.server.server import A2AServer
+from elkar.task_manager.task_manager_base import RequestContext
+from elkar.task_manager.task_manager_with_task_modifier import TaskManagerWithModifier
+from elkar.task_modifier.base import TaskModifierBase
+
+# Configure the ElkarClientStore
+api_key = "YOUR_ELKAR_API_KEY"  # Replace with your actual Elkar API key
+store = ElkarClientStore(base_url="https://api.elkar.co/api", api_key=api_key)
+
+task_manager: TaskManagerWithModifier = TaskManagerWithModifier(
+    agent_card, 
+    send_task_handler=task_handler,
+    store=store  # Pass the configured store to the task manager
+)
+
+server = A2AServer(task_manager, host="0.0.0.0", port=5001, endpoint="/")
+
+# To run (e.g., if saved as main.py and server.app is exposed as app):
+# uvicorn main:app --host 0.0.0.0 --port 5001
+```
+
 
 
 
@@ -136,47 +174,6 @@ To run this example (e.g., if saved as `main.py` and you expose `server.app` as 
 ```bash
 uvicorn main:app --host 0.0.0.0 --port 5001
 ```
-
-### 🚀 Onboarding your Agent with Elkar's Managed Service
-
-To connect your agent to Elkar's managed service and benefit from persistent task history, observability and management features, you can use `ElkarClientStore`. 
-
-1. **Create a Tenant**
-- Go to Settings
-- Click on Tenants, “Create Tenant”, choose a name, and save
-2. **Create an Agent**
-- Go back to the main menu
-- Navigate to Agents and click “Add a new agent”
-3. **Generate an API Key**
-- Click on your newly created agent
-- Navigate to the API Keys tab and click “Generate API Key”
-Copy the API key now — it will not be shown again
-
-4.  **Modify your agent code:**
-
-```python
-from elkar.a2a_types import *
-from elkar.server.server import A2AServer
-from elkar.task_manager.task_manager_base import RequestContext
-from elkar.task_manager.task_manager_with_task_modifier import TaskManagerWithModifier
-from elkar.task_modifier.base import TaskModifierBase
-
-# Configure the ElkarClientStore
-api_key = "YOUR_ELKAR_API_KEY"  # Replace with your actual Elkar API key
-store = ElkarClientStore(base_url="https://api.elkar.co/api", api_key=api_key)
-
-task_manager: TaskManagerWithModifier = TaskManagerWithModifier(
-    agent_card, 
-    send_task_handler=task_handler,
-    store=store  # Pass the configured store to the task manager
-)
-
-server = A2AServer(task_manager, host="0.0.0.0", port=5001, endpoint="/")
-
-# To run (e.g., if saved as main.py and server.app is exposed as app):
-# uvicorn main:app --host 0.0.0.0 --port 5001
-```
-
 
 
 ### Supported task updates
