@@ -2,7 +2,11 @@ import React, { useState } from "react";
 import { useParams } from "react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import styled from "styled-components";
-import { IoTrashOutline } from "react-icons/io5";
+import {
+  IoTrashOutline,
+  IoCopyOutline,
+  IoCheckmarkOutline,
+} from "react-icons/io5";
 import { TreeTable } from "../../common/AppTable";
 import { api } from "../../../api/api";
 import { ApiKeyOutput, CreateApiKeyInput } from "../../../../generated-api";
@@ -17,6 +21,7 @@ import {
 import CreateApiKeyModal from "./CreateApiKeyModal";
 import DeleteApiKeyModal from "./DeleteApiKeyModal";
 import UserDisplay from "../../common/UserDisplay";
+import toast from "react-hot-toast";
 
 // Styled components for API key display
 const KeyContainer = styled.div`
@@ -25,11 +30,46 @@ const KeyContainer = styled.div`
 
 const KeyDisplay = styled.div`
   background-color: ${({ theme }) => theme.colors.surface};
-  padding: ${({ theme }) => theme.spacing.md};
+  padding: ${({ theme }) => theme.spacing.sm};
   border-radius: ${({ theme }) => theme.borderRadius.sm};
   margin-top: ${({ theme }) => theme.spacing.xs};
   font-family: monospace;
   overflow-x: auto;
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-left: 3px solid ${({ theme }) => theme.colors.primary};
+  box-shadow: ${({ theme }) => theme.shadows.sm};
+  position: relative;
+`;
+
+const KeyText = styled.div`
+  overflow-x: auto;
+  white-space: nowrap;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  letter-spacing: 0.5px;
+  font-size: 14px;
+  font-weight: 500;
+  padding-right: ${({ theme }) => theme.spacing.md};
+`;
+
+const CopyButton = styled.button`
+  background-color: ${({ theme }) => theme.colors.transparent};
+  border: none;
+  color: ${({ theme }) => theme.colors.primary};
+  cursor: ${({ theme }) => theme.cursor};
+  padding: ${({ theme }) => theme.spacing.xs};
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: ${({ theme }) => theme.spacing.sm};
+  flex-shrink: 0;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.primary}10;
+  }
 `;
 
 const HeaderContainer = styled.div`
@@ -74,6 +114,7 @@ const ApiKeySection: React.FC = () => {
   const [newApiKey, setNewApiKey] = useState<string | null>(null);
   const [keyToDelete, setKeyToDelete] = useState<ApiKeyOutput | null>(null);
   const queryClient = useQueryClient();
+  const [copied, setCopied] = useState(false);
 
   // Query API keys for the current agent
   const apiKeysQuery = useQuery({
@@ -148,6 +189,18 @@ const ApiKeySection: React.FC = () => {
   const handleDeleteApiKey = () => {
     if (keyToDelete) {
       deleteApiKeyMutation.mutate(keyToDelete.id);
+    }
+  };
+
+  // Add copy function
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      toast.success("Copied to clipboard");
+    } catch (err) {
+      console.error("Failed to copy: ", err);
     }
   };
 
@@ -273,9 +326,18 @@ const ApiKeySection: React.FC = () => {
         <Card>
           <KeyContainer>
             <InfoLabel>
-              Your new API key (save this, it won't be shown again):
+              Your new API key ( save this, it won't be shown again ):
             </InfoLabel>
-            <KeyDisplay>{newApiKey}</KeyDisplay>
+            <KeyDisplay>
+              <KeyText>{newApiKey}</KeyText>
+              <CopyButton onClick={() => copyToClipboard(newApiKey)}>
+                {copied ? (
+                  <IoCheckmarkOutline size={16} />
+                ) : (
+                  <IoCopyOutline size={16} />
+                )}
+              </CopyButton>
+            </KeyDisplay>
           </KeyContainer>
         </Card>
       )}

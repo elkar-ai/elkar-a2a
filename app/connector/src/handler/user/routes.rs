@@ -175,8 +175,8 @@ pub async fn ep_is_registered(
         .get()
         .await
         .map_err(|_| anyhow::anyhow!("Failed to get user pool"))?;
-
-    let is_registered = check_registered_user(decoded_token.sub, &mut pg_conn)
+    let tenant_id = user_ctx.tenant_id;
+    let is_registered = check_registered_user(decoded_token.sub, tenant_id, &mut pg_conn)
         .await
         .map_err(|_| {
             ServiceError::new()
@@ -186,5 +186,9 @@ pub async fn ep_is_registered(
         })?;
     Ok(Json(IsRegisteredOutput {
         is_registered: is_registered.is_some(),
+        need_to_create_tenant: is_registered.as_ref().map(|u| u.needs_to_create_tenant),
+        is_on_tenant: is_registered
+            .map(|u| u.tenant_context)
+            .and_then(|c| c.map(|c| c.is_on_tenant)),
     }))
 }

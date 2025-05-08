@@ -5,6 +5,7 @@ import {
   IoPersonOutline,
   IoBusinessOutline,
   IoPeopleOutline,
+  IoArrowBackOutline,
 } from "react-icons/io5";
 
 const NavContainer = styled.nav`
@@ -50,11 +51,40 @@ const NavLink = styled(Link)<{ $active: boolean }>`
   }
 `;
 
+const BackToAppLink = styled(Link)`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  background-color: ${({ theme }) => theme.colors.surface};
+  color: ${({ theme }) => theme.colors.primary};
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.primary}10;
+  }
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+`;
+
 const SettingsSidebar: React.FC = () => {
   const location = useLocation();
 
   return (
     <>
+      <BackToAppLink to="/list-agents">
+        <IoArrowBackOutline />
+        Back to App
+      </BackToAppLink>
+
       <SidebarTitle>User Settings</SidebarTitle>
       <NavContainer>
         <NavLink

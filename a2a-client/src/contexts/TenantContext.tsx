@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/api";
 import { useSupabase } from "./SupabaseContext";
 
@@ -14,6 +14,8 @@ interface TenantContextType {
   setCurrentTenant: (tenant: Tenant | null) => void;
   tenants: Tenant[];
   isLoading: boolean;
+  isRefetching: boolean;
+  refetchTenants: () => Promise<Tenant[]>;
   error: unknown;
 }
 
@@ -36,6 +38,7 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
     const savedTenant = localStorage.getItem("currentTenant");
     return savedTenant ? JSON.parse(savedTenant) : null;
   });
+  const queryClient = useQueryClient();
   const supabase = useSupabase();
   console.log("supabase", supabase.user);
   // Fetch tenants from API
@@ -43,6 +46,8 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
     data: tenants = [],
     isLoading,
     error,
+    refetch,
+    isRefetching,
   } = useQuery({
     queryKey: ["tenants"],
     queryFn: async () => {
@@ -73,6 +78,17 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
     }
   }, [currentTenant]);
 
+  // Handle tenant refetch with proper error handling
+  const handleRefetchTenants = async (): Promise<Tenant[]> => {
+    try {
+      const result = await refetch();
+      return result.data || [];
+    } catch (err) {
+      console.error("Failed to refetch tenants:", err);
+      throw err;
+    }
+  };
+
   return (
     <TenantContext.Provider
       value={{
@@ -80,7 +96,9 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
         setCurrentTenant,
         tenants,
         isLoading,
+        isRefetching,
         error,
+        refetchTenants: handleRefetchTenants,
       }}
     >
       {children}

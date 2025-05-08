@@ -10,9 +10,7 @@ import { BrowserRouter as Router } from "react-router";
 import { GlobalStyles } from "../styles/GlobalStyles";
 
 import Layout from "./layouts/Layout";
-import MethodNav from "./features/MethodNav";
-import SendTaskPanel from "./features/SendTaskPanel";
-import AgentCard from "./features/AgentCard";
+
 import { AppThemeProvider } from "../styles/ThemeProvider";
 import { ListAgents } from "./features";
 import { SupabaseProvider } from "../contexts/SupabaseContext";
@@ -29,6 +27,7 @@ import TaskDetailPage from "./pages/task-detail/TaskDetailPage";
 import ThemedToaster from "./common/ThemedToaster";
 import A2ADebuggerPage from "./pages/A2ADebuggerPage";
 import UpdatePassword from "./pages/UpdatePassword";
+import CreateTenantComponent from "./tenant/CreateTenantComponent";
 
 const SidebarSection = styled.div`
   margin-bottom: ${({ theme }) => theme.spacing.lg};
@@ -102,7 +101,7 @@ const App: React.FC = () => {
                       element={
                         <ProtectedRoute>
                           <Layout sidebar={<MainSidebarContent />}>
-                            <A2ADebuggerPage />
+                            <Navigate to="/list-agents" replace />
                           </Layout>
                         </ProtectedRoute>
                       }
@@ -147,7 +146,14 @@ const App: React.FC = () => {
                         </ProtectedRoute>
                       }
                     />
-
+                    <Route
+                      path="/create-tenant"
+                      element={
+                        <ProtectedRoute>
+                          <CreateTenantComponent />
+                        </ProtectedRoute>
+                      }
+                    />
                     <Route
                       path="/settings"
                       element={

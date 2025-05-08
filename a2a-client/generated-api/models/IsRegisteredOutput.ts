@@ -24,7 +24,19 @@ export interface IsRegisteredOutput {
      * @type {boolean}
      * @memberof IsRegisteredOutput
      */
+    isOnTenant?: boolean | null;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof IsRegisteredOutput
+     */
     isRegistered: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof IsRegisteredOutput
+     */
+    needToCreateTenant?: boolean | null;
 }
 
 /**
@@ -45,7 +57,9 @@ export function IsRegisteredOutputFromJSONTyped(json: any, ignoreDiscriminator: 
     }
     return {
         
+        'isOnTenant': json['is_on_tenant'] == null ? undefined : json['is_on_tenant'],
         'isRegistered': json['is_registered'],
+        'needToCreateTenant': json['need_to_create_tenant'] == null ? undefined : json['need_to_create_tenant'],
     };
 }
 
@@ -60,7 +74,9 @@ export function IsRegisteredOutputToJSONTyped(value?: IsRegisteredOutput | null,
 
     return {
         
+        'is_on_tenant': value['isOnTenant'],
         'is_registered': value['isRegistered'],
+        'need_to_create_tenant': value['needToCreateTenant'],
     };
 }
 

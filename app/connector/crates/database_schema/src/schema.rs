@@ -84,6 +84,29 @@ diesel::table! {
 diesel::table! {
     use diesel::sql_types::*;
 
+    task_event (id) {
+        tenant_id -> Uuid,
+        id -> Uuid,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+
+    task_subscription (id) {
+        tenant_id -> Uuid,
+        id -> Uuid,
+        task_id -> Uuid,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+
     tenant (id) {
         id -> Uuid,
         name -> Text,
@@ -111,6 +134,9 @@ diesel::joinable!(api_key -> application_user (created_by));
 diesel::joinable!(api_key -> tenant (tenant_id));
 diesel::joinable!(task -> agent (agent_id));
 diesel::joinable!(task -> tenant (tenant_id));
+diesel::joinable!(task_event -> tenant (tenant_id));
+diesel::joinable!(task_subscription -> task (task_id));
+diesel::joinable!(task_subscription -> tenant (tenant_id));
 diesel::joinable!(tenant_user -> application_user (user_id));
 diesel::joinable!(tenant_user -> tenant (tenant_id));
 
@@ -119,6 +145,8 @@ diesel::allow_tables_to_appear_in_same_query!(
     api_key,
     application_user,
     task,
+    task_event,
+    task_subscription,
     tenant,
     tenant_user,
 );

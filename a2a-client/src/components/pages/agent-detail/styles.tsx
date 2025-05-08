@@ -73,7 +73,7 @@ export const Card = styled.div`
   background-color: ${({ theme }) => theme.colors.surface};
   border-radius: ${({ theme }) => theme.borderRadius.md};
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: ${({ theme }) => theme.spacing.lg};
+  padding: ${({ theme }) => theme.spacing.md};
 `;
 
 export const InfoGrid = styled.div`

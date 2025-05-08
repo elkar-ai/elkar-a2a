@@ -1,9 +1,10 @@
 import React, { useEffect } from "react";
-import { Navigate } from "react-router";
+import { Navigate, useNavigate } from "react-router";
 import { useSupabase } from "../../contexts/SupabaseContext";
+import { useTenant } from "../../contexts/TenantContext";
 import styled from "styled-components";
 import { api } from "../../api/api";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const LoadingContainer = styled.div`
   display: flex;
@@ -26,10 +27,12 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, loading } = useSupabase();
+  const { setCurrentTenant } = useTenant();
+  const queryClient = useQueryClient();
 
   // Check if user is registered
   const checkRegistrationQuery = useQuery({
-    queryKey: ["isRegistered", user?.id],
+    queryKey: ["isRegistered"],
     queryFn: () => api.epIsRegistered(),
     enabled: !!user && !loading,
     retry: 2,
@@ -40,28 +43,60 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const registerMutation = useMutation({
     mutationFn: () => api.epRegisterUser(),
     retry: 1,
+    onSuccess: () => {
+      if (user?.id) {
+        queryClient.invalidateQueries({ queryKey: ["isRegistered", user.id] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["isRegistered"] });
+      }
+    },
   });
 
-  // Handle registration process
+  // useEffect to trigger registration if needed
   useEffect(() => {
-    if (!user) return;
+    if (!user || loading) return; // Don't run if no user or auth is initially loading
 
-    // If registration check is successful and the user is not registered, register them
     if (
       checkRegistrationQuery.isSuccess &&
-      checkRegistrationQuery.data && // Added safety check for data
-      !checkRegistrationQuery.data.isRegistered
+      checkRegistrationQuery.data &&
+      !checkRegistrationQuery.data.isRegistered &&
+      !registerMutation.isPending &&
+      !registerMutation.isSuccess && // Avoid re-triggering if just succeeded (wait for query refresh)
+      !registerMutation.isError
     ) {
       registerMutation.mutate();
     }
   }, [
     user,
+    loading,
     checkRegistrationQuery.isSuccess,
     checkRegistrationQuery.data,
-    registerMutation,
-  ]); // Added registerMutation
+    registerMutation.isPending,
+    registerMutation.isSuccess,
+    registerMutation.isError,
+    registerMutation.mutate, // mutate function itself
+  ]);
 
-  // Skip loading if authentication is complete
+  // useEffect to reset tenant ID if user is registered but not on a tenant
+  useEffect(() => {
+    if (
+      user &&
+      !loading && // Ensure user is authenticated and auth is not loading
+      checkRegistrationQuery.isSuccess &&
+      checkRegistrationQuery.data &&
+      checkRegistrationQuery.data.isRegistered && // User must be registered
+      checkRegistrationQuery.data.isOnTenant === false // And not on a tenant
+    ) {
+      setCurrentTenant(null);
+    }
+  }, [
+    user,
+    loading,
+    checkRegistrationQuery.isSuccess, // Re-run when query status changes
+    checkRegistrationQuery.data, // Re-run when query data changes (specifically isRegistered or isOnTenant)
+  ]);
+
+  // --- Loading States and Early Exits ---
   if (loading) {
     return (
       <LoadingContainer>
@@ -74,7 +109,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return <Navigate to="/login" />;
   }
 
-  // Show loading while checking registration status
+  // Show loading while checking registration status (initial load or if no data yet)
   if (checkRegistrationQuery.isLoading) {
     return (
       <LoadingContainer>
@@ -83,7 +118,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  // Show loading during registration
+  // Show loading during registration mutation
   if (registerMutation.isPending) {
     return (
       <LoadingContainer>
@@ -92,32 +127,63 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  // If registration is successful or the user is already registered, proceed
-  if (
-    checkRegistrationQuery.isSuccess &&
-    checkRegistrationQuery.data && // Ensure data is present
-    (checkRegistrationQuery.data.isRegistered || registerMutation.isSuccess)
-  ) {
-    return <>{children}</>;
-  }
-
-  // If registration process failed (error in check or mutation), deny access
-  if (checkRegistrationQuery.isError || registerMutation.isError) {
+  // --- Error Handling ---
+  if (checkRegistrationQuery.isError) {
     console.error(
-      "Registration process failed:",
-      checkRegistrationQuery.error || registerMutation.error
+      "ProtectedRoute: Failed to check registration status:",
+      checkRegistrationQuery.error
     );
     return (
       <LoadingContainer>
         <LoadingText>
-          Failed to check registration. Please try again later or contact
-          support.
+          Failed to check registration. Please try again later.
         </LoadingText>
       </LoadingContainer>
     );
   }
 
-  // Default loading state as fallback
+  if (registerMutation.isError) {
+    console.error(
+      "ProtectedRoute: Registration mutation failed:",
+      registerMutation.error
+    );
+    return (
+      <LoadingContainer>
+        <LoadingText>
+          Registration failed. Please try again later or contact support.
+        </LoadingText>
+      </LoadingContainer>
+    );
+  }
+
+  // --- Logic based on fetched registration data ---
+  if (checkRegistrationQuery.isSuccess && checkRegistrationQuery.data) {
+    const { isRegistered, needToCreateTenant } = checkRegistrationQuery.data;
+
+    if (!isRegistered) {
+      // This state implies that registration hasn't completed or reflected in the query yet.
+      // The useEffect for registration should be handling the mutation trigger.
+      // The registerMutation.isPending state should cover active registration.
+      // If we reach here, it's likely a brief moment before states align or mutation kicks in.
+      return (
+        <LoadingContainer>
+          <LoadingText>Finalizing registration setup...</LoadingText>
+        </LoadingContainer>
+      );
+    }
+    console.log(location.pathname);
+    // User is confirmed to be registered at this point.
+    if (needToCreateTenant === true && location.pathname !== "/create-tenant") {
+      return <Navigate to="/create-tenant" />;
+    }
+
+    // If user is registered and does not need to create a tenant, they can proceed.
+    // The resetTenantId logic (if isOnTenant was false) is handled by the second useEffect.
+    return <>{children}</>;
+  }
+
+  // Default fallback: Should ideally not be reached if logic is exhaustive.
+  // Could indicate query success but data is unexpectedly null/undefined, or still fetching initial data.
   return (
     <LoadingContainer>
       <LoadingText>Connecting to application...</LoadingText>

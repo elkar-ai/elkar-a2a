@@ -11,3 +11,4 @@ alwaysApply: false
 - DRY (Don't Repeat Yourself): Extract reusable logic into custom hooks or utility functions.
 - Don't hesitate to split in multiple files if too complex: Break down large components into smaller, more manageable pieces.
 - ALWAYS Use `TreeTable` whenever you need a table/list
+- Use `react-router` instead of `react-router-dom`

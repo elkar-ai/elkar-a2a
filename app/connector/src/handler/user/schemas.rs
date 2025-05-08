@@ -30,6 +30,8 @@ impl From<ApplicationUserServiceOutput> for ApplicationUserOutput {
 #[derive(Deserialize, Serialize, Debug, ToSchema)]
 pub struct IsRegisteredOutput {
     pub is_registered: bool,
+    pub is_on_tenant: Option<bool>,
+    pub need_to_create_tenant: Option<bool>,
 }
 
 #[derive(Deserialize, Serialize, Debug, ToSchema)]

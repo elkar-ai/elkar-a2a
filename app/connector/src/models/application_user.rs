@@ -2,10 +2,7 @@ use database_schema::{
     enum_definitions::application_user::ApplicationUserStatus, schema::application_user,
 };
 
-use diesel::{
-    prelude::{AsChangeset, Identifiable, Insertable, Queryable},
-    Selectable,
-};
+use diesel::prelude::{AsChangeset, Identifiable, Insertable, Queryable, Selectable};
 use uuid::Uuid;
 #[derive(Insertable, Debug)]
 #[diesel(table_name = application_user)]
