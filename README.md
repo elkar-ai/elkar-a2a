@@ -24,15 +24,17 @@ Whether you're debugging agent behaviors or streaming tasks — Elkar makes it e
 ## 🔧 What can you do with Elkar?
 Unlock seamless collaboration between your AI agents, whether they're in-house or external:
 Use it to:
-- **Effortlessly track and manage** long-running tasks, with robust support for asynchronous operations.
-- **Deeply debug agent tasks and A2A server interactions** with full visibility on task history, artifacts, and server communications.
-- **Stream tasks** between agents in real-time
+- **Effortlessly track and manage** long-running tasks, with robust support for asynchronous operations via a persistent task store.
 - **Browse and manage task history** for observability and debugging
-- **Collaborate** across teams, tech stacks and organizations
+![Elkar](./images/tasks-ui.png)
+- **Stream tasks** between agents in real-time via dedicated SDKs
+- **Deeply debug agent tasks and A2A server interactions** with full visibility on task history, artifacts, and server communications.
+![Elkar](./images/debugger-ui.png)
+
   
 **Disclaimer:** This project is still in early development.
 
-![Elkar](./images/ui.png)
+
 
 ### Applications:
 - Consistent task management for AI agents
