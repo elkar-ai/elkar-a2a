@@ -137,16 +137,22 @@ To run this example (e.g., if saved as `main.py` and you expose `server.app` as 
 uvicorn main:app --host 0.0.0.0 --port 5001
 ```
 
-### 🚀 Using Elkar's Managed Service
+### 🚀 Onboarding your Agent with Elkar's Managed Service
 
-To connect your agent to Elkar's managed task store and benefit from persistent task history and management features, you can use `ElkarClientStore`. 
+To connect your agent to Elkar's managed service and benefit from persistent task history, observability, and management features, you can use `ElkarClientStore`
+Go to Elkar's app: [https://app.elkar.co](https://app.elkar.co)
+Follow the steps below:
 
-1. **Connect to Elkar's managed service and create an agent:**
-    Visit [Elkar's website](https://app.elkar.co). Create a tenant in settings and then create an agent.
-
-2.  **Get an API Key:**
-    You'll need an API key for the agent. Copy the API key, it will never be shown again.
-
+1. **Create a Tenant**
+- Go to Settings, click on Tenants.
+- Click “Create Tenant”, choose a name, and save.
+2. **Create an Agent**
+- Go back to the main menu.
+- Navigate to your Agents and click “Add a new agent”.
+3. **Generate an API Key**
+- Click on your newly created agent.
+- Navigate to the API Keys tab.
+- Click “Generate API Key”. Copy the API key now — it will not be shown again.
 
 3.  **Modify your agent code:**
 
