@@ -44,11 +44,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     mutationFn: () => api.epRegisterUser(),
     retry: 1,
     onSuccess: () => {
-      if (user?.id) {
-        queryClient.invalidateQueries({ queryKey: ["isRegistered", user.id] });
-      } else {
-        queryClient.invalidateQueries({ queryKey: ["isRegistered"] });
-      }
+      queryClient.invalidateQueries({ queryKey: ["isRegistered"] });
     },
   });
 
