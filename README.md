@@ -26,10 +26,12 @@ Unlock seamless collaboration between your AI agents, whether they're in-house o
 Use it to:
 - **Effortlessly track and manage** long-running tasks, with robust support for asynchronous operations via a persistent task store
 - **Browse and manage task history** for observability and debugging
-![Elkar](./images/tasks-ui.png)
 - **Stream tasks** between agents in real-time via dedicated SDKs
 - **Deeply debug agent tasks and A2A server interactions** with full visibility on task history, artifacts, and server communications
-![Elkar](./images/debugger-ui.png)
+<p align="center">
+  <img src="./images/debugger-ui.png" alt="Elkar product screenshot"
+
+
 
   
 **Disclaimer:** This project is still in early development.
