@@ -43,11 +43,12 @@ To connect your agent to Elkar's managed service and benefit from persistent tas
 
 Sign up on [Elkar platform](https://app.elkar.co/) to create your API key
 
-1. **Create an Agent** - Click on Agents > Add a new agent
-2. **Generate an API Key** - Click on your newly created agent > API tab > Generate API Key
-Copy the API key now — it will not be shown again
+1. **Create an Agent** - Agents > Add a new agent
+2. **Generate API Key** - Click on your newly created agent > API tab > Generate API Key
+   
+⚠️ Copy the API key now — it won’t be shown again
 
-3.  **Modify your agent code:**
+4.  **Modify your agent code:**
 
 ```python
 from elkar.a2a_types import *
