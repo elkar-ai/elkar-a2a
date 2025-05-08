@@ -253,7 +253,7 @@ const SendTaskPanel: React.FC<SendTaskPanelProps> = ({
   return (
     <SplitContentLayout
       input={
-        <Container>
+        <Container style={{ height: "100%" }}>
           <Header>
             {showNewTaskButton && (
               <NewTaskComponent
@@ -286,6 +286,15 @@ const SendTaskPanel: React.FC<SendTaskPanelProps> = ({
                   onChange={(e) => setNewTaskId(e.target.value)}
                   placeholder="Enter task ID"
                 />
+                <NewTaskButton
+                  onClick={() => {
+                    setSearchParams({
+                      taskId: newTaskId,
+                    });
+                  }}
+                >
+                  Get
+                </NewTaskButton>
               </ControlsContainer>
             )}
           </Header>
@@ -303,14 +312,16 @@ const SendTaskPanel: React.FC<SendTaskPanelProps> = ({
         </Container>
       }
       output={
-        <FullTaskPanel
-          task={task}
-          streamingEvents={streamingMessages}
-          isCurrentlyStreaming={sendTaskMutation.isPending}
-          isStreamingActive={true}
-          taskError={getTaskClientQuery.error?.message || null}
-          isTaskLoading={getTaskClientQuery.isLoading}
-        />
+        <Container>
+          <FullTaskPanel
+            task={task}
+            streamingEvents={streamingMessages}
+            isCurrentlyStreaming={sendTaskMutation.isPending}
+            isStreamingActive={true}
+            taskError={getTaskClientQuery.error?.message || null}
+            isTaskLoading={getTaskClientQuery.isLoading}
+          />
+        </Container>
       }
     />
   );

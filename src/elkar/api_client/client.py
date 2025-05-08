@@ -54,6 +54,8 @@ class ElkarClient:
         )
         if output.status_code == 404:
             return None
+        if output.status_code != 200:
+            raise Exception(f"Error getting task: {output.status_code} {output.text}")
 
         return TaskResponse.model_validate(output.json())
 

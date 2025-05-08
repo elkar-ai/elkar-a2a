@@ -1,7 +1,7 @@
 import React from "react";
 
 import styled from "styled-components";
-import { Routes, Route, Navigate } from "react-router";
+import { Routes, Route, Navigate, NavLink } from "react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "../contexts/ThemeContext";
 import { UrlProvider } from "../contexts/UrlContext";
@@ -14,55 +14,20 @@ import MethodNav from "./features/MethodNav";
 import SendTaskPanel from "./features/SendTaskPanel";
 import AgentCard from "./features/AgentCard";
 import { AppThemeProvider } from "../styles/ThemeProvider";
-import { useUrl } from "../contexts/UrlContext";
-import { ListTasks, ListAgents } from "./features";
+import { ListAgents } from "./features";
 import { SupabaseProvider } from "../contexts/SupabaseContext";
 import Login from "./pages/Login";
 import AuthCallback from "./pages/AuthCallback";
 import ProtectedRoute from "./routing/ProtectedRoute";
-// import SupabaseTest from "./pages/SupabaseTest";
 import ResetPassword from "./pages/ResetPassword";
-// import { useQuery } from "@tanstack/react-query";
-// import { api } from "../api/api";
 import SettingsSidebar from "./features/SettingsSidebar";
 import ProfileSettings from "./pages/settings/ProfileSettings";
 import TenantsSettings from "./pages/settings/TenantsSettings";
 import TenantUsersSettings from "./pages/settings/TenantUsersSettings";
 import AgentDetail from "./pages/agent-detail";
 import TaskDetailPage from "./pages/task-detail/TaskDetailPage";
-
-const ServerUrlContainer = styled.div`
-  margin-bottom: ${({ theme }) => theme.spacing.md};
-`;
-
-const ServerUrlLabel = styled.label`
-  display: block;
-  font-size: ${({ theme }) => theme.fontSizes.xs};
-  color: ${({ theme }) => theme.colors.textSecondary};
-  margin-bottom: ${({ theme }) => theme.spacing.xs};
-  font-weight: 500;
-`;
-
-const ServerUrlInput = styled.input`
-  width: 100%;
-  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
-  background-color: ${({ theme }) => theme.colors.background};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
-  color: ${({ theme }) => theme.colors.text};
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-  transition: all 0.2s ease;
-
-  &:focus {
-    border-color: ${({ theme }) => theme.colors.primary};
-    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary}20;
-    outline: none;
-  }
-
-  &::placeholder {
-    color: ${({ theme }) => theme.colors.textSecondary};
-  }
-`;
+import ThemedToaster from "./common/ThemedToaster";
+import A2ADebuggerPage from "./pages/A2ADebuggerPage";
 
 const SidebarSection = styled.div`
   margin-bottom: ${({ theme }) => theme.spacing.lg};
@@ -77,86 +42,71 @@ const SidebarSectionTitle = styled.h3`
   font-weight: 600;
 `;
 
-// Add a component for the sidebar content to avoid repetition
-const MainSidebarContent: React.FC = () => {
-  const { endpoint, setEndpoint } = useUrl();
+const StyledNavLink = styled(NavLink)`
+  display: block;
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
+  text-decoration: none;
+  color: ${({ theme }) => theme.colors.text};
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  margin-bottom: ${({ theme }) => theme.spacing.xs};
 
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.background};
+  }
+
+  &.active {
+    background-color: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.white};
+    font-weight: 500;
+  }
+`;
+
+const MainSidebarContent: React.FC = () => {
   return (
     <>
       <SidebarSection>
-        <ServerUrlContainer>
-          <ServerUrlLabel>Server URL</ServerUrlLabel>
-          <ServerUrlInput
-            type="text"
-            value={endpoint}
-            onChange={(e) => setEndpoint(e.target.value)}
-            placeholder="Enter server URL"
-          />
-        </ServerUrlContainer>
-      </SidebarSection>
-      <SidebarSection>
         <SidebarSectionTitle>Navigation</SidebarSectionTitle>
-        <MethodNav />
+        <StyledNavLink to="/list-agents">Agents</StyledNavLink>
+        <StyledNavLink to="/a2a-debugger">A2A Debugger</StyledNavLink>
       </SidebarSection>
     </>
   );
 };
 
-// Create a client
 const queryClient = new QueryClient();
 
 const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <UrlProvider>
-        <ThemeProvider>
-          <TenantProvider>
-            <Router>
-              <GlobalStyles />
-              <AppThemeProvider>
-                <SupabaseProvider>
+        <SupabaseProvider>
+          <ThemeProvider>
+            <TenantProvider>
+              <Router>
+                <GlobalStyles />
+                <AppThemeProvider>
+                  <ThemedToaster />
                   <Routes>
                     <Route path="/login" element={<Login />} />
                     <Route path="/auth/callback" element={<AuthCallback />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
 
-                    {/* Main app routes */}
                     <Route
                       path="/"
                       element={
                         <ProtectedRoute>
                           <Layout sidebar={<MainSidebarContent />}>
-                            <SendTaskPanel />
+                            <A2ADebuggerPage />
                           </Layout>
                         </ProtectedRoute>
                       }
                     />
                     <Route
-                      path="/send-task"
+                      path="/a2a-debugger"
                       element={
                         <ProtectedRoute>
                           <Layout sidebar={<MainSidebarContent />}>
-                            <SendTaskPanel />
-                          </Layout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/agent-card"
-                      element={
-                        <ProtectedRoute>
-                          <Layout sidebar={<MainSidebarContent />}>
-                            <AgentCard />
-                          </Layout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/list-tasks"
-                      element={
-                        <ProtectedRoute>
-                          <Layout sidebar={<MainSidebarContent />}>
-                            <ListTasks />
+                            <A2ADebuggerPage />
                           </Layout>
                         </ProtectedRoute>
                       }
@@ -192,7 +142,6 @@ const App: React.FC = () => {
                       }
                     />
 
-                    {/* Settings routes with custom sidebar */}
                     <Route
                       path="/settings"
                       element={
@@ -234,11 +183,11 @@ const App: React.FC = () => {
                       }
                     />
                   </Routes>
-                </SupabaseProvider>
-              </AppThemeProvider>
-            </Router>
-          </TenantProvider>
-        </ThemeProvider>
+                </AppThemeProvider>
+              </Router>
+            </TenantProvider>
+          </ThemeProvider>
+        </SupabaseProvider>
       </UrlProvider>
     </QueryClientProvider>
   );

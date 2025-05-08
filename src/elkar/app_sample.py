@@ -62,10 +62,6 @@ api_key = "sk_elkar_mpqVMKB7S4+PYbKe3DsTUR/x2Plo0O/vQHIUJF7HL6Q="
 
 task_manager: TaskManagerWithModifier = TaskManagerWithModifier(
     agent_card,
-    store=ElkarClientStore(
-        base_url="http://localhost:1996/api",
-        api_key=api_key,
-    ),
     send_task_handler=task_handler,
 )
 

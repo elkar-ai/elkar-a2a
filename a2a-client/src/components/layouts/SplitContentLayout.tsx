@@ -14,6 +14,7 @@ const InputSection = styled.div`
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  height: 100%;
   background-color: ${({ theme }) => theme.colors.surface};
   border-radius: ${({ theme }) => theme.borderRadius.md};
   border: 1px solid ${({ theme }) => theme.colors.border};
@@ -25,6 +26,7 @@ const OutputSection = styled.div`
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  height: 100%;
   background-color: ${({ theme }) => theme.colors.surface};
   border-radius: ${({ theme }) => theme.borderRadius.md};
   border: 1px solid ${({ theme }) => theme.colors.border};

@@ -46,14 +46,20 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   useEffect(() => {
     if (!user) return;
 
-    // If registration check fails or the user is not registered, register them
+    // If registration check is successful and the user is not registered, register them
     if (
       checkRegistrationQuery.isSuccess &&
+      checkRegistrationQuery.data && // Added safety check for data
       !checkRegistrationQuery.data.isRegistered
     ) {
       registerMutation.mutate();
     }
-  }, [user, checkRegistrationQuery.isSuccess, checkRegistrationQuery.data]);
+  }, [
+    user,
+    checkRegistrationQuery.isSuccess,
+    checkRegistrationQuery.data,
+    registerMutation,
+  ]); // Added registerMutation
 
   // Skip loading if authentication is complete
   if (loading) {
@@ -86,22 +92,29 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  // If registration check failed, but we have a user, proceed anyway
-  if ((checkRegistrationQuery.isError || registerMutation.isError) && user) {
-    console.error(
-      "Registration error but proceeding:",
-      checkRegistrationQuery.error || registerMutation.error
-    );
-    // Log the error but allow access
-    return <>{children}</>;
-  }
-
   // If registration is successful or the user is already registered, proceed
   if (
     checkRegistrationQuery.isSuccess &&
+    checkRegistrationQuery.data && // Ensure data is present
     (checkRegistrationQuery.data.isRegistered || registerMutation.isSuccess)
   ) {
     return <>{children}</>;
+  }
+
+  // If registration process failed (error in check or mutation), deny access
+  if (checkRegistrationQuery.isError || registerMutation.isError) {
+    console.error(
+      "Registration process failed:",
+      checkRegistrationQuery.error || registerMutation.error
+    );
+    return (
+      <LoadingContainer>
+        <LoadingText>
+          Failed to check registration. Please try again later or contact
+          support.
+        </LoadingText>
+      </LoadingContainer>
+    );
   }
 
   // Default loading state as fallback

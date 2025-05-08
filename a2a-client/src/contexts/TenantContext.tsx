@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../api/api";
+import { useSupabase } from "./SupabaseContext";
 
 export interface Tenant {
   id: string;
@@ -35,7 +36,8 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
     const savedTenant = localStorage.getItem("currentTenant");
     return savedTenant ? JSON.parse(savedTenant) : null;
   });
-
+  const supabase = useSupabase();
+  console.log("supabase", supabase.user);
   // Fetch tenants from API
   const {
     data: tenants = [],
@@ -52,6 +54,7 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
         throw err;
       }
     },
+    enabled: !supabase.loading && !!supabase.user,
   });
 
   // Set the first tenant as current if none is selected and tenants are loaded

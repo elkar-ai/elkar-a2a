@@ -9,6 +9,7 @@ import {
   IoLogInOutline,
   IoPersonAddOutline,
 } from "react-icons/io5";
+import toast, { Toaster } from "react-hot-toast";
 
 const LoginContainer = styled.div`
   display: flex;
@@ -228,19 +229,19 @@ const Login: React.FC = () => {
           setError(error.message);
         }
       } else {
-        console.log("Starting signup process for:", email);
         const { error } = await signUpWithPassword(email, password);
 
         if (error) {
-          console.error("Signup error:", error);
           setError(
             error.message ||
               "Registration failed. Please try again or contact support."
           );
         } else {
-          console.log("Signup successful, waiting for redirect");
-          // For email confirmation flows, you might want to show a different message
-          // setError("Registration successful! Please check your email to confirm your account.");
+          toast.success("Registration successful! Please sign in.");
+          setView("signin");
+          setEmail("");
+          setPassword("");
+          setError(null);
         }
       }
     } catch (err) {
@@ -258,6 +259,7 @@ const Login: React.FC = () => {
 
   return (
     <LoginContainer>
+      <Toaster position="top-center" reverseOrder={false} />
       <LoginCard>
         <LoginTitle>Welcome</LoginTitle>
         <LoginSubtitle>

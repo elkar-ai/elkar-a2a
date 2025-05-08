@@ -5,24 +5,27 @@
 
 [Website](https://elkar.co) &nbsp;&nbsp;&nbsp; [💬 Discord](https://discord.gg/f5Znhcvm) &nbsp;&nbsp;&nbsp; [Open Issues](https://github.com/elkar-ai/elkar/issues) &nbsp;&nbsp;&nbsp; [Open PRs](https://github.com/elkar-ai/elkar/pulls)
 
-## ✨ What is Elkar? 
+## ✨ What is Elkar?
 
-Elkar helps developers build collaborative, autonomous multi-agent systems without the complexity of managing infrastructure.
+Elkar empowers developers to build and manage collaborative, autonomous multi-agent systems effortlessly. By handling the underlying infrastructure with its robust Rust backend and offering a managed service option, Elkar lets you focus on agent logic, not operational overhead.
 
 Elkar provides:
-- 🐍 A Python package to build and connect AI agents using the A2A protocol.
-- 🖥️ A web-based UI to manage tasks, view history, and debug agent interactions (see in [a2a-client](https://github.com/elkar-ai/elkar/tree/main/a2a-client)).
+- 🚀 **Simplified Agent Development**: A Python SDK for easy A2A protocol integration.
+- 📊 **Comprehensive Task Management**: A web UI to monitor, manage tasks, view history, and gain insights.
+- 🛠️ **Powerful Debugging Tools**: An integrated A2A debugger to inspect interactions and accelerate troubleshooting.
+- ☁️ **Flexible Deployment**: Options for self-hosting or using our managed service.
+- ⚙️ **High-Performance Backend**: Built with Rust for reliability and speed.
 
 Forget about infrastructure concerns—Elkar handles the complexity so your agents can focus on what matters: working together.
 
-Whether you’re debugging agent behaviors or streaming tasks — Elkar makes it easy.
+Whether you're debugging agent behaviors or streaming tasks — Elkar makes it easy.
 
 
 ## 🔧 What can you do with Elkar?
-Make your agents work together — even outside your org.
+Unlock seamless collaboration between your AI agents, whether they're in-house or external:
 Use it to:
-- **Track and manage long-running tasks** (sync or async)
-- **Debug agent tasks** with full visibility on task history and artifacts
+- **Effortlessly track and manage** long-running tasks, with robust support for asynchronous operations.
+- **Deeply debug agent tasks and A2A server interactions** with full visibility on task history, artifacts, and server communications.
 - **Stream tasks** between agents in real-time
 - **Browse and manage task history** for observability and debugging
 - **Collaborate** across teams, tech stacks and organizations
@@ -169,6 +172,10 @@ await task.add_messages_to_history(
     - PostgreSQL, Redis, Hosted
 - Task queues:
     - PostgreSQL, Redis, Hosted
+- SDKs:
+    - JavaScript/TypeScript
+    - Go
+    - Rust
 - Tests and code samples
 - Push notifications support
 - Task history search functionality
@@ -183,11 +190,11 @@ We ❤️ feedback, PRs, and ideas! Here's how to help:
 
 - If you find Elkar useful, a GitHub ⭐️ would mean a lot! — it helps to support the project!
 - Report bugs or request features via [issues](https://github.com/elkar-ai/elkar/issues).
-- Show off what you’ve built with Elkar [here](https://discord.com/channels/1366517666054934589/1366528135730040862)! 
+- Show off what you've built with Elkar [here](https://discord.com/channels/1366517666054934589/1366528135730040862)! 
 - Submit [pull requests](https://github.com/elkar-ai/elkar/pulls), and we'll review it as soon as possible.
 
 ##  🙌 Thanks
-Elkar is powered by community collaboration and inspired by Google’s A2A protocol.
+Elkar is powered by community collaboration and inspired by Google's A2A protocol.
 
 Join us in building a better ecosystem for AI agent workflows.
 
