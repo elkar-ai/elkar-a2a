@@ -42,6 +42,13 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
   const supabase = useSupabase();
   console.log("supabase", supabase.user);
   // Fetch tenants from API
+
+  const isRegisteredQuery = useQuery({
+    queryKey: ["isRegistered"],
+    queryFn: () => api.epIsRegistered(),
+    enabled: !!supabase.user,
+  });
+
   const {
     data: tenants = [],
     isLoading,
@@ -59,7 +66,7 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
         throw err;
       }
     },
-    enabled: !supabase.loading && !!supabase.user,
+    enabled: isRegisteredQuery.data?.isRegistered,
   });
 
   // Set the first tenant as current if none is selected and tenants are loaded
