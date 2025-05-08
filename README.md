@@ -55,6 +55,7 @@ The Python package provides a simple implementation of the A2A protocol for buil
 
 ### Basic Usage
 
+You can use Elkar as a simple library with implemented task management and streaming in local.
 1. **Install dependencies**
 ```bash
 pip install elkar
@@ -138,9 +139,16 @@ uvicorn main:app --host 0.0.0.0 --port 5001
 
 ### 🚀 Using Elkar's Managed Service
 
-To connect your agent to Elkar's managed task store and benefit from persistent task history and management features, you can use `ElkarClientStore`.
+To connect your agent to Elkar's managed task store and benefit from persistent task history and management features, you can use `ElkarClientStore`. 
 
-1.  **Modify your agent code:**
+1. **Connect to Elkar's managed service and create an agent:**
+    Visit [Elkar's website](https://app.elkar.co). Create a tenant in settings and then create an agent.
+
+2.  **Get an API Key:**
+    You'll need an API key for the agent. Copy the API key, it will never be shown again.
+
+
+3.  **Modify your agent code:**
 
 ```python
 from elkar.a2a_types import *
@@ -148,7 +156,6 @@ from elkar.server.server import A2AServer
 from elkar.task_manager.task_manager_base import RequestContext
 from elkar.task_manager.task_manager_with_task_modifier import TaskManagerWithModifier
 from elkar.task_modifier.base import TaskModifierBase
-
 
 # Configure the ElkarClientStore
 api_key = "YOUR_ELKAR_API_KEY"  # Replace with your actual Elkar API key
@@ -166,8 +173,7 @@ server = A2AServer(task_manager, host="0.0.0.0", port=5001, endpoint="/")
 # uvicorn main:app --host 0.0.0.0 --port 5001
 ```
 
-2.  **Get an API Key:**
-    You'll need an API key to use the managed service. Visit [Elkar's website](https://app.elkar.co) or contact the support team for information on obtaining an API key.
+
 
 ### Supported task updates
 
