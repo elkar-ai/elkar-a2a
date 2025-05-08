@@ -66,7 +66,7 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
         throw err;
       }
     },
-    enabled: isRegisteredQuery.data?.isRegistered,
+    enabled: !!isRegisteredQuery.data?.isRegistered,
   });
 
   // Set the first tenant as current if none is selected and tenants are loaded
