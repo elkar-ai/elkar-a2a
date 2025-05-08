@@ -32,7 +32,7 @@ pub fn extract_tenant_id(header: &HeaderMap) -> Result<Option<Uuid>, StatusCode>
 
 const TENANT_UNPROTECTED_ENDPOINTS: [&str; 3] =
     ["/users/is-registered", "/users/register", "/tenants"];
-
+const API_PATH: &str = "/api";
 pub struct UserContext {
     pub user_id: Option<Uuid>,
     pub tenant_id: Option<Uuid>,
@@ -59,6 +59,14 @@ where
         };
 
         let headers = &parts.headers;
+        let path = parts.uri.path();
+        if path.starts_with(API_PATH) {
+            return Ok(UserContext {
+                user_id: None,
+                tenant_id: None,
+                async_pool: AsyncUserPgPool::new(app_state.async_pool.clone()),
+            });
+        }
 
         let bearer_token = extract_token(headers).map_err(|e| {
             ServiceError::new()
