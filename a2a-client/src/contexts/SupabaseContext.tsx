@@ -168,7 +168,7 @@ export const SupabaseProvider: React.FC<SupabaseProviderProps> = ({
   const resetPassword = async (email: string) => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
+        redirectTo: `${window.location.origin}/update-password`,
       });
 
       return { error: error };

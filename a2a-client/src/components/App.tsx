@@ -28,6 +28,7 @@ import AgentDetail from "./pages/agent-detail";
 import TaskDetailPage from "./pages/task-detail/TaskDetailPage";
 import ThemedToaster from "./common/ThemedToaster";
 import A2ADebuggerPage from "./pages/A2ADebuggerPage";
+import UpdatePassword from "./pages/UpdatePassword";
 
 const SidebarSection = styled.div`
   margin-bottom: ${({ theme }) => theme.spacing.lg};
@@ -68,6 +69,7 @@ const MainSidebarContent: React.FC = () => {
         <SidebarSectionTitle>Navigation</SidebarSectionTitle>
         <StyledNavLink to="/list-agents">Agents</StyledNavLink>
         <StyledNavLink to="/a2a-debugger">A2A Debugger</StyledNavLink>
+        <StyledNavLink to="/settings">Settings</StyledNavLink>
       </SidebarSection>
     </>
   );
@@ -90,6 +92,10 @@ const App: React.FC = () => {
                     <Route path="/login" element={<Login />} />
                     <Route path="/auth/callback" element={<AuthCallback />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route
+                      path="/update-password"
+                      element={<UpdatePassword />}
+                    />
 
                     <Route
                       path="/"
