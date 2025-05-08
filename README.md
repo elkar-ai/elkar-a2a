@@ -10,11 +10,11 @@
 Elkar empowers developers to build and manage collaborative, autonomous multi-agent systems effortlessly. By handling the underlying infrastructure with its robust Rust backend and offering a managed service option, Elkar lets you focus on agent logic, not operational overhead.
 
 Elkar provides:
-- 🚀 **Simplified Agent Development**: A Python SDK for easy A2A protocol integration.
-- 📊 **Comprehensive Task Management**: A web UI to monitor, manage tasks, view history, and gain insights.
-- 🛠️ **Powerful Debugging Tools**: An integrated A2A debugger to inspect interactions and accelerate troubleshooting.
-- ☁️ **Flexible Deployment**: Options for self-hosting or using our managed service.
-- ⚙️ **High-Performance Backend**: Built with Rust for reliability and speed.
+- 🚀 **Simplified Agent Development**: A Python SDK for easy A2A protocol integration
+- 📊 **Comprehensive Task Management**: A web UI to monitor, manage tasks, view history, and gain insights
+- 🛠️ **Powerful Debugging Tools**: An integrated A2A debugger to inspect interactions and accelerate troubleshooting
+- ☁️ **Flexible Deployment**: Options for self-hosting or using our managed service
+- ⚙️ **High-Performance Backend**: Built with Rust for reliability and speed
 
 Forget about infrastructure concerns—Elkar handles the complexity so your agents can focus on what matters: working together.
 
@@ -24,11 +24,11 @@ Whether you're debugging agent behaviors or streaming tasks — Elkar makes it e
 ## 🔧 What can you do with Elkar?
 Unlock seamless collaboration between your AI agents, whether they're in-house or external:
 Use it to:
-- **Effortlessly track and manage** long-running tasks, with robust support for asynchronous operations via a persistent task store.
+- **Effortlessly track and manage** long-running tasks, with robust support for asynchronous operations via a persistent task store
 - **Browse and manage task history** for observability and debugging
 ![Elkar](./images/tasks-ui.png)
 - **Stream tasks** between agents in real-time via dedicated SDKs
-- **Deeply debug agent tasks and A2A server interactions** with full visibility on task history, artifacts, and server communications.
+- **Deeply debug agent tasks and A2A server interactions** with full visibility on task history, artifacts, and server communications
 ![Elkar](./images/debugger-ui.png)
 
   
@@ -46,7 +46,7 @@ Use it to:
 
 The Python package provides a simple implementation of the A2A protocol for building and connecting AI agents. It includes:
 - Full A2A protocol implementation
-- Task-oriented. Built to focus on running tasks, not the infrastructure.
+- Task-oriented. Built to focus on running tasks, not the infrastructure
 - Built-in and simplified task management with queue and store
 - Support for streaming responses 
 - Custom authentication via `RequestContext`
@@ -137,18 +137,22 @@ To run this example (e.g., if saved as `main.py` and you expose `server.app` as 
 uvicorn main:app --host 0.0.0.0 --port 5001
 ```
 
-### 🚀 Using Elkar's Managed Service
+### 🚀 Onboarding your Agent with Elkar's Managed Service
 
-To connect your agent to Elkar's managed task store and benefit from persistent task history and management features, you can use `ElkarClientStore`. 
+To connect your agent to Elkar's managed service and benefit from persistent task history, observability and management features, you can use `ElkarClientStore`. 
 
-1. **Connect to Elkar's managed service and create an agent:**
-    Visit [Elkar's website](https://app.elkar.co). Create a tenant in settings and then create an agent.
+1. **Create a Tenant**
+- Go to Settings
+- Click on Tenants, “Create Tenant”, choose a name, and save
+2. **Create an Agent**
+- Go back to the main menu
+- Navigate to Agents and click “Add a new agent”
+3. **Generate an API Key**
+- Click on your newly created agent
+- Navigate to the API Keys tab and click “Generate API Key”
+Copy the API key now — it will not be shown again
 
-2.  **Get an API Key:**
-    You'll need an API key for the agent. Copy the API key, it will never be shown again.
-
-
-3.  **Modify your agent code:**
+4.  **Modify your agent code:**
 
 ```python
 from elkar.a2a_types import *
