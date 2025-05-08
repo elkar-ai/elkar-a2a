@@ -35,7 +35,7 @@ Use it to:
 **Disclaimer:** This project is still in early development.
 
 
-### 🚀 Quickstart 
+### 🚀 Quickstart Onboarding
 
 To connect your agent to Elkar's managed service and benefit from persistent task history, observability and management features, you can use `ElkarClientStore`. 
 
