@@ -65,7 +65,7 @@ from elkar.server.server import A2AServer
 from elkar.task_manager.task_manager_base import RequestContext
 from elkar.task_manager.task_manager_with_task_modifier import TaskManagerWithModifier
 from elkar.task_modifier.base import TaskModifierBase
-
+# For using a persistent or managed store, see the section below.
 
 agent_card = AgentCard(
     name="Test Agent",
@@ -117,15 +117,55 @@ async def task_handler(
 
 
 task_manager: TaskManagerWithModifier = TaskManagerWithModifier(
-    agent_card, send_task_handler=task_handler
+    agent_card, 
+    send_task_handler=task_handler
+    # Optionally, configure a store here (e.g., for managed service or custom persistence)
 )
 
-# Create the server instance but don't start it
+# Create the server instance
 server = A2AServer(task_manager, host="0.0.0.0", port=5001, endpoint="/")
 
-server.start()
+# server.start() # This is blocking. For production, use an ASGI server like Uvicorn.
+# Example with Uvicorn (assuming your file is named main.py and server is server.app):
+# uvicorn main:server.app --host 0.0.0.0 --port 5001
+```
+To run this example (e.g., if saved as `main.py` and you expose `server.app` as `app`):
+```bash
+uvicorn main:app --host 0.0.0.0 --port 5001
 ```
 
+### 🚀 Using Elkar's Managed Service
+
+To connect your agent to Elkar's managed task store and benefit from persistent task history and management features, you can use `ElkarClientStore`.
+
+1.  **Modify your agent code:**
+
+```python
+from elkar.a2a_types import *
+from elkar.server.server import A2AServer
+from elkar.task_manager.task_manager_base import RequestContext
+from elkar.task_manager.task_manager_with_task_modifier import TaskManagerWithModifier
+from elkar.task_modifier.base import TaskModifierBase
+
+
+# Configure the ElkarClientStore
+api_key = "YOUR_ELKAR_API_KEY"  # Replace with your actual Elkar API key
+store = ElkarClientStore(base_url="https://api.elkar.co/api", api_key=api_key)
+
+task_manager: TaskManagerWithModifier = TaskManagerWithModifier(
+    agent_card, 
+    send_task_handler=task_handler,
+    store=store  # Pass the configured store to the task manager
+)
+
+server = A2AServer(task_manager, host="0.0.0.0", port=5001, endpoint="/")
+
+# To run (e.g., if saved as main.py and server.app is exposed as app):
+# uvicorn main:app --host 0.0.0.0 --port 5001
+```
+
+2.  **Get an API Key:**
+    You'll need an API key to use the managed service. Visit [Elkar's website](https://app.elkar.co) or contact the support team for information on obtaining an API key.
 
 ### Supported task updates
 
