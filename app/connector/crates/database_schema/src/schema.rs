@@ -6,6 +6,10 @@ pub mod sql_types {
     pub struct ApplicationUserStatus;
 
     #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "task_event_subscription_status"))]
+    pub struct TaskEventSubscriptionStatus;
+
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "task_state"))]
     pub struct TaskState;
 
@@ -87,11 +91,21 @@ diesel::table! {
     task_event (id) {
         tenant_id -> Uuid,
         id -> Uuid,
-        task_id -> Text,
-        caller_id -> Nullable<Text>,
-        event_data -> Jsonb,
         created_at -> Timestamp,
         updated_at -> Timestamp,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::TaskEventSubscriptionStatus;
+
+    task_event_subscription (id) {
+        tenant_id -> Uuid,
+        id -> Uuid,
+        task_event_id -> Uuid,
+        task_subscription_id -> Uuid,
+        status -> TaskEventSubscriptionStatus,
     }
 }
 
@@ -138,6 +152,9 @@ diesel::joinable!(api_key -> tenant (tenant_id));
 diesel::joinable!(task -> agent (agent_id));
 diesel::joinable!(task -> tenant (tenant_id));
 diesel::joinable!(task_event -> tenant (tenant_id));
+diesel::joinable!(task_event_subscription -> task_event (task_event_id));
+diesel::joinable!(task_event_subscription -> task_subscription (task_subscription_id));
+diesel::joinable!(task_event_subscription -> tenant (tenant_id));
 diesel::joinable!(task_subscription -> task (task_id));
 diesel::joinable!(task_subscription -> tenant (tenant_id));
 diesel::joinable!(tenant_user -> application_user (user_id));
@@ -149,6 +166,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     application_user,
     task,
     task_event,
+    task_event_subscription,
     task_subscription,
     tenant,
     tenant_user,

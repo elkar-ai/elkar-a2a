@@ -102,6 +102,7 @@ class TaskStatusUpdateEvent(BaseModel):
 class TaskArtifactUpdateEvent(BaseModel):
     id: str
     artifact: Artifact
+
     metadata: dict[str, Any] | None = None
 
 

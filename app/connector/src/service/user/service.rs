@@ -38,11 +38,12 @@ pub struct UserInfo {
 
 pub async fn check_user_on_tenant_async(
     user_id: Uuid,
+    tenant_id: Uuid,
     conn: &mut AsyncPgConnection,
 ) -> AppResult<Option<TenantUser>> {
-    let filters = tenant_user::user_id.eq(&user_id);
     let query = tenant_user::table
-        .filter(filters)
+        .filter(tenant_user::user_id.eq(&user_id))
+        .filter(tenant_user::tenant_id.eq(&tenant_id))
         .select(TenantUser::as_select());
 
     let output = diesel_async::RunQueryDsl::get_results(query, conn).await?;
@@ -117,7 +118,8 @@ pub async fn invite_user(
         diesel_async::RunQueryDsl::get_results(application_user_stmt, conn).await?;
     let app_user = match application_user.pop() {
         Some(user) => {
-            let is_user_on_tenant = check_user_on_tenant_async(user.id, conn).await?;
+            let is_user_on_tenant =
+                check_user_on_tenant_async(user.id, input.tenant_id, conn).await?;
             if is_user_on_tenant.is_some() {
                 return Err(ServiceError::new()
                     .status_code(StatusCode::BAD_REQUEST)
@@ -182,4 +184,110 @@ pub async fn register_user(
         diesel_async::RunQueryDsl::get_result(application_user_insert_stmt, conn).await?;
 
     Ok(application_user)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::async_test_utils::TestAsyncAppUserDatabaseConnection;
+
+    use crate::service::tenant::create::{CreateTenantServiceInput, create_tenant};
+    use database_schema::enum_definitions::application_user::ApplicationUserStatus;
+
+    use rstest::rstest;
+    use serial_test::serial;
+    use tracing_test::traced_test;
+    use uuid::Uuid;
+
+    #[tokio::test]
+    #[traced_test]
+    #[rstest]
+    #[serial]
+    async fn test_invite_existing_user_to_new_tenant() {
+        // Setup: Create a test connection
+        let mut conn = TestAsyncAppUserDatabaseConnection::new().await;
+
+        let existing_user = register_user(
+            &UserInfo {
+                supabase_user_id: Uuid::new_v4(),
+                email: "existing@example.com".to_string(),
+                first_name: Some("Test".to_string()),
+                last_name: Some("User".to_string()),
+            },
+            &mut conn,
+        )
+        .await
+        .unwrap();
+
+        // Insert the user into application_user table
+        let user_insert = diesel::insert_into(application_user::table)
+            .values(ApplicationUserInput {
+                id: Uuid::new_v4(),
+                email: "existing2@example.com".to_string(),
+                first_name: Some("Test".to_string()),
+                last_name: Some("User".to_string()),
+                status: ApplicationUserStatus::Active,
+            })
+            .returning(ApplicationUser::as_select());
+
+        let _: ApplicationUser = diesel_async::RunQueryDsl::get_result(user_insert, &mut conn)
+            .await
+            .unwrap();
+
+        // Create a new tenant for testing
+        let new_tenant = create_tenant(
+            CreateTenantServiceInput {
+                name: "My Tenant".to_string(),
+                user_id: existing_user.id,
+            },
+            &mut conn,
+        )
+        .await
+        .unwrap();
+        let new_tenant_id = new_tenant.id;
+        // Act: Invite the existing user to the new tenant
+        let invite_result = invite_user(
+            InviteUserServiceInput {
+                email: "existing2@example.com".to_string(),
+                tenant_id: new_tenant_id,
+            },
+            &mut conn,
+        )
+        .await;
+        // // Assert: The invitation was successful
+        assert!(invite_result.is_ok());
+
+        // // Verify: User is now associated with the tenant
+        // let tenant_user_query = tenant_user::table
+        //     .filter(tenant_user::user_id.eq(existing_user_id))
+        //     .filter(tenant_user::tenant_id.eq(new_tenant_id))
+        //     .select(TenantUser::as_select());
+
+        // let tenant_user_result: Vec<TenantUser> =
+        //     diesel_async::RunQueryDsl::get_results(tenant_user_query, &mut conn)
+        //         .await
+        //         .unwrap();
+
+        // // There should be exactly one tenant_user record
+        // assert_eq!(tenant_user_result.len(), 1);
+        // assert_eq!(tenant_user_result[0].user_id, existing_user_id);
+        // assert_eq!(tenant_user_result[0].tenant_id, new_tenant_id);
+
+        // // Also test that inviting the same user to the same tenant fails
+        // let invite_again_result = invite_user(
+        //     InviteUserServiceInput {
+        //         email: user_email,
+        //         tenant_id: new_tenant_id,
+        //     },
+        //     &mut conn,
+        // )
+        // .await;
+
+        // // Should return an error
+        // assert!(invite_again_result.is_err());
+        // // Check that we get the expected error message
+        // let err = invite_again_result.unwrap_err();
+        // let err_string = format!("{}", err);
+        // assert!(err_string.contains("User already exists"));
+    }
 }
