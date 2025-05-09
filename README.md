@@ -7,18 +7,18 @@
 
 ## ✨ What is Elkar?
 
-Elkar empowers developers to build and manage collaborative, autonomous multi-agent systems effortlessly. By handling the underlying infrastructure with its robust Rust backend and offering a managed service option, Elkar lets you focus on agent logic, not operational overhead.
+Elkar helps developers build collaborative, autonomous multi-agent systems with A2A protocol without the complexity of managing infrastructure.
 
 Elkar provides:
-- 🚀 **Simplified Agent Development**: A Python SDK for easy A2A protocol integration
-- 📊 **Comprehensive Task Management**: A web UI to monitor, manage tasks, view history, and gain insights
-- 🛠️ **Powerful Debugging Tools**: An integrated A2A debugger to inspect interactions and accelerate troubleshooting
-- ☁️ **Flexible Deployment**: Options for self-hosting or using our managed service
-- ⚙️ **High-Performance Backend**: Built with Rust for reliability and speed
+
+🐍 A Python SDK (other languages coming soon) to build and connect AI agents using the A2A protocol with store and queue management.
+🖥️ An application and API to manage, monitor and debug agent tasks.
 
 Forget about infrastructure concerns—Elkar handles the complexity so your agents can focus on what matters: working together.
+Whether you're debugging agent behaviors or streaming tasks — Elkar makes A2A easy.
 
-Whether you're debugging agent behaviors or streaming tasks — Elkar makes it easy.
+
+
 
 
 ## 🔧 What can you do with Elkar?
@@ -31,30 +31,47 @@ Use it to:
 <p align="center">
   <img src="./images/debugger-ui.png" alt="Elkar product screenshot"
 
-
-
   
 **Disclaimer:** This project is still in early development.
 
+## 👩‍💻 Software Development Kits
 
-### 🚀 Quickstart Onboarding
+Elkar offers a Python SDK (with support for other languages coming soon) that simplifies the implementation of the A2A protocol. 
 
-To connect your agent to Elkar's managed service and benefit from persistent task history, observability and management features, you can use `ElkarClientStore`. 
+Key features include:
+- Complete implementation of the A2A protocol
+- Task-oriented design focused on executing tasks, not managing infrastructure
+- Built-in task management with simplified queuing and storage
+- Support for streaming responses
+- CCustom authentication via `RequestContext`
 
-Sign up on [Elkar platform](https://app.elkar.co/) to create your API key
+## 🚀 Quickstart Onboarding
 
-1. **Create an Agent** - Agents > Add a new agent
-2. **Generate API Key** - Click on your newly created agent > API tab > Generate API Key
-   
-⚠️ Copy the API key now — it won’t be shown again
+Follow the steps below to get started with Elkar Platform:
 
+### Step 1: Sign Up & Get Your API Key
 
-3. **Install Elkar**
-```bash
+Follow the steps below to get started with Elkar Platform:
+
+1. **Create an account** on the [Elkar platform](https://app.elkar.co/login).
+2. **Create a new agent**: Navigate to **Agents \> Add a new agent**.
+3. **Generate an API Key**:
+   - Click on your newly created agent.
+   - Go to the **API** tab.
+   - Click **Generate API Key**.
+   - ⚠️ **Copy the API key now** — it won’t be shown again.
+
+### Step 2: Install Elkar SDK
+
+```python
 pip install elkar
 ```
 
-4.  **Modify your agent code:**
+### Step 3: Create your Task Handler
+
+The task handler manages a task’s status and artifacts, abstracting away the complexity of interacting with the Task Store. It supports three operations: `set_status`, `add_messages_to_history`, and `upsert_artifact`. 
+
+The task handler currently has a strict signature: `async def my_handler(task: TaskModifierBase, request_context: RequestContext) -> None.`While this signature is enforced for now, it may become more flexible in the future.
 
 ```python
 from elkar.a2a_types import *
@@ -62,72 +79,6 @@ from elkar.server.server import A2AServer
 from elkar.task_manager.task_manager_base import RequestContext
 from elkar.task_manager.task_manager_with_task_modifier import TaskManagerWithModifier
 from elkar.task_modifier.base import TaskModifierBase
-
-# Configure the ElkarClientStore
-api_key = "YOUR_ELKAR_API_KEY"  # Replace with your actual Elkar API key
-store = ElkarClientStore(base_url="https://api.elkar.co/api", api_key=api_key)
-
-task_manager: TaskManagerWithModifier = TaskManagerWithModifier(
-    agent_card, 
-    send_task_handler=task_handler,
-    store=store  # Pass the configured store to the task manager
-)
-
-server = A2AServer(task_manager, host="0.0.0.0", port=5001, endpoint="/")
-
-# To run (e.g., if saved as main.py and server.app is exposed as app):
-# uvicorn main:app --host 0.0.0.0 --port 5001
-```
-
-
-
-### Applications:
-- Consistent task management for AI agents
-- Task orchestration between agents
-- Task history for observability and debugging
-
-
-## 📦 Python Package
-
-The Python package provides a simple implementation of the A2A protocol for building and connecting AI agents. It includes:
-- Full A2A protocol implementation
-- Task-oriented. Built to focus on running tasks, not the infrastructure
-- Built-in and simplified task management with queue and store
-- Support for streaming responses 
-- Custom authentication via `RequestContext`
-
-
-
-### Basic Usage
-
-You can use Elkar as a simple library with implemented task management and streaming in local.
-1. **Install dependencies**
-```bash
-pip install elkar
-```
-
-2. **Create an agent and run it!**
-```python
-from elkar.a2a_types import *
-from elkar.server.server import A2AServer
-from elkar.task_manager.task_manager_base import RequestContext
-from elkar.task_manager.task_manager_with_task_modifier import TaskManagerWithModifier
-from elkar.task_modifier.base import TaskModifierBase
-# For using a persistent or managed store, see the section below.
-
-agent_card = AgentCard(
-    name="Test Agent",
-    description="Test Agent Description",
-    url="https://example.com",
-    version="1.0.0",
-    skills=[],
-    capabilities=AgentCapabilities(
-        streaming=True,
-        pushNotifications=True,
-        stateTransitionHistory=True,
-    ),
-)
-
 
 async def task_handler(
     task: TaskModifierBase, request_context: RequestContext | None
@@ -162,25 +113,74 @@ async def task_handler(
         ),
         is_final=True,
     )
+```
 
+### Step 4: Create your Agent Card
+
+Your Agent Card is defined following the requirements from A2A Protocol.
+
+```python
+agent_card = AgentCard(
+    name="Test Agent",
+    description="Test Agent Description",
+    url="https://example.com",
+    provider=AgentProvider(organization="Elkar", url="https://www.elkar.co"),
+    documentationUrl="https://example.com/documentation",
+    version="1.0.0",
+    skills=[
+        AgentSkill(
+            id="1",
+            name="Generate image",
+            description="Generate images from prompt description",
+            inputModes=["text"],
+            outputModes=["image"],
+        ),
+    ],
+    capabilities=AgentCapabilities(
+        streaming=True,
+        pushNotifications=True,
+        stateTransitionHistory=True,
+    ),
+)
+```
+
+### Step 5: Create your A2A Server
+
+Instantiate your A2A Server with the Managed Service as Task Store.
+
+```python
+api_key = "YOUR_ELKAR_API_KEY"  # Replace with your actual Elkar API key
+store = ElkarClientStore(base_url="https://api.elkar.co/api", api_key=api_key)
 
 task_manager: TaskManagerWithModifier = TaskManagerWithModifier(
     agent_card, 
-    send_task_handler=task_handler
-    # Optionally, configure a store here (e.g., for managed service or custom persistence)
+    send_task_handler=task_handler,
+    store=store
 )
 
 # Create the server instance
 server = A2AServer(task_manager, host="0.0.0.0", port=5001, endpoint="/")
 
-# server.start() # This is blocking. For production, use an ASGI server like Uvicorn.
-# Example with Uvicorn (assuming your file is named main.py and server is server.app):
-# uvicorn main:server.app --host 0.0.0.0 --port 5001
+server.start() # This is blocking. For production, use an ASGI server like Uvicorn.
 ```
-To run this example (e.g., if saved as `main.py` and you expose `server.app` as `app`):
+
+To run this example (e.g., if saved as [main.py](http://main.py) and you expose [server.app](http://server.app) as app):  uvicorn main:app --host 0.0.0.0 --port 5001
+
 ```bash
 uvicorn main:app --host 0.0.0.0 --port 5001
 ```
+
+To run this example (e.g., if saved as [main.py](http://main.py) and you expose [server.app](http://server.app) as app):  uvicorn main:app --host 0.0.0.0 --port 5001
+
+```bash
+uvicorn main:app --host 0.0.0.0 --port 5001
+```
+
+## 📦 Python Package
+
+You can use Elkar self-hosted version as a simple library with implemented task management and streaming in local memory. Support for other task stores as PostgreSQL or Redis will come soon. 
+
+For detailed integration steps, see our Open Source Documentation
 
 
 ### Supported task updates
