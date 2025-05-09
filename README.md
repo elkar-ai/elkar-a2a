@@ -11,8 +11,8 @@ Elkar helps developers build collaborative, autonomous multi-agent systems with 
 
 Elkar provides:
 
-🐍 A Python SDK (other languages coming soon) to build and connect AI agents using the A2A protocol with store and queue management.
-🖥️ An application and API to manage, monitor and debug agent tasks.
+- 🐍 A Python SDK (other languages coming soon) to build and connect AI agents using the A2A protocol with store and queue management.
+- 🖥️ An application and API to manage, monitor and debug agent tasks.
 
 Forget about infrastructure concerns—Elkar handles the complexity so your agents can focus on what matters: working together.
 Whether you're debugging agent behaviors or streaming tasks — Elkar makes A2A easy.
@@ -176,14 +176,14 @@ To run this example (e.g., if saved as [main.py](http://main.py) and you expose 
 uvicorn main:app --host 0.0.0.0 --port 5001
 ```
 
-## 📦 Python Package
+## 📦 Self-Hosting Package
 
 You can use Elkar self-hosted version as a simple library with implemented task management and streaming in local memory. Support for other task stores as PostgreSQL or Redis will come soon. 
 
-For detailed integration steps, see our Open Source Documentation
+For detailed integration steps, see our Open Source Documentation.
 
 
-### Supported task updates
+## Supported task updates
 
 
 1. **Status Update**
