@@ -48,6 +48,12 @@ Sign up on [Elkar platform](https://app.elkar.co/) to create your API key
    
 ⚠️ Copy the API key now — it won’t be shown again
 
+
+3. **Install Elkar**
+```bash
+pip install elkar
+```
+
 4.  **Modify your agent code:**
 
 ```python
@@ -72,7 +78,6 @@ server = A2AServer(task_manager, host="0.0.0.0", port=5001, endpoint="/")
 # To run (e.g., if saved as main.py and server.app is exposed as app):
 # uvicorn main:app --host 0.0.0.0 --port 5001
 ```
-
 
 
 
