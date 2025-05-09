@@ -169,12 +169,6 @@ To run this example (e.g., if saved as [main.py](http://main.py) and you expose 
 uvicorn main:app --host 0.0.0.0 --port 5001
 ```
 
-To run this example (e.g., if saved as [main.py](http://main.py) and you expose [server.app](http://server.app) as app):  uvicorn main:app --host 0.0.0.0 --port 5001
-
-```bash
-uvicorn main:app --host 0.0.0.0 --port 5001
-```
-
 ## 📦 Self-Hosting Package
 
 You can use Elkar self-hosted version as a simple library with implemented task management and streaming in local memory. Support for other task stores as PostgreSQL or Redis will come soon. 
