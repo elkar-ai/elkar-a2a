@@ -1,6 +1,5 @@
 # Elkar
 **Elkar is an open-source task-management layer for AI agents** — based on Google's Agent2Agent Protocol (A2A).
-
 **Send, track, and orchestrate tasks** across AI agents — effortlessly.
 
 [Elkar app](https://app.elkar.co/)  &nbsp;&nbsp;&nbsp; [Website](https://elkar.co) &nbsp;&nbsp;&nbsp; [💬 Discord](https://discord.gg/f5Znhcvm) &nbsp;&nbsp;&nbsp; 
@@ -180,14 +179,12 @@ uvicorn main:app --host 0.0.0.0 --port 5001
 
 You can use Elkar self-hosted version as a simple library with implemented task management and streaming in local memory. Support for other task stores as PostgreSQL or Redis will come soon. 
 
-For detailed integration steps, see our Open Source Documentation.
+For detailed integration steps, see our [Open Source Documentation](https://docs.elkar.co/opensource/selfhost)
 
 
-## Supported task updates
-
+## ✅ Supported task updates
 
 1. **Status Update**
-
 Describes the state of the task and the agent's progress. Messages in the status are appended to the task's history.
 
 ```python
@@ -198,7 +195,6 @@ await task.set_status(
     )
 )
 ```
-
 2. **Artifact Update**
 
 Artifacts represent the result of the task. Indices are used to identify artifacts within a task. Updates append to existing artifacts if the index matches and the chunk is not the last one.
@@ -237,6 +233,8 @@ await task.add_messages_to_history(
 - Task history search functionality
 - Integration with Model Context Protocol (MCP) for enhanced task management.
 
+Check out our [documentation](https://docs.elkar.co/) for more details!
+
 ## 💬 Community
 Join our [Discord server](https://discord.gg/f5Znhcvm) to get help, share ideas, and get updates
 
@@ -248,11 +246,6 @@ We ❤️ feedback, PRs, and ideas! Here's how to help:
 - Report bugs or request features via [issues](https://github.com/elkar-ai/elkar/issues).
 - Show off what you've built with Elkar [here](https://discord.com/channels/1366517666054934589/1366528135730040862)! 
 - Submit [pull requests](https://github.com/elkar-ai/elkar/pulls), and we'll review it as soon as possible.
-
-##  🙌 Thanks
-Elkar is powered by community collaboration and inspired by Google's A2A protocol.
-
-Join us in building a better ecosystem for AI agent workflows.
 
 ## 🔒 License  
 This project is licensed under the MIT License – see the [LICENSE](https://github.com/elkar-ai/elkar-a2a/blob/main/LICENCE) file for details.
