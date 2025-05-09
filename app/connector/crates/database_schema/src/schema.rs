@@ -87,6 +87,9 @@ diesel::table! {
     task_event (id) {
         tenant_id -> Uuid,
         id -> Uuid,
+        task_id -> Text,
+        caller_id -> Nullable<Text>,
+        event_data -> Jsonb,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }

@@ -22,6 +22,7 @@ pub struct TaskArtifactUpdateEvent {
     pub metadata: Option<HashMap<String, serde_json::Value>>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TaskEvent {
     StatusUpdate(TaskStatusUpdateEvent),
     ArtifactUpdate(TaskArtifactUpdateEvent),

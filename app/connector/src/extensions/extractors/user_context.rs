@@ -32,7 +32,7 @@ pub fn extract_tenant_id(header: &HeaderMap) -> Result<Option<Uuid>, StatusCode>
 
 const TENANT_UNPROTECTED_ENDPOINTS: [&str; 3] =
     ["/users/is-registered", "/users/register", "/tenants"];
-const API_PATH: &str = "/api";
+const API_PATH: &str = "/api/";
 pub struct UserContext {
     pub user_id: Option<Uuid>,
     pub tenant_id: Option<Uuid>,

@@ -5,13 +5,13 @@ use crate::{
         pagination::output::UnpaginatedOutput,
     },
     service::api_key::{
-        create::{create_api_key, CreateApiKeyServiceInput},
+        create::{CreateApiKeyServiceInput, create_api_key},
         delete::delete_api_key,
-        retrieve::{retrieve_api_key, retrieve_api_keys, RetrieveApiKeyInput},
+        retrieve::{RetrieveApiKeyInput, retrieve_api_key, retrieve_api_keys},
     },
 };
 
-use axum::{extract::Path, Json};
+use axum::{Json, extract::Path};
 
 use http::StatusCode;
 use utoipa_axum::{router::OpenApiRouter, routes};
