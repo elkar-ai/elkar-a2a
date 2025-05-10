@@ -54,11 +54,9 @@ Follow the steps below to get started with Elkar Platform:
 
 1. **Create an account** on the [Elkar platform](https://app.elkar.co/login).
 2. **Create a new agent**: Navigate to **Agents \> Add a new agent**.
-3. **Generate an API Key**:
-   - Click on your newly created agent.
-   - Go to the **API** tab.
-   - Click **Generate API Key**.
-   - ⚠️ **Copy the API key now** — it won’t be shown again.
+3. **Generate an API Key**
+
+   ⚠️ **Copy the API key now** — it won’t be shown again.
 
 ### Step 2: Install Elkar SDK
 
