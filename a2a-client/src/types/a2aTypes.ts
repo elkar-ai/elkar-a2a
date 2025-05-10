@@ -209,7 +209,7 @@ export type A2ARequest =
 // Helper functions
 export function createJsonRpcRequest<T>(
   method: string,
-  params?: T
+  params?: T,
 ): JSONRPCRequest<T> {
   return {
     jsonrpc: "2.0",

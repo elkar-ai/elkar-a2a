@@ -136,7 +136,7 @@ where
                 .details(e.to_string())
         })?;
         set_tenant_id_async(&mut conn, tenant_id).await?;
-        let user_on_tenant = check_user_on_tenant_async(user.id, &mut conn).await?;
+        let user_on_tenant = check_user_on_tenant_async(user.id, tenant_id, &mut conn).await?;
         if user_on_tenant.is_none() {
             return Err(ServiceError::new()
                 .status_code(StatusCode::UNAUTHORIZED)

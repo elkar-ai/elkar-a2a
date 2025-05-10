@@ -14,8 +14,7 @@ use uuid::Uuid;
 pub struct TaskEvent {
     pub tenant_id: Uuid,
     pub id: Uuid,
-    pub task_id: String,
-    pub caller_id: Option<String>,
+    pub task_id: Uuid,
     pub event_data: Value, // Store the A2ATaskEvent as JSON
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
@@ -24,7 +23,6 @@ pub struct TaskEvent {
 #[derive(Debug, Insertable, Deserialize, Serialize)]
 #[diesel(table_name = task_event)]
 pub struct TaskEventInput {
-    pub task_id: String,
-    pub caller_id: Option<String>,
+    pub task_id: Uuid,
     pub event_data: Value, // Store the A2ATaskEvent as JSON
 }

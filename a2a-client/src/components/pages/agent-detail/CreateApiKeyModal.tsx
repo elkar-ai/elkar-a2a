@@ -1,5 +1,11 @@
 import React, { useState } from "react";
 import styled from "styled-components";
+import { useQuery } from "@tanstack/react-query";
+import { useParams, useNavigate } from "react-router";
+import { api } from "../../../api/api";
+import { AgentOutput, CreateApiKeyInput } from "../../../../generated-api";
+import SearchableDropdown from "../../common/SearchableDropdown";
+import { IoAdd } from "react-icons/io5";
 
 const ModalOverlay = styled.div`
   position: fixed;
@@ -151,10 +157,35 @@ const SubmitButton = styled.button`
   }
 `;
 
+const CreateAgentButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
+  color: ${({ theme }) => theme.colors.primary};
+  text-decoration: none;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  transition: all 0.2s ease;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  margin-top: ${({ theme }) => theme.spacing.xs};
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.surface};
+  }
+
+  svg {
+    font-size: ${({ theme }) => theme.fontSizes.md};
+  }
+`;
+
 interface CreateApiKeyModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (name: string, expiresIn?: number) => void;
+  onSubmit: (input: CreateApiKeyInput) => void;
   isSubmitting: boolean;
 }
 
@@ -177,8 +208,19 @@ const CreateApiKeyModal: React.FC<CreateApiKeyModalProps> = ({
   onSubmit,
   isSubmitting,
 }) => {
-  const [name, setName] = useState("");
-  const [expiresIn, setExpiresIn] = useState<string>("");
+  const { id: currentAgentId } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState<CreateApiKeyInput>({
+    name: "",
+    agentId: currentAgentId || undefined,
+    expiresIn: undefined,
+  });
+
+  // Query to fetch the list of agents
+  const agentsQuery = useQuery({
+    queryKey: ["agents"],
+    queryFn: () => api.epRetrieveAgents(),
+  });
 
   if (!isOpen) return null;
 
@@ -187,15 +229,31 @@ const CreateApiKeyModal: React.FC<CreateApiKeyModalProps> = ({
 
     // Convert duration to seconds if a value is selected
     let durationInSeconds: number | undefined = undefined;
-    if (expiresIn) {
+    if (formData.expiresIn) {
       const selectedOption = expirationOptions.find(
-        (option) => option.value === expiresIn
+        (option) => option.value === formData.expiresIn?.toString()
       );
       durationInSeconds = selectedOption?.seconds;
     }
 
-    onSubmit(name, durationInSeconds);
+    const input: CreateApiKeyInput = {
+      ...formData,
+      expiresIn: durationInSeconds,
+    };
+
+    onSubmit(input);
   };
+
+  const handleCreateAgent = () => {
+    onClose();
+    navigate("/agents");
+  };
+
+  const agentOptions =
+    agentsQuery.data?.records.map((agent: AgentOutput) => ({
+      value: agent.id,
+      label: agent.name,
+    })) || [];
 
   return (
     <ModalOverlay onClick={onClose}>
@@ -210,18 +268,47 @@ const CreateApiKeyModal: React.FC<CreateApiKeyModalProps> = ({
             <Input
               id="name"
               type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               placeholder="Enter API key name"
               required
             />
           </FormGroup>
+          {!currentAgentId && (
+            <FormGroup>
+              <Label htmlFor="agent">Agent *</Label>
+              <SearchableDropdown
+                options={agentOptions}
+                value={formData.agentId || ""}
+                onChange={(value) =>
+                  setFormData({ ...formData, agentId: value })
+                }
+                placeholder="Select an agent"
+                searchPlaceholder="Search agents..."
+                NoOptionsComponent={
+                  <CreateAgentButton onClick={handleCreateAgent}>
+                    <IoAdd size={16} />
+                    Create your first agent
+                  </CreateAgentButton>
+                }
+              />
+            </FormGroup>
+          )}
           <FormGroup>
             <Label htmlFor="expiration">Expiration</Label>
             <Select
               id="expiration"
-              value={expiresIn}
-              onChange={(e) => setExpiresIn(e.target.value)}
+              value={formData.expiresIn?.toString() || ""}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  expiresIn: e.target.value
+                    ? parseInt(e.target.value)
+                    : undefined,
+                })
+              }
             >
               {expirationOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -238,7 +325,14 @@ const CreateApiKeyModal: React.FC<CreateApiKeyModalProps> = ({
             >
               Cancel
             </CancelButton>
-            <SubmitButton type="submit" disabled={!name || isSubmitting}>
+            <SubmitButton
+              type="submit"
+              disabled={
+                !formData.name ||
+                (!currentAgentId && !formData.agentId) ||
+                isSubmitting
+              }
+            >
               {isSubmitting ? "Creating..." : "Create API Key"}
             </SubmitButton>
           </Actions>

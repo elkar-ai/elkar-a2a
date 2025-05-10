@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import styled from "styled-components";
 import { useSupabase } from "../../contexts/SupabaseContext";
 import {
@@ -22,9 +23,12 @@ const DropdownToggle = styled.button`
   padding: 4px;
   cursor: pointer;
   color: ${({ theme }) => theme.colors.text};
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  transition: box-shadow 0.2s;
 
   &:focus {
     outline: none;
+    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary}40;
   }
 `;
 
@@ -107,6 +111,8 @@ const MenuItem = styled.button`
   cursor: pointer;
   color: ${({ theme }) => theme.colors.text};
   font-size: ${({ theme }) => theme.fontSizes.sm};
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  transition: background-color 0.2s;
 
   &:hover {
     background-color: ${({ theme }) => theme.colors.background};
@@ -114,6 +120,7 @@ const MenuItem = styled.button`
 
   &:focus {
     outline: none;
+    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary}40;
   }
 
   svg {
@@ -137,10 +144,15 @@ const Divider = styled.hr`
   margin: 0;
 `;
 
+/**
+ * UserDropdown provides a user menu with profile and logout options.
+ * Accessible, keyboard-navigable, and fully themed.
+ */
 const UserDropdown: React.FC = () => {
   const { user, signOut } = useSupabase();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
 
   // Handle click outside to close dropdown
@@ -153,12 +165,27 @@ const UserDropdown: React.FC = () => {
         setIsOpen(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (event: Event) => {
+      if (event instanceof KeyboardEvent && event.key === "Escape") {
+        setIsOpen(false);
+        toggleRef.current?.focus();
+      }
+    };
+    if (isOpen) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen]);
 
   if (!user) return null;
 
@@ -173,21 +200,14 @@ const UserDropdown: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      console.log("Attempting to sign out...");
       const { error } = await signOut();
-
       if (error) {
         console.error("Error during sign out:", error);
-      } else {
-        console.log("Sign out successful, redirecting to login page");
       }
-
-      // Always close dropdown and redirect
       setIsOpen(false);
       navigate("/login");
     } catch (error) {
       console.error("Unexpected error during sign out:", error);
-      // Even if there's an error, attempt to redirect to login
       setIsOpen(false);
       navigate("/login");
     }
@@ -199,12 +219,27 @@ const UserDropdown: React.FC = () => {
   };
 
   const toggleDropdown = () => {
-    setIsOpen(!isOpen);
+    setIsOpen((open) => !open);
+  };
+
+  const handleToggleKeyDown = (e: ReactKeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
+      e.preventDefault();
+      setIsOpen(true);
+    }
   };
 
   return (
     <Container ref={dropdownRef}>
-      <DropdownToggle onClick={toggleDropdown} aria-label="User menu">
+      <DropdownToggle
+        ref={toggleRef}
+        onClick={toggleDropdown}
+        aria-label="User menu"
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
+        aria-controls="user-dropdown-menu"
+        onKeyDown={handleToggleKeyDown}
+      >
         <AvatarContainer $hasImage={!!avatarUrl}>
           {avatarUrl ? (
             <img src={avatarUrl} alt={displayName} />
@@ -214,7 +249,7 @@ const UserDropdown: React.FC = () => {
         </AvatarContainer>
       </DropdownToggle>
 
-      <DropdownMenu $isOpen={isOpen}>
+      <DropdownMenu $isOpen={isOpen} id="user-dropdown-menu" role="menu">
         {user.email && (
           <MenuHeader>
             <MenuHeaderAvatar $hasImage={!!avatarUrl}>
@@ -228,12 +263,12 @@ const UserDropdown: React.FC = () => {
             <MenuHeaderEmail>{user.email}</MenuHeaderEmail>
           </MenuHeader>
         )}
-        <MenuItem onClick={navigateToSettings}>
+        <MenuItem role="menuitem" tabIndex={0} onClick={navigateToSettings}>
           <IoSettingsOutline size={16} />
           Settings
         </MenuItem>
         <Divider />
-        <LogoutMenuItem onClick={handleLogout}>
+        <LogoutMenuItem role="menuitem" tabIndex={0} onClick={handleLogout}>
           <IoLogOutOutline size={16} />
           Sign Out
         </LogoutMenuItem>

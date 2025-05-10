@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useParams } from "react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import styled from "styled-components";
 import {
@@ -17,9 +16,9 @@ import {
   EmptyStateText,
   Button,
   InfoLabel,
-} from "./styles";
-import CreateApiKeyModal from "./CreateApiKeyModal";
-import DeleteApiKeyModal from "./DeleteApiKeyModal";
+} from "../agent-detail/styles";
+import CreateApiKeyModal from "../agent-detail/CreateApiKeyModal";
+import DeleteApiKeyModal from "../agent-detail/DeleteApiKeyModal";
 import UserDisplay from "../../common/UserDisplay";
 import toast from "react-hot-toast";
 
@@ -107,30 +106,26 @@ const ActionButton = styled.button`
   }
 `;
 
-const ApiKeySection: React.FC = () => {
-  const { id: agentId } = useParams<{ id: string }>();
+const ApiKeysSettings: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [newApiKey, setNewApiKey] = useState<string | null>(null);
   const [keyToDelete, setKeyToDelete] = useState<ApiKeyOutput | null>(null);
   const [apiKeyInput, setApiKeyInput] = useState<CreateApiKeyInput>({
     name: "",
-    agentId: agentId || undefined,
+    agentId: undefined,
     expiresIn: undefined,
   });
   const queryClient = useQueryClient();
   const [copied, setCopied] = useState(false);
 
-  // Query API keys for the current agent
+  // Query all API keys
   const apiKeysQuery = useQuery({
-    queryKey: ["apiKeys", agentId],
+    queryKey: ["apiKeys"],
     queryFn: () =>
       api.epListApiKeys({
-        listApiKeysInput: {
-          agentIdIn: agentId ? [agentId] : undefined,
-        },
+        listApiKeysInput: {},
       }),
-    enabled: !!agentId,
   });
 
   // Mutation for creating a new API key
@@ -140,7 +135,7 @@ const ApiKeySection: React.FC = () => {
     },
     onSuccess: (data) => {
       setNewApiKey(data.apiKey || null);
-      queryClient.invalidateQueries({ queryKey: ["apiKeys", agentId] });
+      queryClient.invalidateQueries({ queryKey: ["apiKeys"] });
       setIsModalOpen(false);
     },
     onError: (error) => {
@@ -154,8 +149,7 @@ const ApiKeySection: React.FC = () => {
       return api.epDeleteApiKey({ id });
     },
     onSuccess: () => {
-      // Invalidate the API keys query to refresh the list
-      queryClient.invalidateQueries({ queryKey: ["apiKeys", agentId] });
+      queryClient.invalidateQueries({ queryKey: ["apiKeys"] });
       closeDeleteModal();
     },
     onError: (error) => {
@@ -206,6 +200,13 @@ const ApiKeySection: React.FC = () => {
       title: "Name",
       render: (apiKey: ApiKeyOutput) => {
         return <div>{apiKey.name}</div>;
+      },
+    },
+    {
+      key: "agent",
+      title: "Agent",
+      render: (apiKey: ApiKeyOutput) => {
+        return apiKey.agentId ? <div>{apiKey.agentId}</div> : <div>-</div>;
       },
     },
     {
@@ -343,7 +344,7 @@ const ApiKeySection: React.FC = () => {
           <EmptyState>
             <EmptyStateText>
               No active API keys found. Generate a new API key to interact with
-              this agent programmatically.
+              the API programmatically.
             </EmptyStateText>
           </EmptyState>
         </Card>
@@ -380,4 +381,4 @@ const ApiKeySection: React.FC = () => {
   );
 };
 
-export default ApiKeySection;
+export default ApiKeysSettings;

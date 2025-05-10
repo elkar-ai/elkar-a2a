@@ -1,118 +1,44 @@
 import React from "react";
-import styled from "styled-components";
-import { Link, useLocation } from "react-router";
+import { useLocation } from "react-router";
 import {
   IoPersonOutline,
   IoBusinessOutline,
   IoPeopleOutline,
-  IoArrowBackOutline,
 } from "react-icons/io5";
-
-const NavContainer = styled.nav`
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.xs};
-`;
-
-const SidebarTitle = styled.h3`
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-  color: ${({ theme }) => theme.colors.textSecondary};
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: ${({ theme }) => theme.spacing.sm};
-  font-weight: 600;
-`;
-
-const NavLink = styled(Link)<{ $active: boolean }>`
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.sm};
-  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
-  background-color: ${({ $active, theme }) =>
-    $active ? `${theme.colors.primary}20` : "transparent"};
-  color: ${({ $active, theme }) =>
-    $active ? theme.colors.primary : theme.colors.textSecondary};
-  font-weight: ${({ $active }) => ($active ? "500" : "400")};
-  transition: all 0.2s ease;
-  text-decoration: none;
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-
-  &:hover {
-    background-color: ${({ $active, theme }) =>
-      $active ? `${theme.colors.primary}20` : theme.colors.surface};
-    color: ${({ $active, theme }) =>
-      $active ? theme.colors.primary : theme.colors.text};
-  }
-
-  svg {
-    width: 18px;
-    height: 18px;
-  }
-`;
-
-const BackToAppLink = styled(Link)`
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.sm};
-  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
-  background-color: ${({ theme }) => theme.colors.surface};
-  color: ${({ theme }) => theme.colors.primary};
-  font-weight: 500;
-  transition: all 0.2s ease;
-  text-decoration: none;
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-  margin-bottom: ${({ theme }) => theme.spacing.md};
-
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.primary}10;
-  }
-
-  svg {
-    width: 18px;
-    height: 18px;
-  }
-`;
+import SecondarySidebar from "../common/SecondarySidebar";
 
 const SettingsSidebar: React.FC = () => {
   const location = useLocation();
+  const currentPath = location.pathname;
 
   return (
-    <>
-      <BackToAppLink to="/list-agents">
-        <IoArrowBackOutline />
-        Back to App
-      </BackToAppLink>
-
-      <SidebarTitle>User Settings</SidebarTitle>
-      <NavContainer>
-        <NavLink
+    <SecondarySidebar title="Settings">
+      <SecondarySidebar.Section>
+        <SecondarySidebar.Link
           to="/settings/profile"
-          $active={
-            location.pathname === "/settings/profile" ||
-            location.pathname === "/settings"
-          }
+          isActive={currentPath === "/settings/profile"}
         >
-          <IoPersonOutline />
+          <IoPersonOutline size={18} />
           Profile
-        </NavLink>
-        <NavLink
+        </SecondarySidebar.Link>
+
+        <SecondarySidebar.Link
           to="/settings/tenants"
-          $active={location.pathname === "/settings/tenants"}
+          isActive={currentPath === "/settings/tenants"}
         >
-          <IoBusinessOutline />
-          Tenants
-        </NavLink>
-        <NavLink
+          <IoBusinessOutline size={18} />
+          Organizations
+        </SecondarySidebar.Link>
+
+        <SecondarySidebar.Link
           to="/settings/tenant-users"
-          $active={location.pathname === "/settings/tenant-users"}
+          isActive={currentPath === "/settings/tenant-users"}
         >
-          <IoPeopleOutline />
-          Tenant Users
-        </NavLink>
-      </NavContainer>
-    </>
+          <IoPeopleOutline size={18} />
+          Organization Users
+        </SecondarySidebar.Link>
+      </SecondarySidebar.Section>
+    </SecondarySidebar>
   );
 };
 

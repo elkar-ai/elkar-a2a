@@ -30,6 +30,6 @@
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/", "vite.config.ts"],
-  "exclude": ["node_modules/", "dist/", "coverage/"]
+  "include": ["src/", "generated-api/"],
+  "exclude": ["node_modules/", "dist/", "coverage/", "vite.config.ts"]
 }

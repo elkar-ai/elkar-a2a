@@ -1,23 +1,28 @@
 import React, { ReactNode, ButtonHTMLAttributes } from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 
 // Base button styles
 const BaseButton = styled.button<{ $fullWidth?: boolean }>`
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: ${({ theme }) => theme.spacing.xs};
-  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
-  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-size: ${({ theme }) => theme.fontSizes.md};
   font-weight: 500;
-  cursor: ${({ theme }) => theme.cursor};
-  transition: all 0.2s ease;
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  padding: ${({ theme }) => `${theme.spacing.sm} ${theme.spacing.lg}`};
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+  outline: none;
+  border: none;
   width: ${({ $fullWidth }) => ($fullWidth ? "100%" : "auto")};
+  min-height: 40px;
+  user-select: none;
+  text-align: center;
+  gap: ${({ theme }) => theme.spacing.sm};
 
   &:disabled {
-    cursor: not-allowed;
     opacity: 0.6;
+    cursor: not-allowed;
   }
 
   svg {
@@ -32,16 +37,11 @@ const PrimaryButtonStyled = styled(BaseButton)`
   border: none;
 
   &:hover:not(:disabled) {
-    background-color: ${({ theme }) => `${theme.colors.primary}dd`};
+    background-color: ${({ theme }) => theme.colors.primary}CC;
   }
 
   &:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px ${({ theme }) => `${theme.colors.primary}40`};
-  }
-
-  &:disabled {
-    background-color: ${({ theme }) => theme.colors.border};
+    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary}40;
   }
 `;
 
@@ -68,12 +68,11 @@ const DangerButtonStyled = styled(BaseButton)`
   border: none;
 
   &:hover:not(:disabled) {
-    background-color: ${({ theme }) => `${theme.colors.error}dd`};
+    background-color: ${({ theme }) => theme.colors.error}CC;
   }
 
   &:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px ${({ theme }) => `${theme.colors.error}40`};
+    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.error}40;
   }
 `;
 
@@ -85,22 +84,25 @@ const TextButtonStyled = styled(BaseButton)`
   padding: ${({ theme }) => `${theme.spacing.xs} ${theme.spacing.sm}`};
 
   &:hover:not(:disabled) {
-    background-color: ${({ theme }) => `${theme.colors.primary}10`};
+    background-color: ${({ theme }) => theme.colors.primary}10;
   }
 
   &:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px ${({ theme }) => `${theme.colors.primary}20`};
+    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary}20;
   }
 `;
 
-// Interface for button props
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+/**
+ * Button component props
+ */
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
   fullWidth?: boolean;
 }
 
-// Button components
+/**
+ * Primary button for main actions
+ */
 export const PrimaryButton: React.FC<ButtonProps> = ({
   children,
   fullWidth = false,
@@ -121,6 +123,9 @@ export const SecondaryButton: React.FC<ButtonProps> = ({
   </SecondaryButtonStyled>
 );
 
+/**
+ * Danger button for destructive actions
+ */
 export const DangerButton: React.FC<ButtonProps> = ({
   children,
   fullWidth = false,
@@ -131,6 +136,9 @@ export const DangerButton: React.FC<ButtonProps> = ({
   </DangerButtonStyled>
 );
 
+/**
+ * Text button for less prominent actions
+ */
 export const TextButton: React.FC<ButtonProps> = ({
   children,
   fullWidth = false,

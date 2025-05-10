@@ -72,7 +72,7 @@ const GlobalStyle = createGlobalStyle`
     border: 1px solid ${({ theme }) => theme.colors.border};
     border-radius: ${({ theme }) => theme.borderRadius.sm};
     padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) =>
-  theme.spacing.md};
+      theme.spacing.md};
     color: ${({ theme }) => theme.colors.text};
     transition: all 0.2s ease;
 

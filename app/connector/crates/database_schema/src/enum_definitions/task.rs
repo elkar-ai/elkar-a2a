@@ -24,3 +24,13 @@ pub enum TaskType {
     Incoming,
     Outgoing,
 }
+
+#[derive(Debug, Clone, DbEnum, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
+#[DbValueStyle = "kebab-case"]
+#[serde(rename_all = "kebab-case")]
+#[ExistingTypePath = "crate::schema::sql_types::TaskEventSubscriptionStatus"]
+pub enum TaskEventSubscriptionStatus {
+    Pending,
+    Delivered,
+    Failed,
+}

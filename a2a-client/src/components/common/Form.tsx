@@ -1,7 +1,7 @@
 import React, { InputHTMLAttributes, TextareaHTMLAttributes } from "react";
 import styled from "styled-components";
 
-// Form container
+// Form container with proper ARIA attributes
 export const Form = styled.form`
   display: flex;
   flex-direction: column;
@@ -22,7 +22,7 @@ export const Label = styled.label`
   font-weight: 500;
 `;
 
-// Form inputs
+// Form inputs with proper accessibility attributes
 const BaseInput = styled.input`
   padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
   background-color: ${({ theme }) => theme.colors.background};
@@ -31,6 +31,7 @@ const BaseInput = styled.input`
   color: ${({ theme }) => theme.colors.text};
   font-size: ${({ theme }) => theme.fontSizes.sm};
   transition: all 0.2s ease;
+  width: 100%;
 
   &:focus {
     border-color: ${({ theme }) => theme.colors.primary};
@@ -54,7 +55,7 @@ const BaseInput = styled.input`
   }
 `;
 
-// Textarea style
+// Textarea style with proper accessibility attributes
 const TextareaStyled = styled.textarea`
   padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
   background-color: ${({ theme }) => theme.colors.background};
@@ -66,6 +67,7 @@ const TextareaStyled = styled.textarea`
   resize: vertical;
   font-family: inherit;
   transition: all 0.2s ease;
+  width: 100%;
 
   &:focus {
     border-color: ${({ theme }) => theme.colors.primary};
@@ -89,57 +91,98 @@ const TextareaStyled = styled.textarea`
   }
 `;
 
-// Error message
-export const ErrorMessage = styled.div`
+const ErrorMessage = styled.div`
   color: ${({ theme }) => theme.colors.error};
-  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
   margin-top: ${({ theme }) => theme.spacing.xs};
 `;
 
-// Helper text
-export const HelperText = styled.div`
+const HelperText = styled.div`
   color: ${({ theme }) => theme.colors.textSecondary};
-  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
   margin-top: ${({ theme }) => theme.spacing.xs};
 `;
 
-// Input Component
+// Input Component with proper TypeScript types and accessibility
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string;
   helperText?: string;
+  label?: string;
+  id: string;
 }
 
 export const Input: React.FC<InputProps> = ({
   error,
   helperText,
   className = "",
+  label,
+  id,
   ...props
 }) => (
-  <>
-    <BaseInput className={`${className} ${error ? "error" : ""}`} {...props} />
-    {error && <ErrorMessage>{error}</ErrorMessage>}
-    {helperText && !error && <HelperText>{helperText}</HelperText>}
-  </>
+  <div>
+    {label && (
+      <label htmlFor={id} style={{ display: "block", marginBottom: "4px" }}>
+        {label}
+      </label>
+    )}
+    <BaseInput
+      id={id}
+      className={`${className} ${error ? "error" : ""}`}
+      aria-invalid={!!error}
+      aria-describedby={
+        error ? `${id}-error` : helperText ? `${id}-helper` : undefined
+      }
+      {...props}
+    />
+    {error && (
+      <ErrorMessage id={`${id}-error`} role="alert">
+        {error}
+      </ErrorMessage>
+    )}
+    {helperText && !error && (
+      <HelperText id={`${id}-helper`}>{helperText}</HelperText>
+    )}
+  </div>
 );
 
-// Textarea Component
+// Textarea Component with proper TypeScript types and accessibility
 interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   error?: string;
   helperText?: string;
+  label?: string;
+  id: string;
 }
 
 export const Textarea: React.FC<TextareaProps> = ({
   error,
   helperText,
   className = "",
+  label,
+  id,
   ...props
 }) => (
-  <>
+  <div>
+    {label && (
+      <label htmlFor={id} style={{ display: "block", marginBottom: "4px" }}>
+        {label}
+      </label>
+    )}
     <TextareaStyled
+      id={id}
       className={`${className} ${error ? "error" : ""}`}
+      aria-invalid={!!error}
+      aria-describedby={
+        error ? `${id}-error` : helperText ? `${id}-helper` : undefined
+      }
       {...props}
     />
-    {error && <ErrorMessage>{error}</ErrorMessage>}
-    {helperText && !error && <HelperText>{helperText}</HelperText>}
-  </>
+    {error && (
+      <ErrorMessage id={`${id}-error`} role="alert">
+        {error}
+      </ErrorMessage>
+    )}
+    {helperText && !error && (
+      <HelperText id={`${id}-helper`}>{helperText}</HelperText>
+    )}
+  </div>
 );

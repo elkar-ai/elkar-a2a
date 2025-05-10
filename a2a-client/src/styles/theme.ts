@@ -1,54 +1,61 @@
 import "styled-components";
-import { DefaultTheme } from "styled-components";
 
-declare module "styled-components" {
-  export interface DefaultTheme {
-    colors: {
-      primary: string;
-      secondary: string;
-      background: string;
-      surface: string;
-      text: string;
-      textSecondary: string;
-      border: string;
-      success: string;
-      error: string;
-      warning: string;
-      info: string;
-      white: string;
-      transparent: string;
-      overlay: string;
-      errorLight: string;
-    };
-    spacing: {
-      xs: string;
-      sm: string;
-      md: string;
-      lg: string;
-      xl: string;
-    };
-    borderRadius: {
-      sm: string;
-      md: string;
-      lg: string;
-    };
-    fontSizes: {
-      xs: string;
-      sm: string;
-      md: string;
-      lg: string;
-      xl: string;
-    };
-    shadows: {
-      sm: string;
-      md: string;
-      lg: string;
-    };
-    cursor: string;
-  }
+export interface BaseTheme {
+  colors: {
+    primary: string;
+    secondary: string;
+    background: string;
+    surface: string;
+    text: string;
+    textSecondary: string;
+    border: string;
+    success: string;
+    error: string;
+    warning: string;
+    info: string;
+    white: string;
+    transparent: string;
+    overlay: string;
+    errorLight: string;
+  };
+  spacing: {
+    xs: string;
+    sm: string;
+    md: string;
+    lg: string;
+    xl: string;
+  };
+  borderRadius: {
+    sm: string;
+    md: string;
+    lg: string;
+  };
+  breakpoints: {
+    sm: string;
+    md: string;
+    lg: string;
+    xl: string;
+  };
+  fontSizes: {
+    xs: string;
+    sm: string;
+    md: string;
+    lg: string;
+    xl: string;
+  };
+  shadows: {
+    sm: string;
+    md: string;
+    lg: string;
+  };
+  cursor: string;
 }
 
-export const lightTheme: DefaultTheme = {
+declare module "styled-components" {
+  export interface DefaultTheme extends BaseTheme {}
+}
+
+export const lightTheme: BaseTheme = {
   colors: {
     primary: "#3ECF8E",
     secondary: "#24B47E",
@@ -90,10 +97,16 @@ export const lightTheme: DefaultTheme = {
     md: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
     lg: "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
   },
+  breakpoints: {
+    sm: "576px",
+    md: "768px",
+    lg: "992px",
+    xl: "1200px",
+  },
   cursor: "pointer",
 };
 
-export const darkTheme: DefaultTheme = {
+export const darkTheme: BaseTheme = {
   colors: {
     primary: "#3ECF8E",
     secondary: "#24B47E",
@@ -134,6 +147,12 @@ export const darkTheme: DefaultTheme = {
     sm: "0 1px 2px 0 rgb(0 0 0 / 0.3)",
     md: "0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4)",
     lg: "0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4)",
+  },
+  breakpoints: {
+    sm: "576px",
+    md: "768px",
+    lg: "992px",
+    xl: "1200px",
   },
   cursor: "pointer",
 };

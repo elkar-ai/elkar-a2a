@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useRef } from "react";
+import React, { ReactNode, useEffect, useRef, useCallback } from "react";
 import styled from "styled-components";
 import { IoClose } from "react-icons/io5";
 
@@ -13,6 +13,7 @@ const ModalOverlay = styled.div`
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: ${({ theme }) => theme.spacing.md};
 `;
 
 const ModalContent = styled.div<{ $maxWidth?: string }>`
@@ -24,33 +25,48 @@ const ModalContent = styled.div<{ $maxWidth?: string }>`
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   max-height: 90vh;
   overflow-y: auto;
+  position: relative;
+
+  &:focus {
+    outline: none;
+  }
 `;
 
-const ModalHeader = styled.div`
+const ModalHeader = styled.header`
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: ${({ theme }) => theme.spacing.md};
 `;
 
-const ModalTitle = styled.h3`
+const ModalTitle = styled.h2`
   font-size: ${({ theme }) => theme.fontSizes.lg};
   color: ${({ theme }) => theme.colors.text};
   margin: 0;
+  font-weight: 600;
 `;
 
 const CloseButton = styled.button`
   background: ${({ theme }) => theme.colors.transparent};
   border: none;
   color: ${({ theme }) => theme.colors.textSecondary};
-  cursor: ${({ theme }) => theme.cursor};
+  cursor: pointer;
   font-size: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: ${({ theme }) => theme.spacing.xs};
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  transition: all 0.2s ease;
 
   &:hover {
     color: ${({ theme }) => theme.colors.text};
+    background-color: ${({ theme }) => theme.colors.background};
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary}20;
   }
 `;
 
@@ -58,11 +74,13 @@ const ModalBody = styled.div`
   margin-bottom: ${({ theme }) => theme.spacing.md};
 `;
 
-const ModalFooter = styled.div`
+const ModalFooter = styled.footer`
   display: flex;
   justify-content: flex-end;
   gap: ${({ theme }) => theme.spacing.sm};
   margin-top: ${({ theme }) => theme.spacing.md};
+  padding-top: ${({ theme }) => theme.spacing.md};
+  border-top: 1px solid ${({ theme }) => theme.colors.border};
 `;
 
 interface ModalProps {
@@ -73,8 +91,13 @@ interface ModalProps {
   footer?: ReactNode;
   maxWidth?: string;
   closeOnOverlayClick?: boolean;
+  ariaLabel?: string;
 }
 
+/**
+ * Modal component that provides a dialog overlay for displaying content.
+ * Includes header, body, and optional footer sections with proper accessibility.
+ */
 const Modal: React.FC<ModalProps> = ({
   isOpen,
   onClose,
@@ -83,51 +106,55 @@ const Modal: React.FC<ModalProps> = ({
   footer,
   maxWidth,
   closeOnOverlayClick = true,
+  ariaLabel,
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // Handle ESC key to close modal
-  useEffect(() => {
-    const handleEscKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && isOpen) {
+  const handleOverlayClick = useCallback(
+    (event: React.MouseEvent) => {
+      if (closeOnOverlayClick && event.target === event.currentTarget) {
         onClose();
       }
-    };
+    },
+    [closeOnOverlayClick, onClose],
+  );
 
-    document.addEventListener("keydown", handleEscKey);
-    return () => {
-      document.removeEventListener("keydown", handleEscKey);
-    };
-  }, [isOpen, onClose]);
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    },
+    [onClose],
+  );
 
-  // Prevent body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
+      document.addEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
     }
 
     return () => {
-      document.body.style.overflow = "";
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "unset";
     };
-  }, [isOpen]);
+  }, [isOpen, handleKeyDown]);
 
   if (!isOpen) return null;
 
-  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (closeOnOverlayClick && e.target === e.currentTarget) {
-      onClose();
-    }
-  };
-
   return (
-    <ModalOverlay onClick={handleOverlayClick}>
-      <ModalContent ref={modalRef} $maxWidth={maxWidth}>
+    <ModalOverlay
+      onClick={handleOverlayClick}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+      aria-label={ariaLabel}
+    >
+      <ModalContent ref={modalRef} $maxWidth={maxWidth} tabIndex={-1}>
         <ModalHeader>
-          <ModalTitle>{title}</ModalTitle>
-          <CloseButton onClick={onClose} aria-label="Close">
-            <IoClose />
+          <ModalTitle id="modal-title">{title}</ModalTitle>
+          <CloseButton onClick={onClose} aria-label="Close modal" type="button">
+            <IoClose aria-hidden="true" />
           </CloseButton>
         </ModalHeader>
         <ModalBody>{children}</ModalBody>
