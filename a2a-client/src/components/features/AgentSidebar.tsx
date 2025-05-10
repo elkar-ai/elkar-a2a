@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../api/api";
 import styled from "styled-components";
@@ -50,8 +50,8 @@ const StatusIcon = styled.div<{ status: "active" | "warning" | "error" }>`
     status === "active"
       ? theme.colors.success
       : status === "warning"
-      ? theme.colors.warning
-      : theme.colors.error};
+        ? theme.colors.warning
+        : theme.colors.error};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -135,6 +135,19 @@ const AgentSidebar: React.FC = () => {
     queryFn: () => api.epRetrieveAgents(),
   });
 
+  // Auto-select first agent if none selected
+  useEffect(() => {
+    const records = agentsQuery.data?.records;
+    if (
+      !selectedAgentId &&
+      !agentsQuery.isLoading &&
+      records &&
+      records.length > 0
+    ) {
+      navigate(`/agents/${records[0].id}`);
+    }
+  }, [selectedAgentId, agentsQuery.data, agentsQuery.isLoading, navigate]);
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
@@ -148,7 +161,7 @@ const AgentSidebar: React.FC = () => {
       (agent) =>
         agent.name.toLowerCase().includes(lowerCaseQuery) ||
         (agent.description &&
-          agent.description.toLowerCase().includes(lowerCaseQuery))
+          agent.description.toLowerCase().includes(lowerCaseQuery)),
     );
   }, [agentsQuery.data, searchQuery]);
 
@@ -172,10 +185,13 @@ const AgentSidebar: React.FC = () => {
 
   const users = useUsers();
   const userMap = useMemo(() => {
-    return users.data?.reduce((acc, user) => {
-      acc[user.id] = user;
-      return acc;
-    }, {} as Record<string, UnpaginatedOutputApplicationUserOutputRecordsInner>);
+    return users.data?.reduce(
+      (acc, user) => {
+        acc[user.id] = user;
+        return acc;
+      },
+      {} as Record<string, UnpaginatedOutputApplicationUserOutputRecordsInner>,
+    );
   }, [users.data]);
 
   return (

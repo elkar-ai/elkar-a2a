@@ -234,7 +234,7 @@ const Login: React.FC = () => {
         if (error) {
           setError(
             error.message ||
-              "Registration failed. Please try again or contact support."
+              "Registration failed. Please try again or contact support.",
           );
         } else {
           toast.success("Registration successful! Please sign in.");
@@ -261,7 +261,7 @@ const Login: React.FC = () => {
     <LoginContainer>
       <Toaster position="top-center" reverseOrder={false} />
       <LoginCard>
-        <LoginTitle>Welcome</LoginTitle>
+        <LoginTitle>Welcome to Elkar</LoginTitle>
         <LoginSubtitle>
           {view === "signin"
             ? "Sign in to your account"

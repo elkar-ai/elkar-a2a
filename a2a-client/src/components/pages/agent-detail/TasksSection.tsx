@@ -116,16 +116,16 @@ const TasksSection: React.FC = () => {
         new Set(tasksQuery.data?.records.map((task) => task.taskType) || []),
       ).map((type) => ({ value: type, label: type })),
     },
-    {
-      id: "createdAfter",
-      label: "Created After",
-      type: "date",
-    },
-    {
-      id: "createdBefore",
-      label: "Created Before",
-      type: "date",
-    },
+    // {
+    //   id: "createdAfter",
+    //   label: "Created After",
+    //   type: "date",
+    // },
+    // {
+    //   id: "createdBefore",
+    //   label: "Created Before",
+    //   type: "date",
+    // },
   ];
 
   const columns = [
