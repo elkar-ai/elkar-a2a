@@ -118,36 +118,35 @@ const AgentDetail: React.FC = () => {
           <Section>
             <SectionTitle>Agent Details</SectionTitle>
             <CardsContainer>
-              <Card>
-                <CardLabel>Type</CardLabel>
-                {/* <CardValue>{agent.type}</CardValue> */}
-              </Card>
+              {/* <Card>
+                <CardLabel>Created At</CardLabel>
+                <CardValue>
+                  {new Date(agent.createdAt).toLocaleString()}
+                </CardValue>
+              </Card> */}
               <Card>
                 <CardLabel>Created By</CardLabel>
                 <CardValue>
                   {userMap?.[agent.createdBy]?.email || "Unknown"}
                 </CardValue>
               </Card>
-              <Card>
+              {/* <Card>
                 <CardLabel>Status</CardLabel>
                 <CardValue>{agent.isDeleted ? "Deleted" : "Active"}</CardValue>
-              </Card>
+              </Card> */}
               <Card>
                 <CardLabel>Tasks Executed</CardLabel>
-                <CardValue>{10}</CardValue>
+                <CardValue>Coming soon</CardValue>
               </Card>
             </CardsContainer>
           </Section>
 
           <MetricsSection>
             <MetricsHeader>
-              <MetricsTitle>Agent Metrics</MetricsTitle>
-              <MetricsSubtitle>
-                Performance statistics and usage metrics
-              </MetricsSubtitle>
+              <MetricsTitle>Agent Card</MetricsTitle>
             </MetricsHeader>
             <MetricsContent>
-              Metrics functionality will be implemented in a future update.
+              Agent card will be implemented in a future update.
             </MetricsContent>
           </MetricsSection>
         </>

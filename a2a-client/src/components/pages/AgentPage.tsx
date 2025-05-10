@@ -9,7 +9,7 @@ const AgentPage: React.FC = () => {
 
   return (
     <SecondarySidebarLayout secondarySidebar={<AgentSidebar />}>
-      {agentId ? <AgentDetail /> : <AgentDashboard />}
+      {agentId ? <AgentDetail /> : <></>}
     </SecondarySidebarLayout>
   );
 };
