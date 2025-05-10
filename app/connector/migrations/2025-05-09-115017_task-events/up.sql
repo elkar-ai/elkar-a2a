@@ -16,6 +16,8 @@ SELECT
 CREATE TABLE IF NOT EXISTS task_event(
     tenant_id uuid NOT NULL REFERENCES tenant(id),
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    task_id uuid NOT NULL REFERENCES task(id),
+    event_data jsonb NOT NULL,
     created_at timestamp NOT NULL DEFAULT now(),
     updated_at timestamp NOT NULL DEFAULT now()
 );

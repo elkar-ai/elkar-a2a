@@ -91,6 +91,8 @@ diesel::table! {
     task_event (id) {
         tenant_id -> Uuid,
         id -> Uuid,
+        task_id -> Uuid,
+        event_data -> Jsonb,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }
@@ -151,6 +153,7 @@ diesel::joinable!(api_key -> application_user (created_by));
 diesel::joinable!(api_key -> tenant (tenant_id));
 diesel::joinable!(task -> agent (agent_id));
 diesel::joinable!(task -> tenant (tenant_id));
+diesel::joinable!(task_event -> task (task_id));
 diesel::joinable!(task_event -> tenant (tenant_id));
 diesel::joinable!(task_event_subscription -> task_event (task_event_id));
 diesel::joinable!(task_event_subscription -> task_subscription (task_subscription_id));

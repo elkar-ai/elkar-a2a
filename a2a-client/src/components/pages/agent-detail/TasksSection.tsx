@@ -74,14 +74,14 @@ const TasksSection: React.FC = () => {
       if (filters.createdAfter) {
         const createdAfterDate = new Date(filters.createdAfter as string);
         filteredRecords = filteredRecords.filter(
-          (task) => new Date(task.createdAt) >= createdAfterDate
+          (task) => new Date(task.createdAt) >= createdAfterDate,
         );
       }
 
       if (filters.createdBefore) {
         const createdBeforeDate = new Date(filters.createdBefore as string);
         filteredRecords = filteredRecords.filter(
-          (task) => new Date(task.createdAt) <= createdBeforeDate
+          (task) => new Date(task.createdAt) <= createdBeforeDate,
         );
       }
 
@@ -113,7 +113,7 @@ const TasksSection: React.FC = () => {
       label: "Task Type",
       type: "select",
       options: Array.from(
-        new Set(tasksQuery.data?.records.map((task) => task.taskType) || [])
+        new Set(tasksQuery.data?.records.map((task) => task.taskType) || []),
       ).map((type) => ({ value: type, label: type })),
     },
     {

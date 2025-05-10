@@ -531,42 +531,42 @@ const TenantsSettings: React.FC = () => {
       ),
       sortable: true,
     },
-    {
-      key: "role",
-      title: "Role",
-      render: (tenant: Tenant) => (
-        <TenantRole>
-          <FiUser size={12} />
-          {tenant.role || "Member"}
-        </TenantRole>
-      ),
-    },
-    {
-      key: "actions",
-      title: "",
-      render: (tenant: Tenant) => (
-        <ActionsContainer>
-          <ActionButton
-            onClick={(e) => {
-              e.stopPropagation();
-              openUserManagementModal(tenant);
-            }}
-            title="Manage users"
-          >
-            <IoPeopleOutline size={16} />
-          </ActionButton>
-          <ActionButton
-            onClick={(e) => {
-              e.stopPropagation();
-              openDeleteModal(tenant);
-            }}
-            title="Delete tenant"
-          >
-            <IoTrashOutline size={16} />
-          </ActionButton>
-        </ActionsContainer>
-      ),
-    },
+    // {
+    //   key: "role",
+    //   title: "Role",
+    //   render: (tenant: Tenant) => (
+    //     <TenantRole>
+    //       <FiUser size={12} />
+    //       {tenant.role || "Member"}
+    //     </TenantRole>
+    //   ),
+    // },
+    // {
+    //   key: "actions",
+    //   title: "",
+    //   render: (tenant: Tenant) => (
+    //     <ActionsContainer>
+    //       <ActionButton
+    //         onClick={(e) => {
+    //           e.stopPropagation();
+    //           openUserManagementModal(tenant);
+    //         }}
+    //         title="Manage users"
+    //       >
+    //         <IoPeopleOutline size={16} />
+    //       </ActionButton>
+    //       <ActionButton
+    //         onClick={(e) => {
+    //           e.stopPropagation();
+    //           openDeleteModal(tenant);
+    //         }}
+    //         title="Delete tenant"
+    //       >
+    //         <IoTrashOutline size={16} />
+    //       </ActionButton>
+    //     </ActionsContainer>
+    //   ),
+    // },
   ];
 
   return (

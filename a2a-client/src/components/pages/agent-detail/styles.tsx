@@ -1,20 +1,61 @@
 import styled from "styled-components";
 
-export const PageContainer = styled.div`
-  padding: ${({ theme }) => theme.spacing.lg};
-`;
+export const PageContainer = styled.div``;
 
 export const Header = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: ${({ theme }) => theme.spacing.xl};
+  align-items: flex-start;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
 `;
 
 export const Title = styled.h1`
   font-size: ${({ theme }) => theme.fontSizes.xl};
   color: ${({ theme }) => theme.colors.text};
   margin: 0;
+  font-weight: 700;
+`;
+
+export const Description = styled.p`
+  font-size: ${({ theme }) => theme.fontSizes.md};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  margin: ${({ theme }) => theme.spacing.xs} 0
+    ${({ theme }) => theme.spacing.sm};
+`;
+
+export const MetaInfo = styled.div`
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.textSecondary};
+`;
+
+export const StatusIndicator = styled.div<{
+  status: "active" | "inactive" | "warning";
+}>`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.xs};
+  color: ${({ status, theme }) =>
+    status === "active"
+      ? theme.colors.success
+      : status === "warning"
+        ? theme.colors.warning
+        : theme.colors.error};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: 600;
+
+  &::before {
+    content: "";
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: ${({ status, theme }) =>
+      status === "active"
+        ? theme.colors.success
+        : status === "warning"
+          ? theme.colors.warning
+          : theme.colors.error};
+  }
 `;
 
 export const BackButton = styled.button`
@@ -25,8 +66,9 @@ export const BackButton = styled.button`
   background-color: transparent;
   color: ${({ theme }) => theme.colors.textSecondary};
   border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
   font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -38,7 +80,7 @@ export const BackButton = styled.button`
 export const TabsContainer = styled.div`
   display: flex;
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
-  margin-bottom: ${({ theme }) => theme.spacing.lg};
+  margin-bottom: ${({ theme }) => theme.spacing.xl};
 `;
 
 export const Tab = styled.button<{ active: boolean }>`
@@ -50,7 +92,7 @@ export const Tab = styled.button<{ active: boolean }>`
   border-bottom: 2px solid
     ${({ theme, active }) => (active ? theme.colors.primary : "transparent")};
   font-size: ${({ theme }) => theme.fontSizes.md};
-  font-weight: ${({ active }) => (active ? "600" : "400")};
+  font-weight: ${({ active }) => (active ? "600" : "500")};
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -66,54 +108,67 @@ export const Section = styled.div`
 export const SectionTitle = styled.h2`
   font-size: ${({ theme }) => theme.fontSizes.lg};
   color: ${({ theme }) => theme.colors.text};
-  margin-bottom: ${({ theme }) => theme.spacing.md};
+  margin: 0 0 ${({ theme }) => theme.spacing.lg} 0;
+  font-weight: 600;
+`;
+
+export const CardsContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: ${({ theme }) => theme.spacing.md};
 `;
 
 export const Card = styled.div`
   background-color: ${({ theme }) => theme.colors.surface};
   border-radius: ${({ theme }) => theme.borderRadius.md};
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: ${({ theme }) => theme.spacing.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  padding: ${({ theme }) => theme.spacing.lg};
 `;
 
-export const InfoGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: ${({ theme }) => theme.spacing.lg};
-`;
-
-export const InfoItem = styled.div`
-  margin-bottom: ${({ theme }) => theme.spacing.md};
-`;
-
-export const InfoLabel = styled.div`
+export const CardLabel = styled.div`
   font-size: ${({ theme }) => theme.fontSizes.sm};
   color: ${({ theme }) => theme.colors.textSecondary};
   margin-bottom: ${({ theme }) => theme.spacing.xs};
 `;
 
-export const InfoValue = styled.div`
+export const CardValue = styled.div`
   font-size: ${({ theme }) => theme.fontSizes.md};
   color: ${({ theme }) => theme.colors.text};
+  font-weight: 500;
 `;
 
-export const Button = styled.button`
+export const MetricsSection = styled.div`
+  background-color: ${({ theme }) => theme.colors.surface};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  padding: ${({ theme }) => theme.spacing.xl};
+  margin-bottom: ${({ theme }) => theme.spacing.xl};
+`;
+
+export const MetricsHeader = styled.div`
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+`;
+
+export const MetricsTitle = styled.h2`
+  font-size: ${({ theme }) => theme.fontSizes.lg};
+  color: ${({ theme }) => theme.colors.text};
+  margin: 0 0 ${({ theme }) => theme.spacing.xs} 0;
+  font-weight: 600;
+`;
+
+export const MetricsSubtitle = styled.p`
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  margin: 0;
+`;
+
+export const MetricsContent = styled.div`
   display: flex;
   align-items: center;
-  gap: ${({ theme }) => theme.spacing.xs};
-  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.lg};
-  background-color: ${({ theme }) => theme.colors.primary};
-  color: white;
-  border: none;
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background-color: ${({ theme }) => `${theme.colors.primary}dd`};
-  }
+  justify-content: center;
+  padding: ${({ theme }) => theme.spacing.xl} 0;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.fontSizes.md};
 `;
 
 export const EmptyState = styled.div`
@@ -138,4 +193,35 @@ export const ErrorMessage = styled.div`
   color: ${({ theme }) => theme.colors.error};
   border-radius: ${({ theme }) => theme.borderRadius.md};
   margin-bottom: ${({ theme }) => theme.spacing.lg};
+`;
+
+export const Button = styled.button`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.xs};
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.lg};
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: white;
+  border: none;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: ${({ theme }) => `${theme.colors.primary}dd`};
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+`;
+
+export const InfoLabel = styled.div`
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  margin-bottom: ${({ theme }) => theme.spacing.xs};
+  font-weight: 500;
 `;

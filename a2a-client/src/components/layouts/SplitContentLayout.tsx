@@ -8,7 +8,7 @@ const Container = styled.div`
   overflow: hidden;
 `;
 
-const InputSection = styled.div`
+const InputSection = styled.section`
   flex: 1;
   min-width: 0;
   display: flex;
@@ -20,7 +20,7 @@ const InputSection = styled.div`
   border: 1px solid ${({ theme }) => theme.colors.border};
 `;
 
-const OutputSection = styled.div`
+const OutputSection = styled.section`
   flex: 1;
   min-width: 0;
   display: flex;
@@ -35,16 +35,24 @@ const OutputSection = styled.div`
 interface SplitContentLayoutProps {
   input: React.ReactNode;
   output: React.ReactNode;
+  inputLabel?: string;
+  outputLabel?: string;
 }
 
+/**
+ * Layout component that splits the content into two equal sections for input and output.
+ * Commonly used for code editors, forms, and other split-view interfaces.
+ */
 const SplitContentLayout: React.FC<SplitContentLayoutProps> = ({
   input,
   output,
+  inputLabel = "Input section",
+  outputLabel = "Output section",
 }) => {
   return (
     <Container>
-      <InputSection>{input}</InputSection>
-      <OutputSection>{output}</OutputSection>
+      <InputSection aria-label={inputLabel}>{input}</InputSection>
+      <OutputSection aria-label={outputLabel}>{output}</OutputSection>
     </Container>
   );
 };

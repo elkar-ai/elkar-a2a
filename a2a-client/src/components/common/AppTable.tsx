@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { styled } from "styled-components";
 import { useQueries } from "@tanstack/react-query";
 import { UUID } from "crypto";
-import { PaginationComponent } from "./Pagination";
+import PaginationComponent from "./Pagination";
 
 const TableContainer = styled.div`
   width: 100%;
@@ -225,7 +225,7 @@ export function TreeTable<T extends BaseItem>({
 
   const renderTableRows = (
     items: { data: T; hasChildren: boolean }[],
-    level: number = 0
+    level: number = 0,
   ): React.ReactElement[] => {
     return items.flatMap((item) => {
       const itemKey = JSON.stringify(item.data);
@@ -331,9 +331,8 @@ export function TreeTable<T extends BaseItem>({
               </TotalCount>
               <PaginationComponent
                 currentPage={page}
-                totalPages={totalPages}
-                onIncrement={onIncrement}
-                onDecrement={onDecrement}
+                totalPages={totalPages ?? 1}
+                onPageChange={(page) => {}}
               />
             </>
           )}
