@@ -1,33 +1,40 @@
-use database_schema::schema::tenant;
+use database_schema::enum_definitions::application_user::ApplicationUserStatus;
+use database_schema::schema::{tenant, tenant_user};
 use deadpool::managed::Pool;
 use diesel_async::pooled_connection::AsyncDieselConnectionManager;
 use secrecy::ExposeSecret;
 
 use crate::extensions::async_database::{
-    establish_async_connection, make_manager_config, AsyncUserPgPool,
+    AsyncUserPgPool, establish_async_connection, make_manager_config,
 };
 
 use crate::extensions::APP_CONFIG;
+use diesel::ExpressionMethods;
 use diesel::connection::LoadConnection;
 use diesel::deserialize::QueryableByName;
 use diesel::sql_types::Text;
-use diesel::{sql_query, Connection, PgConnection};
-use diesel::{ExpressionMethods, RunQueryDsl};
+use diesel::{Connection, PgConnection, sql_query};
 use diesel_async::async_connection_wrapper::AsyncConnectionWrapper;
-use diesel_async::SimpleAsyncConnection;
+use diesel_async::{RunQueryDsl, SimpleAsyncConnection};
 use diesel_migrations::MigrationHarness;
-use diesel_migrations::{embed_migrations, EmbeddedMigrations};
+use diesel_migrations::{EmbeddedMigrations, embed_migrations};
 use rstest::{fixture, rstest};
 use serial_test::serial;
 use std::ops::{Deref, DerefMut};
 use tokio::task::spawn_blocking;
 use uuid::Uuid;
 
+use database_schema::schema::application_user;
 use diesel::pg::Pg;
 use diesel_async::{AsyncConnection, AsyncPgConnection};
 
 const EMBEDDED_MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
-const TEST_TENANT_ID: &str = "f7950401-5271-4cdf-9ed7-42f406d2a93a";
+lazy_static::lazy_static! {
+    pub static ref TEST_TENANT_ID: Uuid =
+        Uuid::parse_str("f7950401-5271-4cdf-9ed7-42f406d2a93a").unwrap();
+    pub static ref TEST_APP_USER_ID: Uuid =
+        Uuid::parse_str("00000000-0000-0000-0000-000000000000").unwrap();
+}
 
 #[derive(Clone)]
 pub struct TestPool(pub AsyncUserPgPool);
@@ -63,13 +70,12 @@ pub async fn test_pool() -> TestPool {
     let async_pg_pool = Pool::builder(manager)
         .config(deadpool::managed::PoolConfig {
             max_size: 10,
-
             ..Default::default()
         })
         .build()
         .unwrap();
     let mut pool = AsyncUserPgPool::new(async_pg_pool);
-    pool = pool.tenant_id(TEST_TENANT_ID.parse::<Uuid>().unwrap());
+    pool = pool.tenant_id(*TEST_TENANT_ID);
     TestPool(pool)
 }
 
@@ -95,19 +101,38 @@ impl TestAsyncAppUserDatabaseConnection<AsyncPgConnection> {
         let mut app_user_conn = establish_async_connection(db_url, false).await.unwrap();
 
         app_user_conn
-            .batch_execute(&format!("set tenant.id='{TEST_TENANT_ID}'"))
+            .batch_execute(&format!("set tenant.id='{}'", TEST_TENANT_ID.to_string()))
             .await
             .unwrap();
 
         let insert_tenant_stmt = diesel::insert_into(tenant::table).values((
-            tenant::id.eq(TEST_TENANT_ID.parse::<Uuid>().unwrap()),
+            tenant::id.eq(*TEST_TENANT_ID),
             tenant::name.eq("test_tenant"),
         ));
 
         diesel_async::RunQueryDsl::execute(insert_tenant_stmt, &mut app_user_conn)
             .await
             .unwrap();
+        diesel::insert_into(application_user::table)
+            .values((
+                application_user::id.eq(*TEST_APP_USER_ID),
+                application_user::email.eq("test@test.com"),
+                application_user::first_name.eq("test"),
+                application_user::last_name.eq("test"),
+                application_user::status.eq(ApplicationUserStatus::Active),
+            ))
+            .execute(&mut app_user_conn)
+            .await
+            .unwrap();
 
+        diesel::insert_into(tenant_user::table)
+            .values((
+                tenant_user::tenant_id.eq(*TEST_TENANT_ID),
+                tenant_user::user_id.eq(*TEST_APP_USER_ID),
+            ))
+            .execute(&mut app_user_conn)
+            .await
+            .unwrap();
         Self(app_user_conn)
     }
 }
@@ -141,7 +166,7 @@ where
         "SELECT tablename FROM pg_tables WHERE schemaname = '{}'",
         schema
     );
-    let table_names: Vec<TableName> = sql_query(query).load(conn)?;
+    let table_names: Vec<TableName> = diesel::RunQueryDsl::load(sql_query(query), conn)?;
     Ok(table_names.into_iter().map(|t| t.tablename).collect())
 }
 

@@ -3,13 +3,16 @@ use crate::extensions::extractors::user_context::UserContext;
 use crate::handler::agent::routes::agent_router;
 use crate::handler::api_key::routes::api_key_router;
 use crate::handler::task::routes::task_app_router;
+use crate::handler::task_event::routes::task_event_router;
+
 use crate::handler::tenant::routes::tenant_router;
 use crate::handler::user::routes::user_router;
 use crate::handler_api::task::routes::task_api_router;
+use crate::handler_api::task_event::routes::task_event_api_router;
 use crate::state::AppState;
 use axum::body::Body;
 
-use axum::{middleware::from_extractor, Extension};
+use axum::{Extension, middleware::from_extractor};
 use bytes::Bytes;
 use http::{Request, Response};
 use sentry::integrations::tower as sentry_tower;
@@ -31,10 +34,13 @@ pub fn build_router() -> OpenApiRouter {
         .merge(agent_router())
         .merge(api_key_router())
         .merge(task_app_router())
+        .merge(task_event_router())
 }
 
 pub fn build_api_router() -> OpenApiRouter {
-    OpenApiRouter::new().merge(task_api_router())
+    OpenApiRouter::new()
+        .merge(task_api_router())
+        .merge(task_event_api_router())
 }
 
 type ResponseBody = UnsyncBoxBody<Bytes, Box<(dyn std::error::Error + Send + Sync + 'static)>>;

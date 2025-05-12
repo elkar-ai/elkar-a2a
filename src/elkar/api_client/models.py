@@ -18,6 +18,7 @@ from elkar.a2a_types import (
     TaskStatus,
 )
 from elkar.store.base import TaskType
+from elkar.task_queue.base import TaskEvent
 
 
 class CreateTaskInput(BaseModel):
@@ -48,4 +49,32 @@ class UpdateTaskInput(BaseModel):
     artifacts_updates: Optional[list[Artifact]] = None
     new_messages: Optional[list[Message]] = None
     push_notification: Optional[PushNotificationConfig] = None
+    caller_id: Optional[str] = None
+
+
+class EnqueueTaskEventInput(BaseModel):
+    task_id: str
+    event: TaskEvent
+    caller_id: Optional[str] = None
+
+
+class DequeueTaskEventInput(BaseModel):
+    task_id: str
+    subscriber_id: str
+    limit: Optional[int] = None
+
+
+class TaskEventResponse(BaseModel):
+    id: UUID
+    task_id: UUID
+    event_data: TaskEvent
+
+
+class UnpaginatedOutput(BaseModel):
+    records: list[TaskEventResponse]
+
+
+class CreateTaskSubscriberRequest(BaseModel):
+    task_id: str
+    subscriber_id: str
     caller_id: Optional[str] = None

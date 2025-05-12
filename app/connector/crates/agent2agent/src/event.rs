@@ -2,9 +2,12 @@ use crate::artifact::Artifact;
 use crate::task::TaskStatus;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use utoipa::ToSchema;
 
 /// Task status update event for notifications
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg(feature = "documentation")]
+#[derive(ToSchema)]
 pub struct TaskStatusUpdateEvent {
     pub id: String,
     pub status: TaskStatus,
@@ -15,6 +18,8 @@ pub struct TaskStatusUpdateEvent {
 
 /// Task artifact update event for notifications
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg(feature = "documentation")]
+#[derive(ToSchema)]
 pub struct TaskArtifactUpdateEvent {
     pub id: String,
     pub artifact: Artifact,
@@ -23,6 +28,9 @@ pub struct TaskArtifactUpdateEvent {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg(feature = "documentation")]
+#[derive(ToSchema)]
+#[serde(untagged)]
 pub enum TaskEvent {
     StatusUpdate(TaskStatusUpdateEvent),
     ArtifactUpdate(TaskArtifactUpdateEvent),

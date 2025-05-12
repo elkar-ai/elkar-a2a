@@ -38,9 +38,9 @@ export const TenantProvider: React.FC<TenantProviderProps> = ({ children }) => {
     const savedTenant = localStorage.getItem("currentTenant");
     return savedTenant ? JSON.parse(savedTenant) : null;
   });
-  const queryClient = useQueryClient();
+
   const supabase = useSupabase();
-  console.log("supabase", supabase.user);
+
   // Fetch tenants from API
 
   const isRegisteredQuery = useQuery({

@@ -118,6 +118,7 @@ diesel::table! {
         tenant_id -> Uuid,
         id -> Uuid,
         task_id -> Uuid,
+        subscriber_id -> Text,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }

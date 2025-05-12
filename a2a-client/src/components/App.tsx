@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import { Routes, Route, Navigate, NavLink, MemoryRouter } from "react-router";
+import { Routes, Route, Navigate, NavLink, BrowserRouter } from "react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "../contexts/ThemeContext";
 import { UrlProvider } from "../contexts/UrlContext";
@@ -205,7 +205,7 @@ const App: React.FC = () => {
         <SupabaseProvider>
           <ThemeProvider>
             <TenantProvider>
-              <MemoryRouter>
+              <BrowserRouter>
                 <GlobalStyles />
                 <AppThemeProvider>
                   <ThemedToaster />
@@ -344,7 +344,7 @@ const App: React.FC = () => {
                     />
                   </Routes>
                 </AppThemeProvider>
-              </MemoryRouter>
+              </BrowserRouter>
             </TenantProvider>
           </ThemeProvider>
         </SupabaseProvider>

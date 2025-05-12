@@ -4,8 +4,13 @@ from pydantic import BaseModel
 
 from elkar.api_client.models import (
     CreateTaskInput,
+    CreateTaskSubscriberRequest,
+    DequeueTaskEventInput,
+    EnqueueTaskEventInput,
     GetTaskQueryParams,
+    TaskEventResponse,
     TaskResponse,
+    UnpaginatedOutput,
     UpdateTaskInput,
 )
 
@@ -67,3 +72,26 @@ class ElkarClient:
             params,
         )
         return TaskResponse.model_validate(output.json())
+
+    async def enqueue_task_event(self, params: EnqueueTaskEventInput) -> None:
+        print(params.json())
+        output = await self.make_request("/task-events/enqueue", "POST", params)
+        if output.status_code != 200:
+            raise Exception(
+                f"Error enqueuing task event: {output.status_code} {output.text}"
+            )
+        return None
+
+    async def dequeue_task_event(
+        self, params: DequeueTaskEventInput
+    ) -> UnpaginatedOutput:
+        output = await self.make_request("/task-events/dequeue", "POST", params)
+        if output.status_code != 200:
+            raise Exception(
+                f"Error dequeuing task event: {output.status_code} {output.text}"
+            )
+        return UnpaginatedOutput.model_validate(output.json())
+
+    async def create_task_subscriber(self, params: CreateTaskSubscriberRequest) -> None:
+        output = await self.make_request("/task-events/subscribers", "POST", params)
+        return None

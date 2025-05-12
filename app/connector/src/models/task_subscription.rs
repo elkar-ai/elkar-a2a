@@ -12,6 +12,7 @@ pub struct TaskSubscription {
     pub tenant_id: Uuid,
     pub id: Uuid,
     pub task_id: Uuid,
+    pub subscriber_id: String,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
@@ -20,6 +21,7 @@ pub struct TaskSubscription {
 #[diesel(table_name = task_subscription)]
 pub struct TaskSubscriptionInput {
     pub task_id: Uuid,
+    pub subscriber_id: String,
 }
 
 #[derive(Debug, Clone, Queryable, Insertable, AsChangeset, Selectable)]

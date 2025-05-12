@@ -1,5 +1,3 @@
-use crate::extensions::errors::AppResult;
-use agent2agent::event::TaskEvent as A2ATaskEvent;
 use chrono::NaiveDateTime;
 use database_schema::schema::task_event;
 use diesel::prelude::*;

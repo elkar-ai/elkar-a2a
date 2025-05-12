@@ -12,20 +12,24 @@ use crate::{
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct RetrieveTasksInput {
+    pub id_in: Option<Vec<String>>,
     pub task_type_in: Option<Vec<TaskType>>,
     pub task_id_in: Option<Vec<String>>,
     pub task_state_in: Option<Vec<TaskState>>,
     pub agent_id_in: Option<Vec<Uuid>>,
     pub pagination: Option<PaginationOptions>,
+    pub caller_id_in: Option<Vec<String>>,
 }
 
 impl From<RetrieveTasksInput> for RetrieveTaskParams {
     fn from(input: RetrieveTasksInput) -> Self {
         Self {
+            id_in: input.id_in,
             task_type_in: input.task_type_in,
             task_id_in: input.task_id_in,
             task_state_in: input.task_state_in,
             agent_id_in: input.agent_id_in,
+            caller_id_in: input.caller_id_in,
             pagination: input.pagination,
         }
     }

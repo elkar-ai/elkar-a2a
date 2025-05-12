@@ -29,6 +29,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, loading } = useSupabase();
   const { setCurrentTenant } = useTenant();
   const queryClient = useQueryClient();
+  console.log("i am here");
 
   // Check if user is registered
   const checkRegistrationQuery = useQuery({
@@ -127,7 +128,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   if (checkRegistrationQuery.isError) {
     console.error(
       "ProtectedRoute: Failed to check registration status:",
-      checkRegistrationQuery.error
+      checkRegistrationQuery.error,
     );
     return (
       <LoadingContainer>
@@ -141,7 +142,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   if (registerMutation.isError) {
     console.error(
       "ProtectedRoute: Registration mutation failed:",
-      registerMutation.error
+      registerMutation.error,
     );
     return (
       <LoadingContainer>
@@ -151,6 +152,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       </LoadingContainer>
     );
   }
+  console.log("location.pathname", location.pathname);
 
   // --- Logic based on fetched registration data ---
   if (checkRegistrationQuery.isSuccess && checkRegistrationQuery.data) {
@@ -167,7 +169,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
         </LoadingContainer>
       );
     }
-    console.log(location.pathname);
+    console.log("location.pathname", location.pathname);
     // User is confirmed to be registered at this point.
     if (needToCreateTenant === true && location.pathname !== "/create-tenant") {
       return <Navigate to="/create-tenant" />;

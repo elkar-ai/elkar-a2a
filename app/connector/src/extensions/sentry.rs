@@ -1,7 +1,7 @@
 use sentry::integrations::tracing::EventFilter;
 
 use tracing::Metadata;
-use tracing::{level_filters::LevelFilter, Level};
+use tracing::{Level, level_filters::LevelFilter};
 use tracing_subscriber::filter::EnvFilter;
 use tracing_subscriber::prelude::*;
 
@@ -23,7 +23,7 @@ fn init_with_default_level(level: LevelFilter) {
         .from_env_lossy();
 
     let log_layer = tracing_subscriber::fmt::layer()
-        .compact()
+        .pretty()
         .with_file(true)
         .with_line_number(true)
         .without_time()

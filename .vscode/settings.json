@@ -1,17 +1,7 @@
 {
   "python.analysis.typeCheckingMode": "basic",
   "rust-analyzer.checkOnSave": true,
-  // "rust-analyzer.procMacro.enable": false,
-  // "rust-analyzer.procMacro.attributes.enable": false,
-  "rust-analyzer.linkedProjects": [
-    "./app/connector/Cargo.toml"
-    // "./crates/aws-mail-sending/Cargo.toml"
-    // "./crates/microsoft-api/Cargo.toml"
-    // "./crates/files-reader/Cargo.toml",
-    // "./crates/mistral-ai-api/Cargo.toml",
-    // "./test-laurent/Cargo.toml",
-
-    // "./crates/google-genai/Cargo.toml",
-    // "./crates/classification/Cargo.toml"
-  ]
+  "rust-analyzer.procMacro.enable": true,
+  "rust-analyzer.procMacro.attributes.enable": true,
+  "rust-analyzer.linkedProjects": ["./app/connector/Cargo.toml"]
 }

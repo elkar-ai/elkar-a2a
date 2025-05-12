@@ -12,7 +12,7 @@ use uuid::Uuid;
 use crate::{
     extensions::{
         errors::{AppResult, BoxedAppError, ServiceError},
-        pagination::{query_async::load_with_pagination_async, Paginated, PaginationOptions},
+        pagination::{Paginated, PaginationOptions, query_async::load_with_pagination_async},
     },
     models::task::{Task, TaskIden},
 };
@@ -21,7 +21,9 @@ use super::schema::TaskServiceOutput;
 
 #[derive(Debug, Clone, Default)]
 pub struct RetrieveTaskParams {
+    pub id_in: Option<Vec<String>>,
     pub task_id_in: Option<Vec<String>>,
+    pub caller_id_in: Option<Vec<String>>,
     pub task_state_in: Option<Vec<TaskState>>,
     pub task_type_in: Option<Vec<TaskType>>,
     pub agent_id_in: Option<Vec<Uuid>>,
@@ -34,8 +36,12 @@ fn build_retrieve_task_query(params: RetrieveTaskParams) -> SelectStatement {
         .from(TaskIden::Table)
         .to_owned();
 
+    if let Some(id_in) = params.id_in {
+        query.and_where(Expr::col(TaskIden::Id).is_in(id_in));
+    }
+
     if let Some(task_id_in) = params.task_id_in {
-        query.and_where(Expr::col(TaskIden::Id).is_in(task_id_in));
+        query.and_where(Expr::col(TaskIden::TaskId).is_in(task_id_in));
     }
 
     if let Some(task_state_in) = params.task_state_in {
@@ -48,6 +54,10 @@ fn build_retrieve_task_query(params: RetrieveTaskParams) -> SelectStatement {
 
     if let Some(agent_id_in) = params.agent_id_in {
         query.and_where(Expr::col(TaskIden::AgentId).is_in(agent_id_in));
+    }
+
+    if let Some(caller_id_in) = params.caller_id_in {
+        query.and_where(Expr::col(TaskIden::CounterpartyId).is_in(caller_id_in));
     }
 
     query
@@ -92,7 +102,30 @@ pub async fn get_task(
 ) -> AppResult<TaskServiceOutput> {
     let mut tasks = retrieve_tasks(
         RetrieveTaskParams {
+            id_in: Some(vec![task_id]),
+            ..Default::default()
+        },
+        conn,
+    )
+    .await?;
+    let Some(task) = tasks.pop() else {
+        return Err(ServiceError::new()
+            .status_code(StatusCode::NOT_FOUND)
+            .error_type("task_not_found")
+            .into());
+    };
+    Ok(task)
+}
+
+pub async fn get_task_by_task_id(
+    task_id: String,
+    caller_id: Option<String>,
+    conn: &mut AsyncPgConnection,
+) -> AppResult<TaskServiceOutput> {
+    let mut tasks = retrieve_tasks(
+        RetrieveTaskParams {
             task_id_in: Some(vec![task_id]),
+            caller_id_in: caller_id.map(|id| vec![id]),
             ..Default::default()
         },
         conn,

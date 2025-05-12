@@ -60,7 +60,9 @@ where
 
         let headers = &parts.headers;
         let path = parts.uri.path();
+        tracing::info!("path: {}", path);
         if path.starts_with(API_PATH) {
+            tracing::info!("path starts with {}", API_PATH);
             return Ok(UserContext {
                 user_id: None,
                 tenant_id: None,

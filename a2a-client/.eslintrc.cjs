@@ -69,10 +69,11 @@ module.exports = {
     },
     "import/resolver": {
       typescript: {
-        typescript: true,
-        node: true,
+        project: "./tsconfig.json",
         alwaysTryTypes: true,
-        project: "tsconfig.json",
+      },
+      node: {
+        extensions: [".js", ".jsx", ".ts", ".tsx"],
       },
     },
   },

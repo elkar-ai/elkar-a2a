@@ -19,18 +19,18 @@ interface SupabaseContextType {
   signInWithGoogle: () => Promise<void>;
   signInWithPassword: (
     email: string,
-    password: string
+    password: string,
   ) => Promise<{ error: Error | null }>;
   signUpWithPassword: (
     email: string,
-    password: string
+    password: string,
   ) => Promise<{ error: Error | null }>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<{ error: Error | null }>;
 }
 
 const SupabaseContext = createContext<SupabaseContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export const useSupabase = () => {
@@ -140,7 +140,7 @@ export const SupabaseProvider: React.FC<SupabaseProviderProps> = ({
         console.log("User already exists, needs to sign in instead");
         return {
           error: new Error(
-            "An account with this email already exists. Please sign in instead."
+            "An account with this email already exists. Please sign in instead.",
           ),
         };
       }

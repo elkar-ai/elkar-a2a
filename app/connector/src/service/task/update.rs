@@ -32,7 +32,6 @@ pub async fn update_task(
         impl std::ops::DerefMut<Target = diesel_async::AsyncPgConnection> + Send,
     >,
 ) -> AppResult<TaskServiceOutput> {
-    tracing::info!(message="Updating task", task_id = task_id, params = ?params);
     let task_stmt = task::table
         .for_update()
         .filter(task::task_id.eq(&task_id))
