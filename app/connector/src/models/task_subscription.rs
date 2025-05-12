@@ -32,6 +32,8 @@ pub struct TaskEventSubscription {
     pub task_event_id: Uuid,
     pub task_subscription_id: Uuid,
     pub status: TaskEventSubscriptionStatus,
+    pub delivered_at: Option<NaiveDateTime>,
+    pub failed_at: Option<NaiveDateTime>,
 }
 
 #[derive(Debug, Insertable)]
@@ -40,4 +42,6 @@ pub struct TaskEventSubscriptionInput {
     pub task_event_id: Uuid,
     pub task_subscription_id: Uuid,
     pub status: TaskEventSubscriptionStatus,
+    pub delivered_at: Option<NaiveDateTime>,
+    pub failed_at: Option<NaiveDateTime>,
 }

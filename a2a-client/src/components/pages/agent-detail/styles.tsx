@@ -225,3 +225,35 @@ export const InfoLabel = styled.div`
   margin-bottom: ${({ theme }) => theme.spacing.xs};
   font-weight: 500;
 `;
+
+export const FilterContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding: ${({ theme }) => theme.spacing.xs} 0;
+`;
+
+export const FilterOption = styled.button<{ active: boolean }>`
+  padding: ${({ theme }) => `${theme.spacing.xs} ${theme.spacing.md}`};
+  background-color: ${({ active, theme }) =>
+    active ? theme.colors.primary : theme.colors.surface};
+  color: ${({ active, theme }) =>
+    active ? "white" : theme.colors.textSecondary};
+  border: 1px solid
+    ${({ active, theme }) =>
+      active ? theme.colors.primary : theme.colors.border};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: ${({ active, theme }) =>
+      active ? theme.colors.primary : theme.colors.background};
+  }
+`;

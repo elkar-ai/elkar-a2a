@@ -10,7 +10,7 @@ const PageContainer = styled.div`
   display: flex;
   flex-direction: column;
   height: 100%;
-  gap: ${({ theme }) => theme.spacing.lg};
+  gap: ${({ theme }) => theme.spacing.md};
 `;
 
 const Section = styled.div`
@@ -102,11 +102,10 @@ const TabButton = styled.button<TabButtonProps>`
 `;
 
 const TabContentContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  gap: ${({ theme }) =>
-    theme.spacing.lg}; /* To maintain spacing between sections within a tab */
+  flex: 1;
+  overflow: auto; /* Scroll if content is too big */
+
+  gap: ${({ theme }) => theme.spacing.lg};
 `;
 
 const A2ADebuggerPage: React.FC = () => {
@@ -133,7 +132,7 @@ const A2ADebuggerPage: React.FC = () => {
         console.error(`A2A Error fetching from ${endpoint}:`, error);
 
         setUrlError(
-          `Failed to fetch from ${endpoint}. Check network, CORS, or if server is down.`
+          `Failed to fetch from ${endpoint}. Check network, CORS, or if server is down.`,
         );
       }
       setIsCheckingUrl(false);

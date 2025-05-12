@@ -14,6 +14,7 @@ import CreateAgentModal from "./CreateAgentModal";
 import SecondarySidebar from "../common/SecondarySidebar";
 import { useUsers } from "../../hooks/useUsers";
 import { UnpaginatedOutputApplicationUserOutputRecordsInner } from "../../../generated-api";
+import { taskApi } from "../../api/api";
 
 // Maintain existing styled components but only the ones that are specific to this sidebar
 const AgentItem = styled.div<{ $isActive: boolean }>`
@@ -129,6 +130,17 @@ const AgentSidebar: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
   const { id: selectedAgentId } = useParams<{ id: string }>();
+  const { taskId } = useParams<{ taskId: string }>();
+
+  // Fetch task data if we're on a task page
+  const taskQuery = useQuery({
+    queryKey: ["task", taskId],
+    queryFn: () => taskApi.epGetTask({ taskId: taskId || "" }),
+    enabled: !!taskId,
+  });
+
+  // Get the agent ID either directly selected or from a task
+  const effectiveAgentId = selectedAgentId || taskQuery.data?.agentId;
 
   const agentsQuery = useQuery({
     queryKey: ["agents"],
@@ -139,14 +151,21 @@ const AgentSidebar: React.FC = () => {
   useEffect(() => {
     const records = agentsQuery.data?.records;
     if (
-      !selectedAgentId &&
+      !effectiveAgentId &&
       !agentsQuery.isLoading &&
       records &&
-      records.length > 0
+      records.length > 0 &&
+      !taskId // Don't auto-navigate if we're on a task page
     ) {
       navigate(`/agents/${records[0].id}`);
     }
-  }, [selectedAgentId, agentsQuery.data, agentsQuery.isLoading, navigate]);
+  }, [
+    effectiveAgentId,
+    agentsQuery.data,
+    agentsQuery.isLoading,
+    navigate,
+    taskId,
+  ]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -227,7 +246,7 @@ const AgentSidebar: React.FC = () => {
             return (
               <AgentItem
                 key={agent.id}
-                $isActive={agent.id === selectedAgentId}
+                $isActive={agent.id === effectiveAgentId}
                 onClick={() => navigate(`/agents/${agent.id}`)}
               >
                 <AgentHeader>

@@ -18,11 +18,13 @@ pub struct EnqueueTaskEventRequest {
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct DequeueTaskEventRequest {
     /// The ID of the task to dequeue events from
-    pub task_id: Uuid,
+    pub task_id: String,
     /// The ID of the subscriber requesting events
-    pub subscriber_id: Uuid,
+    pub subscriber_id: String,
     /// Optional limit on the number of events to dequeue
     pub limit: Option<i32>,
+    /// The ID of the caller
+    pub caller_id: Option<String>,
 }
 
 /// Response containing a task event
@@ -31,7 +33,7 @@ pub struct TaskEventResponse {
     /// The unique ID of the event
     pub id: Uuid,
     /// The ID of the task this event belongs to
-    pub task_id: Uuid,
+    pub task_id: String,
     /// The event data
     pub event_data: A2ATaskEvent,
 }

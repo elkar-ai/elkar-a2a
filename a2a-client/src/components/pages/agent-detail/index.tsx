@@ -29,6 +29,15 @@ import TasksSection from "./TasksSection";
 import ApiKeySection from "./ApiKeySection";
 import { useUsers } from "../../../hooks/useUsers";
 import { UnpaginatedOutputApplicationUserOutputRecordsInner } from "../../../../generated-api";
+import styled from "styled-components";
+
+const MainContainer = styled.div`
+  height: 100%;
+`;
+
+const Container = styled.div`
+  height: 100%;
+`;
 
 const AgentDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -76,7 +85,7 @@ const AgentDetail: React.FC = () => {
   const agent = agentQuery.data!;
 
   return (
-    <div>
+    <Container>
       <Header>
         <div>
           <Title>{agent.name}</Title>
@@ -112,51 +121,53 @@ const AgentDetail: React.FC = () => {
           API Keys
         </Tab>
       </TabsContainer>
-
-      {activeTab === "details" && (
-        <>
-          <Section>
-            <SectionTitle>Agent Details</SectionTitle>
-            <CardsContainer>
-              {/* <Card>
+      <MainContainer>
+        {activeTab === "details" && (
+          <>
+            <Section>
+              <SectionTitle>Agent Details</SectionTitle>
+              <CardsContainer>
+                {/* <Card>
                 <CardLabel>Created At</CardLabel>
                 <CardValue>
                   {new Date(agent.createdAt).toLocaleString()}
                 </CardValue>
               </Card> */}
-              <Card>
-                <CardLabel>Created By</CardLabel>
-                <CardValue>
-                  {userMap?.[agent.createdBy]?.email || "Unknown"}
-                </CardValue>
-              </Card>
-              {/* <Card>
+                <Card>
+                  <CardLabel>Created By</CardLabel>
+                  <CardValue>
+                    {userMap?.[agent.createdBy]?.email || "Unknown"}
+                  </CardValue>
+                </Card>
+                {/* <Card>
                 <CardLabel>Status</CardLabel>
                 <CardValue>{agent.isDeleted ? "Deleted" : "Active"}</CardValue>
               </Card> */}
-              <Card>
-                <CardLabel>Tasks Executed</CardLabel>
-                <CardValue>Coming soon</CardValue>
-              </Card>
-            </CardsContainer>
-          </Section>
+                <Card>
+                  <CardLabel>Tasks Executed</CardLabel>
+                  <CardValue>Coming soon</CardValue>
+                </Card>
+              </CardsContainer>
+            </Section>
 
-          <MetricsSection>
-            <MetricsHeader>
-              <MetricsTitle>Agent Card</MetricsTitle>
-            </MetricsHeader>
-            <MetricsContent>
-              Agent card will be implemented in a future update.
-            </MetricsContent>
-          </MetricsSection>
-        </>
-      )}
-      {activeTab === "tasks" && <TasksSection />}
-      {activeTab === "connections" && (
-        <div>Connections functionality coming soon</div>
-      )}
-      {activeTab === "api" && <ApiKeySection />}
-    </div>
+            <MetricsSection>
+              <MetricsHeader>
+                <MetricsTitle>Agent Card</MetricsTitle>
+              </MetricsHeader>
+              <MetricsContent>
+                Agent card will be implemented in a future update.
+              </MetricsContent>
+            </MetricsSection>
+          </>
+        )}
+
+        {activeTab === "tasks" && <TasksSection />}
+        {activeTab === "connections" && (
+          <div>Connections functionality coming soon</div>
+        )}
+        {activeTab === "api" && <ApiKeySection />}
+      </MainContainer>
+    </Container>
   );
 };
 

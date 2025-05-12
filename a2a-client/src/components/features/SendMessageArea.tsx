@@ -9,6 +9,7 @@ import { Dispatch, SetStateAction, useRef, useState } from "react";
 import styled from "styled-components";
 import { IoMdClose } from "react-icons/io";
 import { ImAttachment } from "react-icons/im";
+import { ImSpinner8 } from "react-icons/im";
 
 const PanelContainer = styled.div`
   display: flex;
@@ -76,10 +77,26 @@ const Button = styled.button`
     cursor: not-allowed;
     transform: none;
   }
+`;
 
+const SendIcon = styled.span`
   &::before {
     content: "→";
     font-size: 1.1em;
+  }
+`;
+
+const LoadingSpinner = styled(ImSpinner8)`
+  animation: spin 1s linear infinite;
+  font-size: 1.1em;
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
   }
 `;
 
@@ -217,7 +234,7 @@ export const SendMessageArea: React.FC<SendMessageAreaProps> = ({
           setMessage("");
           setFiles([]);
         },
-      }
+      },
     );
   };
 
@@ -271,7 +288,9 @@ export const SendMessageArea: React.FC<SendMessageAreaProps> = ({
           disabled={
             (!message && files.length === 0) || sendTaskMutation.isPending
           }
-        />
+        >
+          {sendTaskMutation.isPending ? <LoadingSpinner /> : <SendIcon />}
+        </Button>
       </InputContainer>
       <input
         type="file"

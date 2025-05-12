@@ -131,6 +131,7 @@ pub async fn get_task_by_task_id(
         conn,
     )
     .await?;
+
     let Some(task) = tasks.pop() else {
         return Err(ServiceError::new()
             .status_code(StatusCode::NOT_FOUND)

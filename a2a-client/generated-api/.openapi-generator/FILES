@@ -1,5 +1,6 @@
 apis/DefaultApi.ts
 apis/TaskApi.ts
+apis/TaskEventApi.ts
 apis/index.ts
 index.ts
 models/AgentOutput.ts
@@ -11,10 +12,13 @@ models/CreateAgentInput.ts
 models/CreateApiKeyInput.ts
 models/CreateTenantInput.ts
 models/FileData.ts
+models/GetTaskEventsQuery.ts
 models/InviteUserInput.ts
 models/IsRegisteredOutput.ts
 models/ListApiKeysInput.ts
 models/Message.ts
+models/PaginatedOutputTaskEventOutput.ts
+models/PaginatedOutputTaskEventOutputRecordsInner.ts
 models/PaginatedOutputTaskResponse.ts
 models/PaginatedOutputTaskResponseRecordsInner.ts
 models/PaginationInformation.ts
@@ -29,6 +33,8 @@ models/PushNotificationConfig.ts
 models/RetrieveTasksInput.ts
 models/Role.ts
 models/Task.ts
+models/TaskEventOrderBy.ts
+models/TaskEventOutput.ts
 models/TaskPushNotificationConfig.ts
 models/TaskResponse.ts
 models/TaskState.ts

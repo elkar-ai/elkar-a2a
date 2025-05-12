@@ -137,7 +137,16 @@ export const SupabaseProvider: React.FC<SupabaseProviderProps> = ({
 
       // Check if we need email confirmation
       if (data?.user?.identities?.length === 0) {
-        console.log("User already exists, needs to sign in instead");
+        const { data, error } =
+          await supabase.auth.resetPasswordForEmail(email);
+        if (error) {
+          return {
+            error: new Error(
+              "An account with this email already exists. Please sign in instead.",
+            ),
+          };
+        }
+
         return {
           error: new Error(
             "An account with this email already exists. Please sign in instead.",

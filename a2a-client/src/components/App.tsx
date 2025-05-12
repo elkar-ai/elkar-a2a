@@ -268,9 +268,7 @@ const App: React.FC = () => {
                       path="/task/:taskId"
                       element={
                         <ProtectedRoute>
-                          <Layout sidebar={<MainSidebarContent />}>
-                            <TaskDetailPage />
-                          </Layout>
+                          <TaskDetailPage />
                         </ProtectedRoute>
                       }
                     />

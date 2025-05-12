@@ -5,9 +5,8 @@ import { MainSidebarContent } from "../App";
 
 const Container = styled.div`
   display: flex;
+
   height: 100%;
-  width: 100%;
-  overflow: hidden;
   background: ${({ theme }) => theme.colors.background};
 `;
 
@@ -16,9 +15,8 @@ const SecondarySidebarContainer = styled.aside`
   flex-shrink: 0;
   background: ${({ theme }) => theme.colors.background};
   border-right: 1px solid ${({ theme }) => theme.colors.border};
+  height: 100%;
   overflow-y: auto;
-  display: flex;
-  flex-direction: column;
   padding: ${({ theme }) => theme.spacing.lg};
 
   @media (max-width: 768px) {
@@ -43,12 +41,34 @@ const SecondarySidebarContainer = styled.aside`
   }
 `;
 
-const ContentArea = styled.main`
+const SidebarContent = styled.div`
   flex: 1;
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: ${({ theme }) => theme.colors.border};
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: ${({ theme }) => theme.colors.textSecondary};
+  }
+`;
+
+const ContentArea = styled.div`
+  flex: 1;
   padding: ${({ theme }) => theme.spacing.xl};
+
+  overflow-y: auto;
+  /* padding: ${({ theme }) => theme.spacing.xl}; */
   background: ${({ theme }) => theme.colors.background};
 
   @media (max-width: 768px) {
@@ -74,14 +94,15 @@ const ContentArea = styled.main`
 `;
 
 const ContentContainer = styled.div`
-  max-width: 1200px;
+  height: 100%;
+
   width: 100%;
 `;
 
 interface SecondarySidebarLayoutProps {
   secondarySidebar: React.ReactNode;
   children: React.ReactNode;
-  title?: string;
+
   sidebarLabel?: string;
 }
 
@@ -92,7 +113,7 @@ interface SecondarySidebarLayoutProps {
 const SecondarySidebarLayout: React.FC<SecondarySidebarLayoutProps> = ({
   secondarySidebar,
   children,
-  title,
+
   sidebarLabel = "Secondary navigation",
 }) => {
   return (
@@ -102,10 +123,9 @@ const SecondarySidebarLayout: React.FC<SecondarySidebarLayoutProps> = ({
           role="complementary"
           aria-label={sidebarLabel}
         >
-          {secondarySidebar}
+          <SidebarContent>{secondarySidebar}</SidebarContent>
         </SecondarySidebarContainer>
         <ContentArea>
-          {title && <h1>{title}</h1>}
           <ContentContainer>{children}</ContentContainer>
         </ContentArea>
       </Container>

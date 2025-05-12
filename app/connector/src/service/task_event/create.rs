@@ -53,6 +53,8 @@ pub async fn create_task_event(
                     task_event_id: task_event.id,
                     status: TaskEventSubscriptionStatus::Pending,
                     task_subscription_id: task_subscription.id,
+                    delivered_at: None,
+                    failed_at: None,
                 });
                 diesel_async::RunQueryDsl::execute(task_event_subscription_insert_stmt, conn)
                     .await?;

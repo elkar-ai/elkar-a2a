@@ -49,6 +49,12 @@ export interface PaginatedOutputTaskResponseRecordsInner {
     a2aTask?: Task | null;
     /**
      * 
+     * @type {string}
+     * @memberof PaginatedOutputTaskResponseRecordsInner
+     */
+    agentId: string;
+    /**
+     * 
      * @type {Date}
      * @memberof PaginatedOutputTaskResponseRecordsInner
      */
@@ -85,6 +91,7 @@ export interface PaginatedOutputTaskResponseRecordsInner {
  * Check if a given object implements the PaginatedOutputTaskResponseRecordsInner interface.
  */
 export function instanceOfPaginatedOutputTaskResponseRecordsInner(value: object): value is PaginatedOutputTaskResponseRecordsInner {
+    if (!('agentId' in value) || value['agentId'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('taskType' in value) || value['taskType'] === undefined) return false;
@@ -103,6 +110,7 @@ export function PaginatedOutputTaskResponseRecordsInnerFromJSONTyped(json: any, 
     return {
         
         'a2aTask': json['a2a_task'] == null ? undefined : TaskFromJSON(json['a2a_task']),
+        'agentId': json['agent_id'],
         'createdAt': (new Date(json['created_at'])),
         'id': json['id'],
         'pushNotification': json['push_notification'] == null ? undefined : TaskPushNotificationConfigFromJSON(json['push_notification']),
@@ -123,6 +131,7 @@ export function PaginatedOutputTaskResponseRecordsInnerToJSONTyped(value?: Pagin
     return {
         
         'a2a_task': TaskToJSON(value['a2aTask']),
+        'agent_id': value['agentId'],
         'created_at': ((value['createdAt']).toISOString()),
         'id': value['id'],
         'push_notification': TaskPushNotificationConfigToJSON(value['pushNotification']),

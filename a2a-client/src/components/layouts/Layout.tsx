@@ -158,18 +158,18 @@ const MobileOverlay = styled.div<{ $isVisible: boolean }>`
   z-index: 99;
   opacity: ${({ $isVisible }) => ($isVisible ? 1 : 0)};
   visibility: ${({ $isVisible }) => ($isVisible ? "visible" : "hidden")};
-  transition: opacity 0.3s ease, visibility 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    visibility 0.3s ease;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
     display: block;
   }
 `;
 
-const MainContent = styled.main`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+const MainContent = styled.div`
+  position: relative;
+  width: 100%;
 `;
 
 const MainHeader = styled.div`
@@ -179,7 +179,9 @@ const MainHeader = styled.div`
 
 const MainBody = styled.div<{ $noPadding: boolean }>`
   flex: 1;
-  overflow-y: auto;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
   padding: ${({ $noPadding, theme }) => ($noPadding ? 0 : theme.spacing.md)};
 `;
 
@@ -187,6 +189,7 @@ const ContentWrapper = styled.div<{ $fullWidth: boolean }>`
   max-width: ${({ $fullWidth }) => ($fullWidth ? "none" : "1200px")};
   margin: 0 auto;
   width: 100%;
+  height: 100%;
 `;
 
 /**

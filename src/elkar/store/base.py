@@ -68,7 +68,7 @@ class TaskManagerStore(Protocol):
     async def upsert_task(
         self,
         params: TaskSendParams,
-        is_streaming: bool,
+        is_streaming: bool = False,
         caller_id: str | None = None,
     ) -> StoredTask:
         """

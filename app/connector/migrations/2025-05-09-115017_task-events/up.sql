@@ -41,7 +41,9 @@ CREATE TABLE IF NOT EXISTS task_event_subscription(
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     task_event_id uuid NOT NULL REFERENCES task_event(id),
     task_subscription_id uuid NOT NULL REFERENCES task_subscription(id),
-    status task_event_subscription_status NOT NULL DEFAULT 'pending'
+    status task_event_subscription_status NOT NULL DEFAULT 'pending',
+    delivered_at timestamp,
+    failed_at timestamp
 );
 
 SELECT

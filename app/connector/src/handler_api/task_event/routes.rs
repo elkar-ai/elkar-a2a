@@ -80,6 +80,7 @@ pub async fn ep_dequeue_task_event(
             task_id: request.task_id,
             limit: request.limit,
             subscriber_id: request.subscriber_id,
+            caller_id: request.caller_id,
         },
         &mut conn,
     )

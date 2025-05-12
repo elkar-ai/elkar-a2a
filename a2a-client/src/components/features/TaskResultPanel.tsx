@@ -13,7 +13,9 @@ import {
   Artifact,
   TaskStatusUpdateEvent,
   TaskArtifactUpdateEvent,
+  FilePart,
 } from "../../types/a2aTypes";
+import toast from "react-hot-toast";
 
 const Title = styled.h3`
   font-size: ${({ theme }) => theme.fontSizes.lg};
@@ -182,13 +184,108 @@ const FileUri = styled.div`
   text-overflow: ellipsis;
 `;
 
+const DownloadButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.xs};
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
+  background-color: ${({ theme }) => theme.colors.primary}10;
+  color: ${({ theme }) => theme.colors.primary};
+  border: 1px solid ${({ theme }) => theme.colors.primary};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  cursor: pointer;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.primary}20;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
 interface ArtifactDisplayProps {
   artifact: Artifact;
 }
 
 const ArtifactDisplay: React.FC<ArtifactDisplayProps> = ({ artifact }) => {
-  const fileParts = artifact.parts.filter((part) => part.type === "file");
+  const fileParts = artifact.parts.filter(
+    (part): part is FilePart => part.type === "file",
+  );
   const otherParts = artifact.parts.filter((part) => part.type !== "file");
+
+  const handleDownload = async (part: FilePart) => {
+    try {
+      console.log("Downloading file part:", part);
+      let blob: Blob;
+
+      if (part.file.uri) {
+        console.log("Downloading from URI:", part.file.uri);
+        // Handle URI-based download
+        const response = await fetch(part.file.uri);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        blob = await response.blob();
+      } else if (part.file.bytes) {
+        console.log(
+          "Downloading from bytes, raw length:",
+          part.file.bytes.length,
+        );
+        try {
+          // Make sure we have a valid base64 string by:
+          // 1. Replacing URL-safe chars with base64 standard chars
+          // 2. Adding padding if needed
+          let base64 = part.file.bytes.replace(/-/g, "+").replace(/_/g, "/");
+
+          // Add padding if needed
+          while (base64.length % 4) {
+            base64 += "=";
+          }
+
+          console.log("Processed base64 string length:", base64.length);
+
+          // Convert base64 to byte array using a safer method
+          const byteArray = Uint8Array.from(atob(base64), (c) =>
+            c.charCodeAt(0),
+          );
+
+          // Create blob with proper mime type if available
+          blob = new Blob([byteArray], {
+            type: part.file.mimeType || "application/octet-stream",
+          });
+          console.log("Created blob:", blob);
+        } catch (decodeError) {
+          console.error("Base64 decoding error:", decodeError);
+          console.error(
+            "Base64 string preview:",
+            part.file.bytes.substring(0, 100) + "...",
+          );
+          throw new Error(
+            "Failed to decode file content: " + decodeError.message,
+          );
+        }
+      } else {
+        throw new Error("No file content available");
+      }
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = part.file.name || "download";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      console.log("Download completed");
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      // You might want to add proper error handling/notification here
+    }
+  };
 
   return (
     <ArtifactContainer>
@@ -230,6 +327,23 @@ const ArtifactDisplay: React.FC<ArtifactDisplayProps> = ({ artifact }) => {
                 )}
                 {part.file.uri && <FileUri>{part.file.uri}</FileUri>}
               </FileInfo>
+              {(part.file.uri || part.file.bytes) && (
+                <DownloadButton onClick={() => handleDownload(part)}>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  Download
+                </DownloadButton>
+              )}
             </FileItem>
           ))}
         </FileList>
@@ -428,6 +542,8 @@ const TabContent = styled.div`
   flex-direction: column;
   min-height: 0;
   height: 100%;
+  max-height: 100%;
+
   background-color: ${({ theme }) => theme.colors.background};
   border-radius: ${({ theme }) => theme.borderRadius.md};
   border: 1px solid ${({ theme }) => theme.colors.border};
@@ -437,7 +553,7 @@ const ContentContainer = styled.div`
   flex: 1;
   overflow-y: auto;
   min-height: 0;
-  padding: ${({ theme }) => theme.spacing.md};
+  max-height: 100%;
   background-color: ${({ theme }) => theme.colors.background};
   border-radius: ${({ theme }) => theme.borderRadius.md};
 `;
@@ -445,8 +561,68 @@ const ContentContainer = styled.div`
 const Separator = styled.div`
   height: 1px;
   background-color: ${({ theme }) => theme.colors.border};
-  margin: ${({ theme }) => theme.spacing.sm} 0;
+  /* margin: ${({ theme }) => theme.spacing.sm} 0; */
   flex-shrink: 0;
+`;
+
+const EmptyStateContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: ${({ theme }) => theme.spacing.xl};
+  height: 100%;
+  min-height: 300px;
+  text-align: center;
+`;
+
+const EmptyStateIcon = styled.div`
+  color: ${({ theme }) => theme.colors.primary};
+  background-color: ${({ theme }) => theme.colors.primary}10;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
+  font-size: 2rem;
+`;
+
+const EmptyStateTitle = styled.h3`
+  font-size: ${({ theme }) => theme.fontSizes.lg};
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.text};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+`;
+
+const EmptyStateDescription = styled.p`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.fontSizes.md};
+  max-width: 400px;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
+`;
+
+const CreateButton = styled.button`
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: white;
+  border: none;
+  padding: ${({ theme }) => theme.spacing.md} ${({ theme }) => theme.spacing.lg};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  font-weight: 500;
+  font-size: ${({ theme }) => theme.fontSizes.md};
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.primary}DD;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 `;
 
 export function FullTaskPanel({
@@ -470,17 +646,125 @@ export function FullTaskPanel({
 }) {
   const [activeTab, setActiveTab] = useState<TabType>("results");
 
+  const ErrorContainer = styled.div`
+    padding: ${({ theme }) => theme.spacing.lg};
+    background-color: ${({ theme }) => theme.colors.background};
+    border: 1px solid ${({ theme }) => theme.colors.error}30;
+    border-radius: ${({ theme }) => theme.borderRadius.md};
+    margin: ${({ theme }) => theme.spacing.md};
+    color: ${({ theme }) => theme.colors.error};
+    display: flex;
+    flex-direction: column;
+    gap: ${({ theme }) => theme.spacing.md};
+    align-items: center;
+    text-align: center;
+  `;
+
+  const ErrorIcon = styled.div`
+    font-size: 2rem;
+    margin-bottom: ${({ theme }) => theme.spacing.sm};
+  `;
+
+  const ErrorMessage = styled.div`
+    font-weight: 500;
+    margin-bottom: ${({ theme }) => theme.spacing.sm};
+  `;
+
+  const ErrorHint = styled.div`
+    font-size: ${({ theme }) => theme.fontSizes.sm};
+    color: ${({ theme }) => theme.colors.textSecondary};
+  `;
+
+  const LoadingContainer = styled.div`
+    padding: ${({ theme }) => theme.spacing.lg};
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: ${({ theme }) => theme.spacing.md};
+    height: 100%;
+    min-height: 200px;
+  `;
+
+  const LoadingSpinner = styled.div`
+    width: 50px;
+    height: 50px;
+    border: 3px solid ${({ theme }) => theme.colors.border};
+    border-top: 3px solid ${({ theme }) => theme.colors.primary};
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: ${({ theme }) => theme.spacing.md};
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+  `;
+
+  const LoadingMessage = styled.div`
+    color: ${({ theme }) => theme.colors.textSecondary};
+    font-size: ${({ theme }) => theme.fontSizes.md};
+    font-weight: 500;
+  `;
+
+  const LoadingSubtext = styled.div`
+    color: ${({ theme }) => theme.colors.textSecondary};
+    font-size: ${({ theme }) => theme.fontSizes.sm};
+    max-width: 300px;
+    text-align: center;
+  `;
+
   const renderTask = () => {
     if (isTaskLoading) {
-      return <div>Loading...</div>;
+      return (
+        <LoadingContainer>
+          <LoadingSpinner />
+          <LoadingMessage>Loading task data...</LoadingMessage>
+          <LoadingSubtext>
+            Please wait while we retrieve the latest information
+          </LoadingSubtext>
+        </LoadingContainer>
+      );
     }
     if (taskError) {
-      return <div>{taskError}</div>;
+      return (
+        <ErrorContainer>
+          <ErrorIcon>⚠️</ErrorIcon>
+          <ErrorMessage>{taskError}</ErrorMessage>
+          <ErrorHint>
+            You can create a new task or try with a different task ID
+          </ErrorHint>
+        </ErrorContainer>
+      );
     }
     if (task) {
       return <TaskResultPanel task={task} canCancel={canCancel} />;
     }
-    return <div>No task</div>;
+    return (
+      <EmptyStateContainer>
+        <EmptyStateIcon>
+          <svg
+            width="40"
+            height="40"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+            <polyline points="13 2 13 9 20 9"></polyline>
+          </svg>
+        </EmptyStateIcon>
+        <EmptyStateTitle>No Task Data Available</EmptyStateTitle>
+        <EmptyStateDescription>
+          Enter a message to create a new task.
+        </EmptyStateDescription>
+      </EmptyStateContainer>
+    );
   };
 
   if (!showStreaming) {

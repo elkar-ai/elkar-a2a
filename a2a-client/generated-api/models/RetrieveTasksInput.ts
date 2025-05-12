@@ -49,6 +49,18 @@ export interface RetrieveTasksInput {
     agentIdIn?: Array<string> | null;
     /**
      * 
+     * @type {Array<string>}
+     * @memberof RetrieveTasksInput
+     */
+    callerIdIn?: Array<string> | null;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof RetrieveTasksInput
+     */
+    idIn?: Array<string> | null;
+    /**
+     * 
      * @type {PaginationOptions}
      * @memberof RetrieveTasksInput
      */
@@ -91,6 +103,8 @@ export function RetrieveTasksInputFromJSONTyped(json: any, ignoreDiscriminator: 
     return {
         
         'agentIdIn': json['agent_id_in'] == null ? undefined : json['agent_id_in'],
+        'callerIdIn': json['caller_id_in'] == null ? undefined : json['caller_id_in'],
+        'idIn': json['id_in'] == null ? undefined : json['id_in'],
         'pagination': json['pagination'] == null ? undefined : PaginationOptionsFromJSON(json['pagination']),
         'taskIdIn': json['task_id_in'] == null ? undefined : json['task_id_in'],
         'taskStateIn': json['task_state_in'] == null ? undefined : ((json['task_state_in'] as Array<any>).map(TaskStateFromJSON)),
@@ -110,6 +124,8 @@ export function RetrieveTasksInputToJSONTyped(value?: RetrieveTasksInput | null,
     return {
         
         'agent_id_in': value['agentIdIn'],
+        'caller_id_in': value['callerIdIn'],
+        'id_in': value['idIn'],
         'pagination': PaginationOptionsToJSON(value['pagination']),
         'task_id_in': value['taskIdIn'],
         'task_state_in': value['taskStateIn'] == null ? undefined : ((value['taskStateIn'] as Array<any>).map(TaskStateToJSON)),

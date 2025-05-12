@@ -173,8 +173,6 @@ const TasksSection: React.FC = () => {
 
   return (
     <Card>
-      <SectionTitle>Tasks</SectionTitle>
-
       <FilterSection>
         <FilterComponent
           options={filterOptions}

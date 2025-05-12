@@ -217,12 +217,24 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
         self,
         request: SendTaskStreamingRequest,
         request_context: RequestContext | None = None,
+        subscriber_identifier: str | None = None,
     ) -> None:
         if self._send_task_handler is None:
             raise ValueError("send_task_handler is not set")
         params = request.params
         task_modifier = await self._prepare_task_modifier(
             params, request_context, with_queue=True
+        )
+        if subscriber_identifier is None:
+            raise ValueError("subscriber_identifier is not set")
+
+        await self.queue.add_subscriber(
+            request.params.id,
+            subscriber_identifier,
+            is_resubscribe=False,
+            caller_id=(
+                request_context.caller_id if request_context is not None else None
+            ),
         )
         if isinstance(task_modifier, SendTaskResponse):
             raise ValueError("Error while preparing the task")
@@ -249,16 +261,10 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
         request_context: RequestContext | None = None,
     ) -> AsyncIterable[SendTaskStreamingResponse] | JSONRPCResponse:
         subscriber_identifier = str(uuid.uuid4())
-        await self.queue.add_subscriber(
-            request.params.id,
-            subscriber_identifier,
-            is_resubscribe=False,
-            caller_id=(
-                request_context.caller_id if request_context is not None else None
-            ),
-        )
 
-        asyncio.create_task(self._send_task_streaming(request, request_context))
+        asyncio.create_task(
+            self._send_task_streaming(request, request_context, subscriber_identifier)
+        )
         try:
             events = await self.dequeue_task_events(
                 request.id,
@@ -393,6 +399,8 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
 
         while True:
             event = await self.queue.dequeue(task_id, subscriber_identifier)
+            if event is None:
+                continue
             if isinstance(event, JSONRPCError):
                 await self.queue.remove_subscriber(task_id, subscriber_identifier)
                 yield SendTaskStreamingResponse(

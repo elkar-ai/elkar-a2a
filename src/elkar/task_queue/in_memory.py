@@ -55,7 +55,7 @@ class InMemoryTaskEventQueue(TaskEventManager):
         task_id: str,
         subscriber_identifier: str,
         caller_id: str | None = None,
-    ) -> TaskEvent:
+    ) -> TaskEvent | None:
         if task_id not in self.task_subscribers:
             raise ValueError("Task not subscribed to")
         if subscriber_identifier not in self.task_subscribers[task_id]:

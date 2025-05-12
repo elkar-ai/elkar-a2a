@@ -108,6 +108,8 @@ diesel::table! {
         task_event_id -> Uuid,
         task_subscription_id -> Uuid,
         status -> TaskEventSubscriptionStatus,
+        delivered_at -> Nullable<Timestamp>,
+        failed_at -> Nullable<Timestamp>,
     }
 }
 

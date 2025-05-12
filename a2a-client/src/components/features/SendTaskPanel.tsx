@@ -1,5 +1,5 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import {
   Message,
@@ -165,6 +165,40 @@ interface SendTaskPanelProps {
   showGetTaskButton?: boolean;
 }
 
+const LoadingContainer = styled.div`
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: ${({ theme }) => theme.spacing.md};
+`;
+
+const LoadingSpinner = styled.div`
+  width: 50px;
+  height: 50px;
+  border: 3px solid ${({ theme }) => theme.colors.border};
+  border-top: 3px solid ${({ theme }) => theme.colors.primary};
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+`;
+
+const LoadingText = styled.div`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.fontSizes.md};
+  font-weight: 500;
+`;
+
 const SendTaskPanel: React.FC<SendTaskPanelProps> = ({
   taskId: propTaskId,
   readOnly = false,
@@ -173,6 +207,7 @@ const SendTaskPanel: React.FC<SendTaskPanelProps> = ({
 }) => {
   const { endpoint } = useUrl();
   const apiClient = new A2AClient(endpoint);
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   // Use the taskId from props if provided, otherwise from search params
   const taskIdFromSearch = searchParams.get("taskId");
@@ -186,32 +221,95 @@ const SendTaskPanel: React.FC<SendTaskPanelProps> = ({
     (TaskStatusUpdateEvent | TaskArtifactUpdateEvent)[]
   >([]);
 
+  // Track newly created task IDs
+  const [newlyCreatedTaskIds, setNewlyCreatedTaskIds] = useState<Set<string>>(
+    new Set(),
+  );
+
+  // Effect for auto-generating a task ID if none provided
   useEffect(() => {
     if (!propTaskId && taskIdFromSearch === null && !readOnly) {
-      const newTaskId = uuidv4();
-      setSearchParams({
-        taskId: newTaskId,
-      });
-    }
-  }, [taskIdFromSearch, propTaskId, readOnly, setSearchParams]);
+      const generatedTaskId = uuidv4();
 
+      // Remember this is a new task
+      setNewlyCreatedTaskIds((prev) => {
+        const newSet = new Set(prev);
+        newSet.add(generatedTaskId);
+        return newSet;
+      });
+
+      setSearchParams({ taskId: generatedTaskId });
+    }
+  }, [propTaskId, taskIdFromSearch, readOnly, setSearchParams]);
+
+  // Query to fetch task data
   const getTaskClientQuery = useQuery({
     queryKey: ["tasks", taskId],
-    queryFn: () => {
-      return apiClient.getTask(taskId ?? "");
-    },
+    queryFn: () => apiClient.getTask(taskId ?? ""),
     retry: false,
+    enabled: !!taskId,
   });
 
+  // Update local state when task data changes
   useEffect(() => {
     if (getTaskClientQuery.data) {
-      setMessages(getTaskClientQuery.data?.history ?? []);
+      setMessages(getTaskClientQuery.data.history ?? []);
       setTask(getTaskClientQuery.data);
     } else {
       setMessages([]);
       setTask(null);
     }
   }, [getTaskClientQuery.isSuccess, getTaskClientQuery.data]);
+
+  // Determine if we should show an error message
+  const getTaskErrorMessage = () => {
+    // No error in the query
+    if (!getTaskClientQuery.error) return null;
+
+    const error = getTaskClientQuery.error;
+    const errorMessage = error.message || "";
+
+    // For newly created tasks, don't show the "not found" error
+    if (
+      newlyCreatedTaskIds.has(taskId || "") &&
+      errorMessage.toLowerCase().includes("not found")
+    ) {
+      return null;
+    }
+
+    // Custom error message for task not found
+    if (errorMessage.toLowerCase().includes("not found")) {
+      return "This task doesn't exist or isn't available. Please check the task ID or create a new task.";
+    }
+
+    // Generic error for other cases
+    return "There was a problem retrieving this task. Please try again.";
+  };
+
+  // Handle new task creation
+  const handleCreateNewTask = () => {
+    const generatedTaskId = uuidv4();
+
+    // Clear any previous task data
+    if (taskId) {
+      queryClient.removeQueries({ queryKey: ["tasks", taskId] });
+    }
+
+    // Reset UI state
+    setTask(null);
+    setMessages([]);
+    setStreamingMessages([]);
+
+    // Remember this is a new task to prevent error messages
+    setNewlyCreatedTaskIds((prev) => {
+      const newSet = new Set(prev);
+      newSet.add(generatedTaskId);
+      return newSet;
+    });
+
+    // Update URL
+    setSearchParams({ taskId: generatedTaskId });
+  };
 
   const sendTaskMutation = useMutation({
     mutationFn: async (params: TaskSendParams) => {
@@ -235,14 +333,17 @@ const SendTaskPanel: React.FC<SendTaskPanelProps> = ({
     return (
       <Container>
         {getTaskClientQuery.isLoading ? (
-          <div>Loading task details...</div>
+          <LoadingContainer>
+            <LoadingSpinner />
+            <LoadingText>Loading task details...</LoadingText>
+          </LoadingContainer>
         ) : (
           <FullTaskPanel
             task={task}
             streamingEvents={streamingMessages}
             isCurrentlyStreaming={false}
             isStreamingActive={streaming}
-            taskError={null}
+            taskError={getTaskErrorMessage()}
             isTaskLoading={getTaskClientQuery.isLoading}
           />
         )}
@@ -256,16 +357,7 @@ const SendTaskPanel: React.FC<SendTaskPanelProps> = ({
         <Container style={{ height: "100%" }}>
           <Header>
             {showNewTaskButton && (
-              <NewTaskComponent
-                onClick={() => {
-                  const newTaskId = uuidv4();
-                  setSearchParams({
-                    taskId: newTaskId,
-                  });
-                  setMessages([]);
-                  setTask(null);
-                }}
-              />
+              <NewTaskComponent onClick={handleCreateNewTask} />
             )}
             {showGetTaskButton && (
               <ControlsContainer>
@@ -288,9 +380,13 @@ const SendTaskPanel: React.FC<SendTaskPanelProps> = ({
                 />
                 <NewTaskButton
                   onClick={() => {
-                    setSearchParams({
-                      taskId: newTaskId,
+                    // When getting an existing task, remove it from the new tasks set
+                    setNewlyCreatedTaskIds((prev) => {
+                      const newSet = new Set(prev);
+                      newSet.delete(newTaskId);
+                      return newSet;
                     });
+                    setSearchParams({ taskId: newTaskId });
                   }}
                 >
                   Get
@@ -318,7 +414,7 @@ const SendTaskPanel: React.FC<SendTaskPanelProps> = ({
             streamingEvents={streamingMessages}
             isCurrentlyStreaming={sendTaskMutation.isPending}
             isStreamingActive={true}
-            taskError={getTaskClientQuery.error?.message || null}
+            taskError={getTaskErrorMessage()}
             isTaskLoading={getTaskClientQuery.isLoading}
           />
         </Container>

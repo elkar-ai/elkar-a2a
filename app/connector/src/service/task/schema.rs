@@ -3,8 +3,10 @@ use chrono::NaiveDateTime;
 use database_schema::enum_definitions::task::{TaskState, TaskType};
 use uuid::Uuid;
 
+#[derive(Debug, Clone)]
 pub struct TaskServiceOutput {
     pub id: Uuid,
+
     pub task_id: String,
     pub task_state: TaskState,
     pub task_type: TaskType,

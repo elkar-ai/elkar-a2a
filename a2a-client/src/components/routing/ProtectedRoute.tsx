@@ -29,7 +29,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, loading } = useSupabase();
   const { setCurrentTenant } = useTenant();
   const queryClient = useQueryClient();
-  console.log("i am here");
 
   // Check if user is registered
   const checkRegistrationQuery = useQuery({
@@ -169,7 +168,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
         </LoadingContainer>
       );
     }
-    console.log("location.pathname", location.pathname);
+
     // User is confirmed to be registered at this point.
     if (needToCreateTenant === true && location.pathname !== "/create-tenant") {
       return <Navigate to="/create-tenant" />;

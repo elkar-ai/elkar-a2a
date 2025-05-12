@@ -1,14 +1,16 @@
-import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate, useSearchParams } from "react-router";
 import styled from "styled-components";
 import { useQuery } from "@tanstack/react-query";
 
 import { FullTaskPanel } from "../../features/TaskResultPanel";
 import { taskApi } from "../../../api/api";
-
+import { TaskEventsPanel } from "../../features/TaskEventsPanel";
 import TaskHistoryPanel from "../../features/taskHistoryPanel";
 import SplitContentLayout from "../../layouts/SplitContentLayout";
 import { Task } from "../../../types/a2aTypes";
+import SecondarySidebarLayout from "../../layouts/SecondarySidebarLayout";
+import { AgentSidebar } from "../../features";
 
 // Styled components
 
@@ -82,6 +84,11 @@ const ComingSoonContainer = styled.div`
   justify-content: center;
   padding: 48px;
   text-align: center;
+  width: 100%;
+  height: 100%;
+  background-color: ${({ theme }) => theme.colors.surface};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
 `;
 
 const ComingSoonLabel = styled.div`
@@ -111,10 +118,23 @@ const Container = styled.div`
   gap: ${({ theme }) => theme.spacing.md};
 `;
 
+const ContentContainer = styled.div`
+  flex: 1;
+  display: flex;
+  overflow: auto;
+  min-height: 0;
+`;
+
 const TaskDetailPage: React.FC = () => {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<TabType>(TabType.DETAILS);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    const tab = searchParams.get("tab");
+    return tab && Object.values(TabType).includes(tab as TabType)
+      ? (tab as TabType)
+      : TabType.DETAILS;
+  });
 
   const taskQuery = useQuery({
     queryKey: ["task", taskId],
@@ -123,7 +143,16 @@ const TaskDetailPage: React.FC = () => {
   });
 
   const handleBack = () => {
-    navigate(-1);
+    navigate(`/agents/${taskQuery.data?.agentId}`);
+  };
+
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+    setSearchParams((prev) => {
+      const newParams = new URLSearchParams(prev);
+      newParams.set("tab", tab);
+      return newParams;
+    });
   };
 
   const renderTabContent = () => {
@@ -164,61 +193,47 @@ const TaskDetailPage: React.FC = () => {
             </ComingSoonDescription>
           </ComingSoonContainer>
         );
-        return (
-          <ComingSoonContainer>
-            <ComingSoonLabel>Audit Logs Coming Soon</ComingSoonLabel>
-            <ComingSoonDescription>
-              Track all actions and changes made to this task with detailed
-              audit logs.
-            </ComingSoonDescription>
-          </ComingSoonContainer>
-        );
       case TabType.EVENTS:
-        return (
-          <ComingSoonContainer>
-            <ComingSoonLabel>Events Timeline Coming Soon</ComingSoonLabel>
-            <ComingSoonDescription>
-              View all events related to this task in a chronological timeline.
-            </ComingSoonDescription>
-          </ComingSoonContainer>
-        );
+        return taskId ? <TaskEventsPanel taskId={taskId} /> : null;
       default:
         return null;
     }
   };
 
   return (
-    <Container>
-      <Header>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <BackButton onClick={handleBack}>Back</BackButton>
-          <Title style={{ marginLeft: "16px" }}>Task Details</Title>
-        </div>
-      </Header>
+    <SecondarySidebarLayout secondarySidebar={<AgentSidebar />}>
+      <Container>
+        <Header>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <BackButton onClick={handleBack}>Back</BackButton>
+            <Title style={{ marginLeft: "16px" }}>Task Details</Title>
+          </div>
+        </Header>
 
-      <TabContainer>
-        <Tab
-          active={activeTab === TabType.DETAILS}
-          onClick={() => setActiveTab(TabType.DETAILS)}
-        >
-          Details
-        </Tab>
-        <Tab
-          active={activeTab === TabType.AUDIT}
-          onClick={() => setActiveTab(TabType.AUDIT)}
-        >
-          Audit Log
-        </Tab>
-        <Tab
-          active={activeTab === TabType.EVENTS}
-          onClick={() => setActiveTab(TabType.EVENTS)}
-        >
-          Events
-        </Tab>
-      </TabContainer>
+        <TabContainer>
+          <Tab
+            active={activeTab === TabType.DETAILS}
+            onClick={() => handleTabChange(TabType.DETAILS)}
+          >
+            Details
+          </Tab>
+          <Tab
+            active={activeTab === TabType.EVENTS}
+            onClick={() => handleTabChange(TabType.EVENTS)}
+          >
+            Events
+          </Tab>
+          <Tab
+            active={activeTab === TabType.AUDIT}
+            onClick={() => handleTabChange(TabType.AUDIT)}
+          >
+            Audit Log
+          </Tab>
+        </TabContainer>
 
-      {renderTabContent()}
-    </Container>
+        <ContentContainer>{renderTabContent()}</ContentContainer>
+      </Container>
+    </SecondarySidebarLayout>
   );
 };
 

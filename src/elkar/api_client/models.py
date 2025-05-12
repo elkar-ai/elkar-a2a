@@ -66,7 +66,7 @@ class DequeueTaskEventInput(BaseModel):
 
 class TaskEventResponse(BaseModel):
     id: UUID
-    task_id: UUID
+    task_id: str
     event_data: TaskEvent
 
 

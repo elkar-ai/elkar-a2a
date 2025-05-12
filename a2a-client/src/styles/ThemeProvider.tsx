@@ -65,6 +65,10 @@ const GlobalStyle = createGlobalStyle`
       opacity: 0.5;
       cursor: not-allowed;
     }
+
+    &:focus {
+      outline: none;
+    }
   }
 
   input, textarea {
@@ -77,6 +81,7 @@ const GlobalStyle = createGlobalStyle`
     transition: all 0.2s ease;
 
     &:focus {
+      outline: none;
       border-color: ${({ theme }) => theme.colors.primary};
       box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary}20;
     }

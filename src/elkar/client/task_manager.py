@@ -72,7 +72,9 @@ class ClientTaskManager:
         """Send a task to the server."""
         try:
             # Create task locally first
-            stored_task = await self._store.upsert_task(request.params)
+            stored_task = await self._store.upsert_task(
+                request.params, is_streaming=False
+            )
 
             # Send task to server
             response = await self._client.send_task(request.params)
@@ -111,15 +113,6 @@ class ClientTaskManager:
         try:
             # If not found locally, request from server
             response = await self._client.get_task(request.params)
-            if response.result and response.result.status.message:
-                # Store task locally
-                await self._store.upsert_task(
-                    TaskSendParams(
-                        id=response.result.id,
-                        message=response.result.status.message,
-                        metadata=response.result.metadata or {},
-                    )
-                )
 
             return GetTaskResponse(
                 jsonrpc="2.0",
@@ -142,7 +135,9 @@ class ClientTaskManager:
         """Send a task to the server with streaming response."""
         try:
             # Create task locally first
-            stored_task = await self._store.upsert_task(request.params)
+            stored_task = await self._store.upsert_task(
+                request.params, is_streaming=True
+            )
 
             # Send task to server with streaming
             stream = await self._client.send_task_streaming(request.params)

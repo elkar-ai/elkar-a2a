@@ -29,12 +29,23 @@ export const GlobalStyles = createGlobalStyle`
     color: inherit;
   }
 
+  button:focus{
+    outline: none;
+    box-shadow: 0 0 0 0px ${({ theme }) => theme.colors.primary}20;
+  }
+  a:focus,
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary}20;
+  }
+
   input, textarea {
     font-family: inherit;
     color: inherit;
     background-color:transparent;
     border: none;
     padding: ${({ theme }) => theme.spacing.sm};
-    
   }
 `;

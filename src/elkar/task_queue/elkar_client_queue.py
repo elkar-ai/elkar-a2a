@@ -6,6 +6,7 @@ from elkar.api_client.models import (
     CreateTaskSubscriberRequest,
     DequeueTaskEventInput,
     EnqueueTaskEventInput,
+    UnpaginatedOutput,
 )
 
 
@@ -39,7 +40,7 @@ class ElkarClientTaskQueue:
         subscriber_identifier: str,
         caller_id: str | None = None,
     ) -> None:
-        raise NotImplementedError("Not implemented")
+        return None  # TODO code the logic in the backend
 
     async def enqueue(
         self,
@@ -47,7 +48,7 @@ class ElkarClientTaskQueue:
         event: TaskEvent,
         caller_id: str | None = None,
     ) -> None:
-        print(task_id, event, caller_id)
+
         await self.elkar_client.enqueue_task_event(
             EnqueueTaskEventInput(
                 task_id=task_id,
@@ -62,7 +63,7 @@ class ElkarClientTaskQueue:
         task_id: str,
         subscriber_identifier: str,
         caller_id: str | None = None,
-    ) -> TaskEvent:
+    ) -> TaskEvent | None:
         output = await self.elkar_client.dequeue_task_event(
             DequeueTaskEventInput(
                 task_id=task_id,
@@ -70,4 +71,6 @@ class ElkarClientTaskQueue:
                 limit=1,
             )
         )
+        if len(output.records) == 0:
+            return None
         return output.records[0].event_data

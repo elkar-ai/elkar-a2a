@@ -28,7 +28,11 @@ def convert_task(task: TaskResponse) -> StoredTask:
         task_type=TaskType.INCOMING,
         is_streaming=False,
         task=task.a2a_task,
-        push_notification=task.push_notification,
+        push_notification=(
+            task.push_notification.pushNotificationConfig
+            if task.push_notification
+            else None
+        ),
         created_at=task.created_at,
         updated_at=task.updated_at,
     )
@@ -39,7 +43,10 @@ class ElkarClientStore(TaskManagerStore):
         self.client = ElkarClient(base_url=base_url, api_key=api_key)
 
     async def upsert_task(
-        self, task: TaskSendParams, is_streaming: bool, caller_id: str | None = None
+        self,
+        task: TaskSendParams,
+        is_streaming: bool = False,
+        caller_id: str | None = None,
     ) -> StoredTask:
         task_input = CreateTaskInput(
             send_task_params=task,

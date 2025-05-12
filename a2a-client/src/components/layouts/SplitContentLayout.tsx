@@ -5,7 +5,9 @@ const Container = styled.div`
   display: flex;
   gap: ${({ theme }) => theme.spacing.md};
   height: 100%;
-  overflow: hidden;
+  width: 100%;
+  overflow: visible;
+  min-height: 0;
 `;
 
 const InputSection = styled.section`
@@ -13,8 +15,9 @@ const InputSection = styled.section`
   min-width: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
   height: 100%;
+  max-height: 100%;
   background-color: ${({ theme }) => theme.colors.surface};
   border-radius: ${({ theme }) => theme.borderRadius.md};
   border: 1px solid ${({ theme }) => theme.colors.border};
@@ -25,8 +28,9 @@ const OutputSection = styled.section`
   min-width: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
   height: 100%;
+  max-height: 100%;
   background-color: ${({ theme }) => theme.colors.surface};
   border-radius: ${({ theme }) => theme.borderRadius.md};
   border: 1px solid ${({ theme }) => theme.colors.border};

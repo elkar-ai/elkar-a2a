@@ -74,7 +74,7 @@ class ElkarClient:
         return TaskResponse.model_validate(output.json())
 
     async def enqueue_task_event(self, params: EnqueueTaskEventInput) -> None:
-        print(params.json())
+
         output = await self.make_request("/task-events/enqueue", "POST", params)
         if output.status_code != 200:
             raise Exception(
@@ -90,6 +90,7 @@ class ElkarClient:
             raise Exception(
                 f"Error dequeuing task event: {output.status_code} {output.text}"
             )
+
         return UnpaginatedOutput.model_validate(output.json())
 
     async def create_task_subscriber(self, params: CreateTaskSubscriberRequest) -> None:

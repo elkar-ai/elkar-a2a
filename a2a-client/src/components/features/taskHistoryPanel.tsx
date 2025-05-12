@@ -2,10 +2,11 @@ import styled from "styled-components";
 import { Message } from "../../types/a2aTypes";
 
 const Container = styled.div`
+  flex: 1;
   height: 100%;
-  display: flex;
-  flex-direction: column;
+  padding: ${({ theme }) => theme.spacing.sm};
   gap: ${({ theme }) => theme.spacing.md};
+  overflow: auto;
 `;
 
 interface TaskHistoryPanelProps {
@@ -31,6 +32,7 @@ const MessageContainer = styled.div<{ $isAgent: boolean }>`
   width: 100%;
   padding: ${({ theme }) => theme.spacing.xs};
   gap: ${({ theme }) => theme.spacing.xs};
+  min-height: 0;
 `;
 
 const MessageBubble = styled.div<{ $isAgent: boolean }>`

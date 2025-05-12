@@ -38,6 +38,7 @@ impl From<RetrieveTasksInput> for RetrieveTaskParams {
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct TaskResponse {
     pub id: Uuid,
+    pub agent_id: Uuid,
     pub task_type: TaskType,
     pub a2a_task: Option<A2ATask>,
     pub push_notification: Option<TaskPushNotificationConfig>,
@@ -49,6 +50,7 @@ impl From<TaskServiceOutput> for TaskResponse {
     fn from(task: TaskServiceOutput) -> Self {
         Self {
             id: task.id,
+            agent_id: task.agent_id,
             task_type: task.task_type,
             a2a_task: task.a2a_task,
             push_notification: None,
