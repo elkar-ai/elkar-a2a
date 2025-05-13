@@ -63,3 +63,10 @@ pub struct UpdateTaskInput {
     pub push_notification: Option<PushNotificationConfig>,
     pub caller_id: Option<String>,
 }
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct UpsertTaskA2AInput {
+    pub task: A2ATask,
+    pub counterparty_identifier: Option<String>,
+    pub server_agent_url: String,
+}

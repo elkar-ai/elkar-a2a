@@ -9,6 +9,8 @@ from enum import Enum
 
 from typing_extensions import Self
 
+from elkar.json_rpc import JSONRPCRequest, JSONRPCResponse
+
 
 class TaskState(str, Enum):
     SUBMITTED = "submitted"
@@ -147,27 +149,6 @@ class TaskPushNotificationConfig(BaseModel):
 ## RPC Messages
 
 
-class JSONRPCMessage(BaseModel):
-    jsonrpc: Literal["2.0"] = "2.0"
-    id: int | str | None = Field(default_factory=lambda: uuid4().hex)
-
-
-class JSONRPCRequest(JSONRPCMessage):
-    method: str
-    params: dict[str, Any] | None = None
-
-
-class JSONRPCError(BaseModel):
-    code: int
-    message: str
-    data: Any | None = None
-
-
-class JSONRPCResponse(JSONRPCMessage):
-    result: Any | None = None
-    error: JSONRPCError | None = None
-
-
 class SendTaskRequest(JSONRPCRequest):
     method: Literal["tasks/send"] = "tasks/send"
     params: TaskSendParams
@@ -243,66 +224,6 @@ A2ARequest = TypeAdapter(
 )
 
 ## Error types
-
-
-class JSONParseError(JSONRPCError):
-    code: int = -32700
-    message: str = "Invalid JSON payload"
-    data: Any | None = None
-
-
-class InvalidRequestError(JSONRPCError):
-    code: int = -32600
-    message: str = "Request payload validation error"
-    data: Any | None = None
-
-
-class MethodNotFoundError(JSONRPCError):
-    code: int = -32601
-    message: str = "Method not found"
-    data: None = None
-
-
-class InvalidParamsError(JSONRPCError):
-    code: int = -32602
-    message: str = "Invalid parameters"
-    data: Any | None = None
-
-
-class InternalError(JSONRPCError):
-    code: int = -32603
-    message: str = "Internal error"
-    data: Any | None = None
-
-
-class TaskNotFoundError(JSONRPCError):
-    code: int = -32001
-    message: str = "Task not found"
-    data: None = None
-
-
-class TaskNotCancelableError(JSONRPCError):
-    code: int = -32002
-    message: str = "Task cannot be canceled"
-    data: None = None
-
-
-class PushNotificationNotSupportedError(JSONRPCError):
-    code: int = -32003
-    message: str = "Push Notification is not supported"
-    data: None = None
-
-
-class UnsupportedOperationError(JSONRPCError):
-    code: int = -32004
-    message: str = "This operation is not supported"
-    data: None = None
-
-
-class ContentTypeNotSupportedError(JSONRPCError):
-    code: int = -32005
-    message: str = "Incompatible content types"
-    data: None = None
 
 
 class AgentProvider(BaseModel):

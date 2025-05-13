@@ -82,6 +82,7 @@ diesel::table! {
         a2a_task -> Nullable<Jsonb>,
         created_at -> Timestamp,
         updated_at -> Timestamp,
+        server_agent_url -> Nullable<Text>,
     }
 }
 

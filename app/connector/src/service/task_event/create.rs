@@ -4,7 +4,7 @@ use crate::{
         task_event::{TaskEvent, TaskEventInput},
         task_subscription::TaskEventSubscriptionInput,
     },
-    service::task::retrieve::{get_task, get_task_by_task_id},
+    service::task::retrieve::get_task_by_task_id,
 };
 
 use agent2agent::event::TaskEvent as Agent2AgentTaskEvent;
@@ -14,7 +14,6 @@ use database_schema::{
 };
 use diesel::prelude::*;
 use diesel_async::{AsyncConnection, AsyncPgConnection, scoped_futures::ScopedFutureExt};
-use uuid::Uuid;
 
 use super::subscriber::{TaskSubscriptionFilter, get_task_subscriptions};
 

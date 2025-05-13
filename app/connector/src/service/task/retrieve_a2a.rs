@@ -3,7 +3,7 @@ use crate::{
     extensions::errors::{AppResult, ServiceError},
     models::task::Task,
 };
-use database_schema::schema::task;
+use database_schema::{enum_definitions::task::TaskType, schema::task};
 use diesel::prelude::*;
 use diesel_async::AsyncPgConnection;
 use http::StatusCode;
@@ -13,6 +13,7 @@ pub struct RetrieveTaskA2AParams {
     pub task_id: String,
     pub caller_id: Option<String>,
     pub agent_id: Uuid,
+    pub task_type: TaskType,
 }
 
 pub async fn retrieve_task_a2a(
@@ -22,10 +23,13 @@ pub async fn retrieve_task_a2a(
     let mut task_stmt = task::table
         .filter(task::task_id.eq(params.task_id))
         .filter(task::agent_id.eq(params.agent_id))
+        .filter(task::task_type.eq(params.task_type))
         .into_boxed();
 
     if let Some(caller_id) = params.caller_id {
         task_stmt = task_stmt.filter(task::counterparty_id.eq(caller_id));
+    } else {
+        task_stmt = task_stmt.filter(task::counterparty_id.is_null())
     }
 
     let mut task =
@@ -47,6 +51,7 @@ pub async fn retrieve_task_a2a(
         updated_at: task.updated_at,
         a2a_task,
         counterparty_id: task.counterparty_id,
+        server_agent_url: task.server_agent_url,
     };
     Ok(task)
 }

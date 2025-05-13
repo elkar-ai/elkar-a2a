@@ -8,6 +8,7 @@ from elkar.api_client.models import (
     EnqueueTaskEventInput,
     UnpaginatedOutput,
 )
+from elkar.json_rpc import JSONRPCError
 
 
 TaskEvent = TaskStatusUpdateEvent | TaskArtifactUpdateEvent | JSONRPCError

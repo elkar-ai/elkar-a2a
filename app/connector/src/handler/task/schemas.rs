@@ -42,6 +42,8 @@ pub struct TaskResponse {
     pub task_type: TaskType,
     pub a2a_task: Option<A2ATask>,
     pub push_notification: Option<TaskPushNotificationConfig>,
+    pub user_id: String,
+    pub server_agent_url: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -54,6 +56,8 @@ impl From<TaskServiceOutput> for TaskResponse {
             task_type: task.task_type,
             a2a_task: task.a2a_task,
             push_notification: None,
+            user_id: task.counterparty_id,
+            server_agent_url: task.server_agent_url,
             created_at: task.created_at.and_utc(),
             updated_at: task.updated_at.and_utc(),
         }

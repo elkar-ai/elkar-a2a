@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from re import S
 from typing import Protocol
 
+from click import Option
+
 from elkar.a2a_types import *
 from elkar.common import PaginatedResponse
 
@@ -22,6 +24,7 @@ class StoredTask:
     push_notification: PushNotificationConfig | None
     created_at: datetime
     updated_at: datetime
+    agent_url: str | None = None
 
 
 @dataclass
@@ -118,31 +121,30 @@ class TaskManagerStore(Protocol):
         """
         ...
 
+
+class ClientSideTaskManagerStore(Protocol):
     @abstractmethod
-    async def list_tasks(
-        self, params: ListTasksParams
-    ) -> PaginatedResponse[StoredTask]:
-        """
-        List tasks with the following rules:
-        - If caller_id is provided, return the tasks only if the caller_id matches
-        """
-        ...
+    async def upsert_task_for_client(
+        self, task: Task, agent_url: str, caller_id: str | None = None
+    ) -> StoredTask:
+        pass
 
     @abstractmethod
-    async def update_task_for_client(
-        self, task_id: str, params: UpdateStoredTaskClient
-    ) -> StoredTask:
-        """
-        Update the task for the client with the following rules:
-        - If the task does not exist, raise an error
-        """
-        ...
+    async def get_task_for_client(
+        self, task_id: str, caller_id: str | None
+    ) -> StoredTask | None:
+        pass
 
     @abstractmethod
-    async def create_task_for_client(
-        self, task: CreateTaskForClientParams
+    async def update_task(
+        self,
+        task_id: str,
+        params: UpdateTaskParams,
     ) -> StoredTask:
         """
-        Create a task for the client with the following rules:
+        Update the task with the following rules:
+        - If status is provided, update the status
+        - If artifacts is provided, update the artifacts (i.e. if an artifact with the same index already exists, it will be updated: the only authorized update is to append to the parts list, if the artifact does not exist, it will be created)
+        - If caller_id is provided, update the caller_id
         """
         ...
