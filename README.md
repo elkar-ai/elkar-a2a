@@ -42,7 +42,7 @@ Key features include:
 - Task-oriented design focused on executing tasks, not managing infrastructure
 - Built-in task management with simplified queuing and storage
 - Support for streaming responses
-- CCustom authentication via `RequestContext`
+- Custom authentication via `RequestContext`
 
 ## 🚀 Quickstart Onboarding
 
