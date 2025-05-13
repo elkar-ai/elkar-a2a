@@ -1,4 +1,3 @@
-from abc import abstractmethod
 import asyncio
 from dataclasses import dataclass
 from datetime import datetime
@@ -11,10 +10,14 @@ from typing import (
 )
 import uuid
 
+from elkar.a2a_errors import (
+    InternalError,
+    PushNotificationNotSupportedError,
+    TaskNotFoundError,
+)
 from elkar.a2a_types import (
     AgentCard,
     Artifact,
-    InternalError,
     Message,
     Task,
     TaskArtifactUpdateEvent,
@@ -34,16 +37,14 @@ from elkar.a2a_types import (
     GetTaskPushNotificationRequest,
     GetTaskPushNotificationResponse,
     TaskResubscriptionRequest,
-    JSONRPCError,
     JSONRPCResponse,
-    TaskNotFoundError,
-    PushNotificationNotSupportedError,
     TaskPushNotificationConfig,
     TextPart,
 )
 
 
 from elkar.common import ListTasksRequest, PaginatedResponse
+from elkar.json_rpc import JSONRPCError
 from elkar.store.in_memory import InMemoryTaskManagerStore
 from elkar.task_queue.base import TaskEvent, TaskEventManager
 from elkar.store.base import (

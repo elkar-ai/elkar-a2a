@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from typing import Protocol
 from elkar.a2a_types import *
+from elkar.json_rpc import JSONRPCError
 
 
 TaskEvent = TaskStatusUpdateEvent | TaskArtifactUpdateEvent | JSONRPCError

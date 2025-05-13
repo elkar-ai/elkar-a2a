@@ -12,10 +12,16 @@ from typing import (
 )
 import uuid
 
+from elkar.a2a_errors import (
+    InternalError,
+    InvalidTaskStateError,
+    PushNotificationNotSupportedError,
+    TaskNotCancelableError,
+    TaskNotFoundError,
+)
 from elkar.a2a_types import (
     AgentCard,
     Artifact,
-    InternalError,
     Message,
     Task,
     TaskArtifactUpdateEvent,
@@ -36,16 +42,14 @@ from elkar.a2a_types import (
     GetTaskPushNotificationRequest,
     GetTaskPushNotificationResponse,
     TaskResubscriptionRequest,
-    JSONRPCError,
     JSONRPCResponse,
-    TaskNotFoundError,
-    PushNotificationNotSupportedError,
     TaskPushNotificationConfig,
     TextPart,
 )
 
 
 from elkar.common import ListTasksRequest, PaginatedResponse
+from elkar.json_rpc import JSONRPCError
 from elkar.store.in_memory import InMemoryTaskManagerStore
 
 from elkar.task_modifier.base import TaskModifierBase
@@ -116,12 +120,19 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
         stored_task = await self.store.get_task(request.params.id)
         if stored_task is None:
             return CancelTaskResponse(result=None, error=TaskNotFoundError())
+
         error = self._check_caller_id(stored_task, request_context)
         if error is not None:
             return CancelTaskResponse(
                 result=None,
                 error=error,
             )
+        if stored_task.task.status.state in [
+            TaskState.CANCELED,
+            TaskState.FAILED,
+            TaskState.COMPLETED,
+        ]:
+            return CancelTaskResponse(result=None, error=TaskNotCancelableError())
         caller_id = request_context.caller_id if request_context is not None else None
         await self.store.update_task(
             request.params.id,
@@ -147,6 +158,7 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
             raise ValueError("send_task_handler is not set")
 
         stored_task = await self.store.get_task(params.id)
+
         if (
             stored_task is not None
             and self._check_caller_id(stored_task, request_context) is not None
@@ -154,6 +166,13 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
             return SendTaskResponse(
                 result=None,
                 error=TaskNotFoundError(),
+            )
+        elif stored_task is not None and (
+            stored_task.task.status.state == TaskState.COMPLETED
+        ):
+            return SendTaskResponse(
+                result=None,
+                error=InvalidTaskStateError(),
             )
         elif stored_task is None:
             stored_task = await self.store.upsert_task(

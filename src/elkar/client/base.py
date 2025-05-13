@@ -25,6 +25,11 @@ class A2AClientBase(Protocol):
         pass
 
     @abstractmethod
+    async def get_url(self) -> str:
+        """Get the URL of the server."""
+        pass
+
+    @abstractmethod
     async def get_task(self, task_params: TaskQueryParams) -> GetTaskResponse:
         """Get task details by ID."""
         pass

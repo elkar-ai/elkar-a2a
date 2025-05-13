@@ -1,5 +1,6 @@
 import json
 from typing import AsyncIterable, Callable, Any
+from elkar.a2a_errors import InternalError, InvalidRequestError, JSONParseError
 from elkar.a2a_types import *
 
 from pydantic import ValidationError
@@ -9,6 +10,7 @@ from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from sse_starlette.sse import EventSourceResponse
 from starlette.requests import Request
+from elkar.json_rpc import JSONRPCError
 from elkar.task_manager.task_manager_base import RequestContext, TaskManager
 import logging
 

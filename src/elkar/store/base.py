@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from re import S
 from typing import Protocol
 
+from click import Option
+
 from elkar.a2a_types import *
 from elkar.common import PaginatedResponse
 
@@ -22,6 +24,7 @@ class StoredTask:
     push_notification: PushNotificationConfig | None
     created_at: datetime
     updated_at: datetime
+    agent_url: str | None = None
 
 
 @dataclass
@@ -128,21 +131,12 @@ class TaskManagerStore(Protocol):
         """
         ...
 
+
+class ClientSideTaskManagerStore(Protocol):
     @abstractmethod
-    async def update_task_for_client(
-        self, task_id: str, params: UpdateStoredTaskClient
-    ) -> StoredTask:
-        """
-        Update the task for the client with the following rules:
-        - If the task does not exist, raise an error
-        """
-        ...
+    async def upsert_task_for_client(self, task: Task, agent_url: str) -> StoredTask:
+        pass
 
     @abstractmethod
-    async def create_task_for_client(
-        self, task: CreateTaskForClientParams
-    ) -> StoredTask:
-        """
-        Create a task for the client with the following rules:
-        """
-        ...
+    async def get_task_for_client(self, task_id: str) -> StoredTask | None:
+        pass

@@ -35,6 +35,7 @@ def convert_task(task: TaskResponse) -> StoredTask:
         ),
         created_at=task.created_at,
         updated_at=task.updated_at,
+        agent_url=None,
     )
 
 
@@ -66,6 +67,7 @@ class ElkarClientStore(TaskManagerStore):
             push_notification=None,
             created_at=task_response.created_at,
             updated_at=task_response.updated_at,
+            agent_url=None,
         )
 
     async def get_task(

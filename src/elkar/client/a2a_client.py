@@ -56,6 +56,10 @@ class A2AClient(A2AClientBase):
             await self._session.close()
             self._session = None
 
+    async def get_url(self) -> str:
+        """Get the URL of the server."""
+        return self.config.base_url
+
     async def _make_request(
         self,
         method: str,
