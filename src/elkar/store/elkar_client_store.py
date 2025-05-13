@@ -1,3 +1,4 @@
+from regex import R
 from elkar.a2a_types import Task, TaskSendParams
 from elkar.api_client.client import ElkarClient
 
@@ -107,6 +108,9 @@ class ElkarClientStore(TaskManagerStore):
 
 class ElkarClientStoreClientSide(ClientSideTaskManagerStore):
     def __init__(self, base_url: str, api_key: str | None = None) -> None:
+        raise NotImplementedError(
+            "ElkarClientStoreClientSide does not support update_task yet"
+        )
         self.client = ElkarClient(base_url=base_url, api_key=api_key)
 
     async def upsert_task(
@@ -125,3 +129,8 @@ class ElkarClientStoreClientSide(ClientSideTaskManagerStore):
         if task_response is None:
             return None
         return convert_task(task_response)
+
+    async def update_task(self, task_id: str, params: UpdateTaskParams) -> StoredTask:
+        raise NotImplementedError(
+            "ElkarClientStoreClientSide does not support update_task"
+        )
