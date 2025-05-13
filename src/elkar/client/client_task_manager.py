@@ -24,7 +24,7 @@ from elkar.a2a_types import (
     AgentCard,
 )
 from elkar.client.a2a_client import A2AClient, A2AClientConfig
-from elkar.a2a_errors import JSONRPCError
+
 from elkar.store.base import ClientSideTaskManagerStore, UpdateTaskParams
 from elkar.store.in_memory import (
     InMemoryClientSideTaskManagerStore,
