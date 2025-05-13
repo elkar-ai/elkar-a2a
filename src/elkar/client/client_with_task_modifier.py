@@ -1,50 +1,35 @@
 from dataclasses import dataclass
-from datetime import datetime
-from typing import Dict, List, Optional, Set, AsyncGenerator, Any, AsyncIterable
-import asyncio
-import logging
-from uuid import uuid4
+from typing import Optional, AsyncIterable
 
-from mcp import JSONRPCError
+import logging
+
 
 from elkar.a2a_types import (
-    Message,
+    CancelTaskResponse,
     Task,
+    TaskPushNotificationConfig,
+    TaskSendParams,
     TaskState,
     TaskStatus,
     TaskStatusUpdateEvent,
     TaskArtifactUpdateEvent,
-    TextPart,
-    Artifact,
-    TaskSendParams,
-    TaskQueryParams,
     TaskIdParams,
     SendTaskRequest,
     SendTaskResponse,
     GetTaskRequest,
     GetTaskResponse,
-    SendTaskStreamingRequest,
     SendTaskStreamingResponse,
-    SetTaskPushNotificationRequest,
     SetTaskPushNotificationResponse,
-    GetTaskPushNotificationRequest,
     GetTaskPushNotificationResponse,
     AgentCard,
 )
 from elkar.client.a2a_client import A2AClient, A2AClientConfig
-from elkar.store.base import (
-    ClientSideTaskManagerStore,
-    TaskManagerStore,
-    StoredTask,
-    UpdateTaskParams,
-    ListTasksParams,
-)
+from elkar.a2a_errors import JSONRPCError
+from elkar.store.base import ClientSideTaskManagerStore, UpdateTaskParams
 from elkar.store.in_memory import (
     InMemoryClientSideTaskManagerStore,
-    InMemoryTaskManagerStore,
 )
-from elkar.task_queue.base import TaskEventManager, TaskEvent
-from elkar.task_queue.in_memory import InMemoryTaskEventQueue
+
 
 logger = logging.getLogger(__name__)
 
@@ -60,11 +45,12 @@ class TaskManagerConfig:
 class ClientSideTaskManager:
     """Manages tasks for the A2A client."""
 
-    def __init__(self, config: TaskManagerConfig):
+    def __init__(self, config: TaskManagerConfig, caller_id: str | None):
         self.config = config
         self._store = config.store or InMemoryClientSideTaskManagerStore()
         self._client = A2AClient(config.client_config or A2AClientConfig(base_url=""))
-        self._cleanup_task: Optional[asyncio.Task] = None
+
+        self._caller_id = caller_id
 
     async def get_agent_url(self) -> str:
         """Get the agent URL from the server."""
@@ -76,159 +62,108 @@ class ClientSideTaskManager:
 
     async def send_task(self, request: SendTaskRequest) -> SendTaskResponse:
         """Send a task to the server."""
-        try:
-            agent_url = request.params.task.agent_url
-            # Create task locally first
-            response = await self._client.send_task(request.params)
+        task = await self._store.get_task_for_client(
+            task_id=request.params.id, caller_id=self._caller_id
+        )
+        if task is not None and task.task.status.state == TaskState.COMPLETED:
+            raise ValueError(f"Task {request.params.id} already completed")
+        response = await self._client.send_task(request.params)
 
-            # Send task to server
+        # Send task to server
 
-            if response.result:
-                await self._store.upsert_task_for_client(response.result)
-
-            return SendTaskResponse(
-                jsonrpc="2.0",
-                id=request.id,
-                result=response.result,
-                error=response.error,
+        if response.result:
+            agent_url = await self._client.get_url()
+            await self._store.upsert_task_for_client(
+                response.result, agent_url, self._caller_id
             )
-        except Exception as e:
-            logger.error(f"Error sending task: {e}")
-            raise e
+
+        return SendTaskResponse(
+            jsonrpc="2.0",
+            id=request.id,
+            result=response.result,
+            error=response.error,
+        )
 
     async def get_task(self, request: GetTaskRequest) -> GetTaskResponse:
         """Get a task from the server."""
-        try:
-            # If not found locally, request from server
-            response = await self._client.get_task(request.params)
-
-            return GetTaskResponse(
-                jsonrpc="2.0",
-                id=request.id,
-                result=response.result,
-                error=response.error,
+        # If not found locally, request from server
+        response = await self._client.get_task(request.params)
+        if response.result:
+            await self._store.upsert_task_for_client(
+                response.result, await self._client.get_url(), self._caller_id
             )
-        except Exception as e:
-            logger.error(f"Error getting task: {e}")
-            return GetTaskResponse(
-                jsonrpc="2.0",
-                id=request.id,
-                result=None,
-                error=JSONRPCError(code=-32000, message=str(e)),
-            )
+        return GetTaskResponse(
+            jsonrpc="2.0",
+            id=request.id,
+            result=response.result,
+            error=response.error,
+        )
 
     async def send_task_streaming(
-        self, request: SendTaskStreamingRequest
+        self, params: TaskSendParams
     ) -> AsyncIterable[SendTaskStreamingResponse]:
         """Send a task to the server with streaming response."""
-        try:
-            # Create task locally first
-            stored_task = await self._store.upsert_task(
-                request.params, is_streaming=True
-            )
 
-            # Send task to server with streaming
-            stream = await self._client.send_task_streaming(request.params)
-            async for response in stream:
-                if response.result:
-                    # Update local task with server response
-                    if isinstance(response.result, TaskStatusUpdateEvent):
-                        await self._store.update_task(
-                            stored_task.id,
-                            UpdateTaskParams(
-                                status=response.result.status,
-                                new_messages=(
-                                    [response.result.status.message]
-                                    if response.result.status.message
-                                    else None
-                                ),
-                            ),
-                        )
-                    elif isinstance(response.result, TaskArtifactUpdateEvent):
-                        await self._store.update_task(
-                            stored_task.id,
-                            UpdateTaskParams(
-                                artifacts_updates=[response.result.artifact],
-                            ),
-                        )
-                yield SendTaskStreamingResponse(
-                    jsonrpc="2.0",
-                    id=request.id,
-                    result=response.result,
-                    error=response.error,
-                )
-        except Exception as e:
-            logger.error(f"Error sending streaming task: {e}")
-            yield SendTaskStreamingResponse(
-                jsonrpc="2.0",
-                id=request.id,
-                result=None,
-                error=JSONRPCError(code=-32000, message=str(e)),
-            )
+        # Create task locally first
+        stored_task = await self._store.get_task_for_client(
+            task_id=params.id, caller_id=self._caller_id
+        )
+        if (
+            stored_task is not None
+            and stored_task.task.status.state == TaskState.COMPLETED
+        ):
+            raise ValueError("Task is already completed")
+
+        # Send task to server with streaming
+        stream = await self._client.send_task_streaming(params)
+        task = Task(
+            id=params.id,
+            status=TaskStatus(
+                state=TaskState.SUBMITTED,
+                message=params.message,
+            ),
+        )
+        await self._store.upsert_task_for_client(
+            task, await self._client.get_url(), self._caller_id
+        )
+        async for response in stream:
+            if response.result:
+                # Update local task with server response
+                if isinstance(response.result, TaskStatusUpdateEvent):
+                    await self._store.update_task(
+                        task.id,
+                        UpdateTaskParams(
+                            status=response.result.status,
+                            caller_id=self._caller_id,
+                        ),
+                    )
+
+                elif isinstance(response.result, TaskArtifactUpdateEvent):
+                    await self._store.update_task(
+                        task.id,
+                        UpdateTaskParams(
+                            artifacts_updates=[response.result.artifact],
+                        ),
+                    )
+
+            yield response
 
     async def set_task_push_notification(
-        self, request: SetTaskPushNotificationRequest
+        self, params: TaskPushNotificationConfig
     ) -> SetTaskPushNotificationResponse:
-        """Set push notification configuration for a task."""
-        try:
-            # Update local task
-            stored_task = await self._store.update_task(
-                request.params.id,
-                UpdateTaskParams(
-                    push_notification=request.params.pushNotificationConfig,
-                ),
-            )
-
-            # Send to server
-            response = await self._client.set_task_push_notification(request.params)
-            return SetTaskPushNotificationResponse(
-                jsonrpc="2.0",
-                id=request.id,
-                result=response.result,
-                error=response.error,
-            )
-        except Exception as e:
-            logger.error(f"Error setting push notification: {e}")
-            return SetTaskPushNotificationResponse(
-                jsonrpc="2.0",
-                id=request.id,
-                result=None,
-                error=JSONRPCError(code=-32000, message=str(e)),
-            )
+        raise NotImplementedError()
 
     async def get_task_push_notification(
-        self, request: GetTaskPushNotificationRequest
+        self, params: TaskIdParams
     ) -> GetTaskPushNotificationResponse:
         """Get push notification configuration for a task."""
-        try:
-            response = await self._client.get_task_push_notification(request.params)
-            if response.result:
-                # Update local task
-                await self._store.update_task(
-                    request.params.id,
-                    UpdateTaskParams(
-                        push_notification=response.result.pushNotificationConfig,
-                    ),
-                )
+        raise NotImplementedError()
 
-            return GetTaskPushNotificationResponse(
-                jsonrpc="2.0",
-                id=request.id,
-                result=response.result,
-                error=response.error,
-            )
-        except Exception as e:
-            logger.error(f"Error getting push notification: {e}")
-            return GetTaskPushNotificationResponse(
-                jsonrpc="2.0",
-                id=request.id,
-                result=None,
-                error=JSONRPCError(code=-32000, message=str(e)),
-            )
-
-    async def cancel_task(self, request: TaskIdParams) -> None:
+    async def cancel_task(self, request: TaskIdParams) -> CancelTaskResponse:
         """Cancel a task."""
-        stored_task = await self._store.get_task_for_client(request.id)
+        stored_task = await self._store.get_task_for_client(
+            task_id=request.id, caller_id=self._caller_id
+        )
         if not stored_task:
             raise ValueError(f"Task {request.id} not found")
 
@@ -237,7 +172,14 @@ class ClientSideTaskManager:
             TaskState.FAILED,
             TaskState.CANCELED,
         ]:
-            return
+            raise ValueError(f"Task {request.id} is already in a terminal state")
 
         params = TaskIdParams(id=request.id)
-        updated_task = await self._client.cancel_task(params)
+        cancel_task_response = await self._client.cancel_task(params)
+        if cancel_task_response.result:
+            await self._store.upsert_task_for_client(
+                cancel_task_response.result,
+                await self._client.get_url(),
+                self._caller_id,
+            )
+        return cancel_task_response

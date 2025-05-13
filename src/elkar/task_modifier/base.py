@@ -1,10 +1,14 @@
 from abc import abstractmethod
 from typing import Protocol
 
-from elkar.a2a_types import Artifact, Message, TaskStatus
+from elkar.a2a_types import Artifact, Message, Task, TaskStatus
 
 
 class TaskModifierBase(Protocol):
+
+    @abstractmethod
+    async def get_task(self) -> Task: ...
+
     @abstractmethod
     async def set_status(self, status: TaskStatus, is_final: bool = False) -> None: ...
 

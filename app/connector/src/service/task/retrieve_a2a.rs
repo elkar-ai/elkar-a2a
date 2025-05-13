@@ -26,6 +26,8 @@ pub async fn retrieve_task_a2a(
 
     if let Some(caller_id) = params.caller_id {
         task_stmt = task_stmt.filter(task::counterparty_id.eq(caller_id));
+    } else {
+        task_stmt = task_stmt.filter(task::counterparty_id.is_null())
     }
 
     let mut task =

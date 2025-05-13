@@ -4,22 +4,17 @@ import logging
 
 from elkar.a2a_types import (
     Artifact,
-    PushNotificationConfig,
     Task,
     TaskSendParams,
     TaskState,
     TaskStatus,
 )
-from elkar.common import PaginatedResponse, Pagination
+
 from elkar.store.base import (
     ClientSideTaskManagerStore,
-    CreateTaskForClientParams,
-    ListTasksOrder,
-    ListTasksParams,
     StoredTask,
     TaskManagerStore,
     TaskType,
-    UpdateStoredTaskClient,
     UpdateTaskParams,
 )
 
@@ -29,8 +24,11 @@ logger = logging.getLogger(__name__)
 
 class InMemoryTaskManagerStore(TaskManagerStore):
     def __init__(self) -> None:
-        self.tasks: dict[str, StoredTask] = {}
+        self.tasks: dict[str | None, dict[str, StoredTask]] = {}
         self.lock = asyncio.Lock()
+
+    def caller_tasks(self, caller_id: str | None) -> dict[str, StoredTask] | None:
+        return self.tasks.get(caller_id)
 
     async def upsert_task(
         self,
@@ -39,7 +37,10 @@ class InMemoryTaskManagerStore(TaskManagerStore):
         caller_id: str | None = None,
     ) -> StoredTask:
         async with self.lock:
-            task = self.tasks.get(params.id)
+            caller_tasks = self.caller_tasks(caller_id=caller_id)
+            if caller_tasks is None:
+                caller_tasks = {}
+            task = caller_tasks.get(params.id)
             if task is not None:
                 if task.caller_id != caller_id:
                     raise ValueError(
@@ -51,7 +52,7 @@ class InMemoryTaskManagerStore(TaskManagerStore):
                 task.task.history.append(params.message)
                 task.updated_at = datetime.now()
                 return task
-            self.tasks[params.id] = StoredTask(
+            caller_tasks[params.id] = StoredTask(
                 id=params.id,
                 caller_id=caller_id,
                 task_type=TaskType.INCOMING,
@@ -71,7 +72,7 @@ class InMemoryTaskManagerStore(TaskManagerStore):
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
             )
-            return self.tasks[params.id]
+            return caller_tasks[params.id]
 
     async def get_task(
         self,
@@ -80,96 +81,83 @@ class InMemoryTaskManagerStore(TaskManagerStore):
         caller_id: str | None = None,
     ) -> StoredTask | None:
         async with self.lock:
-            return self.tasks.get(task_id)
+            caller_tasks = self.caller_tasks(caller_id=caller_id)
+            if caller_tasks is None:
+                return None
+            return caller_tasks.get(task_id)
 
     async def update_task(self, task_id: str, params: UpdateTaskParams) -> StoredTask:
-        async with self.lock:
-            mutable_task = self.tasks[task_id].task
-            if task_id not in self.tasks:
-                raise ValueError(f"Task {task_id} does not exist")
-            if params.caller_id is not None:
-                if self.tasks[task_id].caller_id != params.caller_id:
-                    raise ValueError(
-                        f"Task {task_id} is not owned by caller {params.caller_id}"
-                    )
-            if params.status is not None:
-                mutable_task.status = params.status
-                if mutable_task.history is None:
-                    mutable_task.history = []
-                if params.status.message is not None:
-                    mutable_task.history.append(params.status.message)
-            if params.new_messages is not None:
-                if mutable_task.history is None:
-                    mutable_task.history = []
-                mutable_task.history.extend(params.new_messages)
-            if params.metadata is not None:
-                mutable_task.metadata = params.metadata
-            if params.artifacts_updates is not None:
-                for artifact in params.artifacts_updates:
-                    await self._upsert_artifact(mutable_task, artifact)
+        return await _update_task(self.lock, self.tasks, task_id, params)
 
-            if params.push_notification is not None:
-                self.tasks[task_id].push_notification = params.push_notification
-            self.tasks[task_id].updated_at = datetime.now()
-            return self.tasks[task_id]
 
-    async def _upsert_artifact(self, task: Task, artifact: Artifact) -> None:
-        if task.artifacts is None:
-            task.artifacts = []
-        for existing_artifact in task.artifacts:
-            if existing_artifact.index == artifact.index:
-                if existing_artifact.lastChunk == True:
-                    raise ValueError(
-                        f"Artifact {existing_artifact.index} is already a last chunk"
-                    )
-                existing_artifact.parts.extend(artifact.parts)
-                existing_artifact.lastChunk = artifact.lastChunk
-                return
-        task.artifacts.append(artifact)
+async def _update_task(
+    lock: asyncio.Lock,
+    tasks: dict[str | None, dict[str, StoredTask]],
+    task_id: str,
+    params: UpdateTaskParams,
+) -> StoredTask:
+    async with lock:
+        caller_tasks = tasks.get(params.caller_id)
+        if caller_tasks is None:
+            raise ValueError("caller id was not found")
+        mutable_task = caller_tasks[task_id].task
+        if task_id not in tasks:
+            raise ValueError(f"Task {task_id} does not exist")
 
-    async def list_tasks(
-        self, params: ListTasksParams
-    ) -> PaginatedResponse[StoredTask]:
-        async with self.lock:
-            task_values = list(self.tasks.values())
-            if params.caller_id is not None:
-                task_values = [
-                    task for task in task_values if task.caller_id == params.caller_id
-                ]
-            if params.state_in is not None:
-                task_values = [
-                    task
-                    for task in task_values
-                    if task.task.status.state in params.state_in
-                ]
-            if params.order_by == ListTasksOrder.CREATED_AT:
-                task_values.sort(key=lambda x: x.created_at)
-            elif params.order_by == ListTasksOrder.UPDATED_AT:
-                task_values.sort(key=lambda x: x.updated_at)
-            page_size = params.page_size or 100
-            page = params.page or 1
-            list_values = task_values[(page - 1) * page_size : page * page_size]
-            return PaginatedResponse(
-                items=list_values,
-                pagination=Pagination(
-                    page=page,
-                    page_size=page_size,
-                    total=len(task_values),
-                ),
-            )
+        if params.status is not None:
+            mutable_task.status = params.status
+            if mutable_task.history is None:
+                mutable_task.history = []
+            if params.status.message is not None:
+                mutable_task.history.append(params.status.message)
+        if params.new_messages is not None:
+            if mutable_task.history is None:
+                mutable_task.history = []
+            mutable_task.history.extend(params.new_messages)
+        if params.metadata is not None:
+            mutable_task.metadata = params.metadata
+        if params.artifacts_updates is not None:
+            for artifact in params.artifacts_updates:
+                await _upsert_artifact(mutable_task, artifact)
+
+        if params.push_notification is not None:
+            caller_tasks[task_id].push_notification = params.push_notification
+        caller_tasks[task_id].updated_at = datetime.now()
+        return caller_tasks[task_id]
+
+
+async def _upsert_artifact(task: Task, artifact: Artifact) -> None:
+    if task.artifacts is None:
+        task.artifacts = []
+    for existing_artifact in task.artifacts:
+        if existing_artifact.index == artifact.index:
+            if existing_artifact.lastChunk == True:
+                raise ValueError(
+                    f"Artifact {existing_artifact.index} is already a last chunk"
+                )
+            existing_artifact.parts.extend(artifact.parts)
+            existing_artifact.lastChunk = artifact.lastChunk
+            return
+    task.artifacts.append(artifact)
 
 
 class InMemoryClientSideTaskManagerStore(ClientSideTaskManagerStore):
     def __init__(self) -> None:
-        self.tasks: dict[str, StoredTask] = {}
+        self.tasks: dict[str | None, dict[str, StoredTask]] = {}
         self.lock = asyncio.Lock()
 
-    async def upsert_task_for_client(self, task: Task, agent_url: str) -> StoredTask:
+    async def upsert_task_for_client(
+        self, task: Task, agent_url: str, caller_id: str | None = None
+    ) -> StoredTask:
         async with self.lock:
             task_id = task.id
-            curr_task = self.tasks.get(task_id)
+            caller_tasks = self.tasks.get(caller_id)
+            if caller_tasks is None:
+                caller_tasks = {}
+            curr_task = caller_tasks.get(task_id)
             if curr_task is None:
-                self.tasks[task_id] = StoredTask(
+
+                caller_tasks[task_id] = StoredTask(
                     id=task_id,
                     task=task,
                     task_type=TaskType.OUTGOING,
@@ -177,15 +165,32 @@ class InMemoryClientSideTaskManagerStore(ClientSideTaskManagerStore):
                     push_notification=None,
                     created_at=datetime.now(),
                     updated_at=datetime.now(),
-                    caller_id=None,
+                    caller_id=caller_id,
                     agent_url=agent_url,
                 )
-                return self.tasks[task_id]
+                return caller_tasks[task_id]
+            if caller_id is not None and curr_task.caller_id != caller_id:
+                raise ValueError(
+                    f"Task {task_id} is already owned by caller {curr_task.caller_id}"
+                )
+            elif caller_id is None and curr_task.caller_id is not None:
+                raise ValueError(f"Task {task_id} is already owned")
             curr_task.task = task
             curr_task.updated_at = datetime.now()
             curr_task.agent_url = agent_url
             return curr_task
 
-    async def get_task_for_client(self, task_id: str) -> StoredTask | None:
+    async def get_task_for_client(
+        self, task_id: str, caller_id: str | None
+    ) -> StoredTask | None:
         async with self.lock:
-            return self.tasks.get(task_id)
+            caller_tasks = self.tasks.get(caller_id)
+            if caller_tasks is None:
+                return None
+            task = caller_tasks.get(task_id)
+            if task is not None and task.caller_id == caller_id:
+                return task
+            return None
+
+    async def update_task(self, task_id: str, params: UpdateTaskParams) -> StoredTask:
+        return await _update_task(self.lock, self.tasks, task_id, params)

@@ -9,7 +9,7 @@ use database_schema::{
 };
 
 use diesel::prelude::*;
-use diesel_async::{scoped_futures::ScopedFutureExt, AsyncConnection, AsyncPgConnection};
+use diesel_async::{AsyncConnection, AsyncPgConnection, scoped_futures::ScopedFutureExt};
 use uuid::Uuid;
 
 use super::schema::TaskServiceOutput;

@@ -24,6 +24,9 @@ class TaskModifier[S: TaskManagerStore, Q: TaskEventManager](TaskModifierBase):
         self._queue = queue
         self._caller_id = caller_id
 
+    async def get_task(self) -> Task:
+        return self._task
+
     async def set_status(self, status: TaskStatus, is_final: bool = False) -> None:
         self._task.status = status
         if self._store:

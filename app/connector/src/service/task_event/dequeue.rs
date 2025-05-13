@@ -41,6 +41,8 @@ pub async fn dequeue_task_event(
                 .into_boxed();
             if let Some(caller_id) = input.caller_id {
                 task_ids = task_ids.filter(task::counterparty_id.eq(caller_id));
+            } else {
+                task_ids = task_ids.filter(task::counterparty_id.is_null());
             }
             let task_ids = task_ids.load::<Uuid>(conn).await?;
             let mut events = task_event::table

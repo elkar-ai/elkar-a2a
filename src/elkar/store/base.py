@@ -121,22 +121,30 @@ class TaskManagerStore(Protocol):
         """
         ...
 
-    @abstractmethod
-    async def list_tasks(
-        self, params: ListTasksParams
-    ) -> PaginatedResponse[StoredTask]:
-        """
-        List tasks with the following rules:
-        - If caller_id is provided, return the tasks only if the caller_id matches
-        """
-        ...
-
 
 class ClientSideTaskManagerStore(Protocol):
     @abstractmethod
-    async def upsert_task_for_client(self, task: Task, agent_url: str) -> StoredTask:
+    async def upsert_task_for_client(
+        self, task: Task, agent_url: str, caller_id: str | None = None
+    ) -> StoredTask:
         pass
 
     @abstractmethod
-    async def get_task_for_client(self, task_id: str) -> StoredTask | None:
+    async def get_task_for_client(
+        self, task_id: str, caller_id: str | None
+    ) -> StoredTask | None:
         pass
+
+    @abstractmethod
+    async def update_task(
+        self,
+        task_id: str,
+        params: UpdateTaskParams,
+    ) -> StoredTask:
+        """
+        Update the task with the following rules:
+        - If status is provided, update the status
+        - If artifacts is provided, update the artifacts (i.e. if an artifact with the same index already exists, it will be updated: the only authorized update is to append to the parts list, if the artifact does not exist, it will be created)
+        - If caller_id is provided, update the caller_id
+        """
+        ...
