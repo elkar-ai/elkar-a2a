@@ -7,6 +7,7 @@ from elkar.a2a_types import (
     TaskStatusUpdateEvent,
 )
 from elkar.store.base import TaskManagerStore, UpdateTaskParams
+from elkar.store.in_memory import upsert_artifact
 from elkar.task_modifier.base import TaskModifierBase
 from elkar.task_queue.base import TaskEventManager
 
@@ -25,6 +26,7 @@ class TaskModifier[S: TaskManagerStore, Q: TaskEventManager](TaskModifierBase):
         self._caller_id = caller_id
 
     async def get_task(self) -> Task:
+
         return self._task
 
     async def set_status(self, status: TaskStatus, is_final: bool = False) -> None:
@@ -56,6 +58,8 @@ class TaskModifier[S: TaskManagerStore, Q: TaskEventManager](TaskModifierBase):
             )
 
     async def upsert_artifacts(self, artifacts: list[Artifact]) -> None:
+        for artifact in artifacts:
+            await upsert_artifact(self._task, artifact)
         if self._store:
             await self._store.update_task(
                 self._task.id,

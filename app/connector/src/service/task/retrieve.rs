@@ -24,6 +24,7 @@ pub struct RetrieveTaskParams {
     pub id_in: Option<Vec<String>>,
     pub task_id_in: Option<Vec<String>>,
     pub caller_id_in: Option<Vec<String>>,
+
     pub task_state_in: Option<Vec<TaskState>>,
     pub task_type_in: Option<Vec<TaskType>>,
     pub agent_id_in: Option<Vec<Uuid>>,
@@ -88,6 +89,7 @@ pub async fn retrieve_tasks(
             created_at: task.task.created_at,
             updated_at: task.task.updated_at,
             counterparty_id: task.task.counterparty_id,
+            server_agent_url: task.task.server_agent_url,
         })
     });
 

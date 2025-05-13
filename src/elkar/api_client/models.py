@@ -78,3 +78,9 @@ class CreateTaskSubscriberRequest(BaseModel):
     task_id: str
     subscriber_id: str
     caller_id: Optional[str] = None
+
+
+class UpsertTaskA2AInput(BaseModel):
+    task: Task
+    counterparty_identifier: Optional[str] = None
+    server_agent_url: str

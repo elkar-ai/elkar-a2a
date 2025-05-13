@@ -28,15 +28,26 @@ pub async fn create_task_a2a(
     let task_output = conn
         .transaction(|conn| {
             async move {
-                let existing_tasks_stmt = task::table
-                    .for_update()
-                    .filter(task::task_id.eq(&params.send_task_params.id))
-                    .filter(task::agent_id.eq(&params.agent_id))
-                    .select(Task::as_select());
-
-                let mut existing_tasks =
-                    diesel_async::RunQueryDsl::get_results::<Task>(existing_tasks_stmt, conn)
-                        .await?;
+                let mut existing_tasks = match &params.counterparty_identifier {
+                    Some(counterparty_id) => {
+                        let stmt = task::table
+                            .for_update()
+                            .filter(task::counterparty_id.eq(counterparty_id))
+                            .filter(task::task_id.eq(&params.send_task_params.id))
+                            .filter(task::agent_id.eq(&params.agent_id))
+                            .select(Task::as_select());
+                        diesel_async::RunQueryDsl::get_results::<Task>(stmt, conn).await?
+                    }
+                    None => {
+                        let stmt = task::table
+                            .for_update()
+                            .filter(task::task_id.eq(&params.send_task_params.id))
+                            .filter(task::agent_id.eq(&params.agent_id))
+                            .filter(task::counterparty_id.is_null())
+                            .select(Task::as_select());
+                        diesel_async::RunQueryDsl::get_results::<Task>(stmt, conn).await?
+                    }
+                };
 
                 let existing_task = existing_tasks.pop();
                 let task = match existing_task {
@@ -58,6 +69,7 @@ pub async fn create_task_a2a(
                     created_at: task.created_at,
                     updated_at: task.updated_at,
                     counterparty_id: task.counterparty_id,
+                    server_agent_url: task.server_agent_url,
                 })
             }
             .scope_boxed()
@@ -82,11 +94,13 @@ async fn insert_new_task(
             timestamp: None,
         },
     };
+
     let serde_task = serde_json::to_value(&new_task)?;
     let push_notification = serde_json::to_value(&params.send_task_params.push_notification)?;
     let new_task = TaskInput {
         task_id: params.send_task_params.id,
         agent_id: params.agent_id,
+        server_agent_url: None,
         counterparty_id: params.counterparty_identifier,
         task_type: params.task_type,
         task_state: TaskState::Submitted,

@@ -83,6 +83,7 @@ pub async fn update_task(
         created_at: task.created_at,
         updated_at: task.updated_at,
         counterparty_id: task.counterparty_id,
+        server_agent_url: task.server_agent_url,
     };
 
     Ok(task_service_output)

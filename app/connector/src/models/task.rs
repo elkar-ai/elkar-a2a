@@ -19,12 +19,13 @@ pub struct Task {
     pub task_state: TaskState,
     pub task_type: TaskType,
     pub push_notification: Option<Value>,
+    pub server_agent_url: Option<String>,
     pub a2a_task: Option<Value>,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
 
-#[derive(Debug, Insertable, Deserialize, Serialize)]
+#[derive(Debug, Insertable, Deserialize, Serialize, AsChangeset)]
 #[diesel(table_name = task)]
 pub struct TaskInput {
     pub agent_id: Uuid,
@@ -33,5 +34,6 @@ pub struct TaskInput {
     pub task_state: TaskState,
     pub task_type: TaskType,
     pub push_notification: Option<Value>,
+    pub server_agent_url: Option<String>,
     pub a2a_task: Option<Value>,
 }

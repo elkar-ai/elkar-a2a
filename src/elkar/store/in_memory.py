@@ -118,7 +118,7 @@ async def _update_task(
             mutable_task.metadata = params.metadata
         if params.artifacts_updates is not None:
             for artifact in params.artifacts_updates:
-                await _upsert_artifact(mutable_task, artifact)
+                await upsert_artifact(mutable_task, artifact)
 
         if params.push_notification is not None:
             caller_tasks[task_id].push_notification = params.push_notification
@@ -126,7 +126,7 @@ async def _update_task(
         return caller_tasks[task_id]
 
 
-async def _upsert_artifact(task: Task, artifact: Artifact) -> None:
+async def upsert_artifact(task: Task, artifact: Artifact) -> None:
     if task.artifacts is None:
         task.artifacts = []
     for existing_artifact in task.artifacts:

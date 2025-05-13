@@ -12,6 +12,7 @@ from elkar.api_client.models import (
     TaskResponse,
     UnpaginatedOutput,
     UpdateTaskInput,
+    UpsertTaskA2AInput,
 )
 
 
@@ -96,3 +97,11 @@ class ElkarClient:
     async def create_task_subscriber(self, params: CreateTaskSubscriberRequest) -> None:
         output = await self.make_request("/task-events/subscribers", "POST", params)
         return None
+
+    async def upsert_task_client_side(self, params: UpsertTaskA2AInput) -> TaskResponse:
+        output = await self.make_request("/client-side/tasks", "POST", params)
+        return TaskResponse.model_validate(output.json())
+
+    async def get_task_client_side(self, task_id: str) -> TaskResponse:
+        output = await self.make_request(f"/client-side/tasks/{task_id}", "GET")
+        return TaskResponse.model_validate(output.json())
