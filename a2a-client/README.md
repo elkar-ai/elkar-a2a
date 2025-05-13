@@ -46,6 +46,19 @@ npm run dev
 
 3. **Open your browser** at `http://localhost:5173`
 
+### 🛠️ A2A Debugger-Only Mode
+
+If you want to run the client purely for debugging A2A servers without setting up authentication or task management:
+
+1. **Run in debugger-only mode**
+```bash
+npm run a2adebugger
+```
+
+2. **Open your browser** at `http://localhost:5173`
+
+This mode provides a simplified interface focused solely on debugging A2A-compatible servers without requiring Supabase authentication or backend server integration.
+
 ### 📚 Usage
 - Configure your A2A server URL and API key
 - Send tasks and messages to agents

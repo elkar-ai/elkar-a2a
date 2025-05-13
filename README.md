@@ -174,6 +174,20 @@ You can use Elkar self-hosted version as a simple library with implemented task 
 For detailed integration steps, see our [Open Source Documentation](https://docs.elkar.co/opensource/selfhost)
 
 
+## 🛠️ A2A Debugger-Only Mode
+
+If you want to run the client purely for debugging A2A servers without setting up authentication or task management:
+
+1. **Run in debugger-only mode**
+```bash
+cd a2a-client
+npm run a2adebugger
+```
+
+2. **Open your browser** at `http://localhost:5173`
+
+This mode provides a simplified interface focused solely on debugging A2A-compatible servers without requiring Supabase authentication or backend server integration.
+
 ## ✅ Supported task updates
 
 1. **Status Update**

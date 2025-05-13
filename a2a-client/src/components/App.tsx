@@ -195,6 +195,137 @@ const queryClient = new QueryClient({
   },
 });
 
+const Router = () => {
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/update-password" element={<UpdatePassword />} />
+
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <Layout sidebar={<MainSidebarContent />}>
+              <Navigate to="/agents" replace />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/a2a-debugger"
+        element={
+          <ProtectedRoute>
+            <Layout sidebar={<MainSidebarContent />}>
+              <A2ADebuggerPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/api-keys"
+        element={
+          <ProtectedRoute>
+            <Layout sidebar={<MainSidebarContent />}>
+              <ApiKeysSettings />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/agents"
+        element={
+          <ProtectedRoute>
+            <AgentPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/agents/:id"
+        element={
+          <ProtectedRoute>
+            <AgentPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/task/:taskId"
+        element={
+          <ProtectedRoute>
+            <TaskDetailPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/create-tenant"
+        element={
+          <ProtectedRoute>
+            <CreateTenantComponent />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <SecondarySidebarLayout secondarySidebar={<SettingsSidebar />}>
+              <Navigate to="/settings/profile" replace />
+            </SecondarySidebarLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/profile"
+        element={
+          <ProtectedRoute>
+            <SecondarySidebarLayout secondarySidebar={<SettingsSidebar />}>
+              <ProfileSettings />
+            </SecondarySidebarLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/tenants"
+        element={
+          <ProtectedRoute>
+            <SecondarySidebarLayout secondarySidebar={<SettingsSidebar />}>
+              <TenantsSettings />
+            </SecondarySidebarLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/tenant-users"
+        element={
+          <ProtectedRoute>
+            <SecondarySidebarLayout secondarySidebar={<SettingsSidebar />}>
+              <TenantUsersSettings />
+            </SecondarySidebarLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/api-keys"
+        element={
+          <ProtectedRoute>
+            <SecondarySidebarLayout secondarySidebar={<SettingsSidebar />}>
+              <ApiKeysSettings />
+            </SecondarySidebarLayout>
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
+  );
+};
+
+const A2ADebuggerContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  padding: 100px;
+  height: 100%;
+`;
+
 /**
  * Root application component that sets up providers, routing, and global styles.
  */
@@ -209,138 +340,13 @@ const App: React.FC = () => {
                 <GlobalStyles />
                 <AppThemeProvider>
                   <ThemedToaster />
-                  <Routes>
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/auth/callback" element={<AuthCallback />} />
-                    <Route path="/reset-password" element={<ResetPassword />} />
-                    <Route
-                      path="/update-password"
-                      element={<UpdatePassword />}
-                    />
-
-                    <Route
-                      path="/"
-                      element={
-                        <ProtectedRoute>
-                          <Layout sidebar={<MainSidebarContent />}>
-                            <Navigate to="/agents" replace />
-                          </Layout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/a2a-debugger"
-                      element={
-                        <ProtectedRoute>
-                          <Layout sidebar={<MainSidebarContent />}>
-                            <A2ADebuggerPage />
-                          </Layout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/api-keys"
-                      element={
-                        <ProtectedRoute>
-                          <Layout sidebar={<MainSidebarContent />}>
-                            <ApiKeysSettings />
-                          </Layout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/agents"
-                      element={
-                        <ProtectedRoute>
-                          <AgentPage />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/agents/:id"
-                      element={
-                        <ProtectedRoute>
-                          <AgentPage />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/task/:taskId"
-                      element={
-                        <ProtectedRoute>
-                          <TaskDetailPage />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/create-tenant"
-                      element={
-                        <ProtectedRoute>
-                          <CreateTenantComponent />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/settings"
-                      element={
-                        <ProtectedRoute>
-                          <SecondarySidebarLayout
-                            secondarySidebar={<SettingsSidebar />}
-                          >
-                            <Navigate to="/settings/profile" replace />
-                          </SecondarySidebarLayout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/settings/profile"
-                      element={
-                        <ProtectedRoute>
-                          <SecondarySidebarLayout
-                            secondarySidebar={<SettingsSidebar />}
-                          >
-                            <ProfileSettings />
-                          </SecondarySidebarLayout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/settings/tenants"
-                      element={
-                        <ProtectedRoute>
-                          <SecondarySidebarLayout
-                            secondarySidebar={<SettingsSidebar />}
-                          >
-                            <TenantsSettings />
-                          </SecondarySidebarLayout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/settings/tenant-users"
-                      element={
-                        <ProtectedRoute>
-                          <SecondarySidebarLayout
-                            secondarySidebar={<SettingsSidebar />}
-                          >
-                            <TenantUsersSettings />
-                          </SecondarySidebarLayout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/settings/api-keys"
-                      element={
-                        <ProtectedRoute>
-                          <SecondarySidebarLayout
-                            secondarySidebar={<SettingsSidebar />}
-                          >
-                            <ApiKeysSettings />
-                          </SecondarySidebarLayout>
-                        </ProtectedRoute>
-                      }
-                    />
-                  </Routes>
+                  {import.meta.env.VITE_A2A_DEBUGGER === "true" ? (
+                    <A2ADebuggerContainer>
+                      <A2ADebuggerPage />
+                    </A2ADebuggerContainer>
+                  ) : (
+                    <Router />
+                  )}
                 </AppThemeProvider>
               </BrowserRouter>
             </TenantProvider>

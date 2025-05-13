@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "a2adebugger": "VITE_A2A_DEBUGGER=true vite",
     "lint": "eslint .",
     "preview": "vite preview",
     "generate-routes": "node scripts/generate-routes.cjs"
