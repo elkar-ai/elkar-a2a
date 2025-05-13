@@ -42,8 +42,8 @@ pub struct TaskResponse {
     pub task_type: TaskType,
     pub a2a_task: Option<A2ATask>,
     pub push_notification: Option<TaskPushNotificationConfig>,
-    pub user_id: String,
-    pub server_agent_url: String,
+    pub user_id: Option<String>,
+    pub server_agent_url: Option<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
