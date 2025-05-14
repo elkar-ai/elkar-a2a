@@ -1,4 +1,4 @@
-__version__ = "0.1.20"
+__version__ = "0.1.21"
 
 from . import a2a_types, server, store, task_manager, task_modifier, task_queue
 from .server import A2AServer
