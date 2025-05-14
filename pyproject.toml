@@ -33,10 +33,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://elkar.co"
-Documentation = "https://github.com/elkar-ai/elkar"
-Repository = "https://github.com/elkar-ai/elkar"
-Issues = "https://github.com/elkar-ai/elkar/issues"
+Homepage = "https://www.elkar.co"
+Documentation = "https://docs.elkar.co"
+Repository = "https://github.com/elkar-ai/elkar-a2a"
+Issues = "https://github.com/elkar-ai/elkar-a2a/issues"
 
 [tool.mypy]
 disallow_untyped_defs = true
@@ -55,3 +55,15 @@ dev = [
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/elkar"]
+
+[tool.hatch.build.targets.wheel.sources]
+"src" = ""
+
+[tool.hatch.build.targets.sdist]
+include = ["src/elkar", "README.md", "LICENSE"]
+
+[tool.hatch.build.targets.wheel.shared-data]
+"src/elkar/py.typed" = "elkar/py.typed"
