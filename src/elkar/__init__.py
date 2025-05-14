@@ -1,4 +1,4 @@
-__version__ = "0.1.17"
+__version__ = "0.1.18"
 
 
 # from . import a2a_types, server, store, task_manager, task_modifier, task_queue
