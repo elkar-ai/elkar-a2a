@@ -20,8 +20,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
@@ -34,20 +32,6 @@ jobs:
       - name: Install dependencies
         run: |
           uv sync --locked --all-extras --dev
-          pip install bump2version
-
-      - name: Configure Git
-        run: |
-          git config --local user.email "laurent@breezyai.co"
-          git config --local user.name "Laurent Meunier"
-
-      - name: Bump version
-        run: bump2version ${{ github.event.inputs.bump_type }}
-
-      - name: Push changes
-        run: |
-          git push
-          git push --tags
 
       - name: Build package
         run: uv build
@@ -56,4 +40,4 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_TOKEN }}
-          skip_existing: true
+          skip_existing: false
