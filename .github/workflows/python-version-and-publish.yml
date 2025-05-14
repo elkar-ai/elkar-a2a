@@ -10,6 +10,9 @@ on:
         type: "choice"
         options: ["patch", "minor", "major"]
 
+permissions:
+  contents: write
+
 jobs:
   version-and-publish:
     if: github.actor == 'LaurentMnr95'
