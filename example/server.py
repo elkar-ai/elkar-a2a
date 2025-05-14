@@ -25,7 +25,6 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.errors import HttpError
-from fastmcp import FastMCP
 
 # Elkar imports
 from elkar.a2a_types import (
@@ -246,8 +245,8 @@ class CrewAIWrapper:
         # Create the agent
         self.agent = Agent(
             role="Email Assistant",
-            goal="Help users access their email content",
-            backstory="You are an email assistant who can help users access their email information.",
+            goal="Help users access their email content. Coordinate with the Calendar Assistant for tasks requiring calendar management.",
+            backstory="You are an expert email assistant. You can read and search emails. You are also aware of a Google Calendar Assistant and can suggest using it if a user's request involves creating, modifying, or querying calendar events (e.g., 'add this meeting to my calendar', 'what is my schedule for next Monday?').",
             verbose=verbose,
             allow_delegation=False,
             tools=[read_emails, search_emails], # Removed get_animal_color
@@ -304,6 +303,19 @@ class CrewAIWrapper:
         Returns:
             The email information requested
         """
+        # Metaprompt for collaboration
+        metaprompt = (
+            "You are the Gmail Assistant. If the user's request seems to require calendar operations "
+            "(e.g., 'find the flight details and add it to my calendar', 'what are my meetings today?', "
+            "'create an event for the details I found in this email'), "
+            "first state that you will handle the email-specific parts if any (like extracting details), and then clearly suggest that the user "
+            "should ask the Google Calendar Assistant to perform calendar operations (like creating or listing events). "
+            "Do not attempt to directly modify or query the calendar yourself. "
+            "For example, if asked to 'find the meeting details in my email and add it to my calendar', you should respond by saying something like: "
+            "'I found the meeting details: [details]. Please ask the Google Calendar Assistant to add this to your calendar.' "
+            "If the request is purely about email functions (e.g., 'read my latest emails', 'search for emails from John'), proceed as usual."
+        )
+
         # Check if this is a request to force re-authentication
         force_reauth = "force reauth" in prompt.lower() or "re-authenticate" in prompt.lower()
         
@@ -316,8 +328,8 @@ class CrewAIWrapper:
         # Create a dynamic task based on user input
         print(f"Email Prompt: {update_prompt}")
         task = CrewTask(
-            description=f"Process the following email-related request: {update_prompt}",
-            expected_output="Retrieved email information based on the user's request",
+            description=f"{metaprompt}\\n\\nUser request: {update_prompt}",
+            expected_output="Retrieved email information based on the user's request, or guidance to consult the Calendar assistant.",
             agent=self.agent,
             status={
                 "state": "submitted", 
@@ -348,7 +360,7 @@ async def setup_server():
     # Create the agent card - using proper AgentSkill objects
     agent_card = AgentCard(
         name="Gmail Assistant",
-        description="A specialized agent that helps users access their Gmail emails.",
+        description="Manages Gmail. Can read and search emails. Collaborates with the Google Calendar Assistant for tasks requiring calendar operations (e.g., creating events from email details).",
         url="http://localhost:5001",
         version="1.0.0",
         skills=[
