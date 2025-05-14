@@ -1,6 +1,6 @@
 [project]
 name = "elkar"
-version = "0.1.13"
+version = "0.1.14"
 description = "The open-source protocol to send, track, and orchestrate tasks between AI agents"
 readme = "README.md"
 requires-python = ">=3.10"

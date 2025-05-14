@@ -1,10 +1,10 @@
 repos:
-  - repo: https://github.com/astral-sh/uv-pre-commit
-    # uv version.
-    rev: 0.7.3
-    hooks:
-      # Update the uv lockfile
-      - id: uv-lock
+  # - repo: https://github.com/astral-sh/uv-pre-commit
+  #   # uv version.
+  #   rev: 0.7.3
+  #   hooks:
+  #     # Update the uv lockfile
+  #     - id: uv-lock
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.8.2
     hooks:
