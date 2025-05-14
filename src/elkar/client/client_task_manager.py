@@ -1,35 +1,31 @@
-from dataclasses import dataclass
-from typing import Optional, AsyncIterable
-
 import logging
-
+from dataclasses import dataclass
+from typing import AsyncIterable, Optional
 
 from elkar.a2a_types import (
+    AgentCard,
     CancelTaskResponse,
+    GetTaskPushNotificationResponse,
+    GetTaskRequest,
+    GetTaskResponse,
+    SendTaskRequest,
+    SendTaskResponse,
+    SendTaskStreamingResponse,
+    SetTaskPushNotificationResponse,
     Task,
+    TaskArtifactUpdateEvent,
+    TaskIdParams,
     TaskPushNotificationConfig,
     TaskSendParams,
     TaskState,
     TaskStatus,
     TaskStatusUpdateEvent,
-    TaskArtifactUpdateEvent,
-    TaskIdParams,
-    SendTaskRequest,
-    SendTaskResponse,
-    GetTaskRequest,
-    GetTaskResponse,
-    SendTaskStreamingResponse,
-    SetTaskPushNotificationResponse,
-    GetTaskPushNotificationResponse,
-    AgentCard,
 )
 from elkar.client.a2a_client import A2AClient, A2AClientConfig
-
 from elkar.store.base import ClientSideTaskManagerStore, UpdateTaskParams
 from elkar.store.in_memory import (
     InMemoryClientSideTaskManagerStore,
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -62,9 +58,7 @@ class ClientSideTaskManager:
 
     async def send_task(self, request: SendTaskRequest) -> SendTaskResponse:
         """Send a task to the server."""
-        task = await self._store.get_task_for_client(
-            task_id=request.params.id, caller_id=self._caller_id
-        )
+        task = await self._store.get_task_for_client(task_id=request.params.id, caller_id=self._caller_id)
         if task is not None and task.task.status.state == TaskState.COMPLETED:
             raise ValueError(f"Task {request.params.id} already completed")
         response = await self._client.send_task(request.params)
@@ -73,9 +67,7 @@ class ClientSideTaskManager:
 
         if response.result:
             agent_url = await self._client.get_url()
-            await self._store.upsert_task_for_client(
-                response.result, agent_url, self._caller_id
-            )
+            await self._store.upsert_task_for_client(response.result, agent_url, self._caller_id)
 
         return SendTaskResponse(
             jsonrpc="2.0",
@@ -89,9 +81,7 @@ class ClientSideTaskManager:
         # If not found locally, request from server
         response = await self._client.get_task(request.params)
         if response.result:
-            await self._store.upsert_task_for_client(
-                response.result, await self._client.get_url(), self._caller_id
-            )
+            await self._store.upsert_task_for_client(response.result, await self._client.get_url(), self._caller_id)
         return GetTaskResponse(
             jsonrpc="2.0",
             id=request.id,
@@ -99,19 +89,12 @@ class ClientSideTaskManager:
             error=response.error,
         )
 
-    async def send_task_streaming(
-        self, params: TaskSendParams
-    ) -> AsyncIterable[SendTaskStreamingResponse]:
+    async def send_task_streaming(self, params: TaskSendParams) -> AsyncIterable[SendTaskStreamingResponse]:
         """Send a task to the server with streaming response."""
 
         # Create task locally first
-        stored_task = await self._store.get_task_for_client(
-            task_id=params.id, caller_id=self._caller_id
-        )
-        if (
-            stored_task is not None
-            and stored_task.task.status.state == TaskState.COMPLETED
-        ):
+        stored_task = await self._store.get_task_for_client(task_id=params.id, caller_id=self._caller_id)
+        if stored_task is not None and stored_task.task.status.state == TaskState.COMPLETED:
             raise ValueError("Task is already completed")
 
         # Send task to server with streaming
@@ -123,9 +106,7 @@ class ClientSideTaskManager:
                 message=params.message,
             ),
         )
-        await self._store.upsert_task_for_client(
-            task, await self._client.get_url(), self._caller_id
-        )
+        await self._store.upsert_task_for_client(task, await self._client.get_url(), self._caller_id)
         async for response in stream:
             if response.result:
                 # Update local task with server response
@@ -148,22 +129,16 @@ class ClientSideTaskManager:
 
             yield response
 
-    async def set_task_push_notification(
-        self, params: TaskPushNotificationConfig
-    ) -> SetTaskPushNotificationResponse:
+    async def set_task_push_notification(self, params: TaskPushNotificationConfig) -> SetTaskPushNotificationResponse:
         raise NotImplementedError()
 
-    async def get_task_push_notification(
-        self, params: TaskIdParams
-    ) -> GetTaskPushNotificationResponse:
+    async def get_task_push_notification(self, params: TaskIdParams) -> GetTaskPushNotificationResponse:
         """Get push notification configuration for a task."""
         raise NotImplementedError()
 
     async def cancel_task(self, request: TaskIdParams) -> CancelTaskResponse:
         """Cancel a task."""
-        stored_task = await self._store.get_task_for_client(
-            task_id=request.id, caller_id=self._caller_id
-        )
+        stored_task = await self._store.get_task_for_client(task_id=request.id, caller_id=self._caller_id)
         if not stored_task:
             raise ValueError(f"Task {request.id} not found")
 

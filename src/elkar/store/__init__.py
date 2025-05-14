@@ -1,4 +1,4 @@
-from .base import TaskManagerStore, ListTasksOrder, ListTasksParams, StoredTask
+from .base import ListTasksOrder, ListTasksParams, StoredTask, TaskManagerStore
 from .in_memory import InMemoryTaskManagerStore
 
 __all__ = [

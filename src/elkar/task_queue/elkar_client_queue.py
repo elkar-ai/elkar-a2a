@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from typing import Protocol
+
 from elkar.a2a_types import *
 from elkar.api_client.client import ElkarClient
 from elkar.api_client.models import (
@@ -9,7 +10,6 @@ from elkar.api_client.models import (
     UnpaginatedOutput,
 )
 from elkar.json_rpc import JSONRPCError
-
 
 TaskEvent = TaskStatusUpdateEvent | TaskArtifactUpdateEvent | JSONRPCError
 
@@ -47,7 +47,6 @@ class ElkarClientTaskQueue:
         event: TaskEvent,
         caller_id: str | None = None,
     ) -> None:
-
         await self.elkar_client.enqueue_task_event(
             EnqueueTaskEventInput(
                 task_id=task_id,

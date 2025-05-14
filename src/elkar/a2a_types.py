@@ -1,12 +1,17 @@
 # mypy: ignore-errors
-from typing import Union, Any
-from pydantic import BaseModel, Field, TypeAdapter
-from typing import Literal, List, Annotated, Optional
 from datetime import datetime
-from pydantic import model_validator, ConfigDict, field_serializer
-from uuid import uuid4
 from enum import Enum
+from typing import Annotated, Any, List, Literal, Optional, Union
+from uuid import uuid4
 
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    TypeAdapter,
+    field_serializer,
+    model_validator,
+)
 from typing_extensions import Self
 
 from elkar.json_rpc import JSONRPCRequest, JSONRPCResponse
@@ -39,9 +44,7 @@ class FileContent(BaseModel):
         if not (self.bytes or self.uri):
             raise ValueError("Either 'bytes' or 'uri' must be present in the file data")
         if self.bytes and self.uri:
-            raise ValueError(
-                "Only one of 'bytes' or 'uri' can be present in the file data"
-            )
+            raise ValueError("Only one of 'bytes' or 'uri' can be present in the file data")
         return self
 
 

@@ -2,12 +2,12 @@ from contextlib import asynccontextmanager
 from typing import Any, AsyncIterator, Dict, Optional
 from uuid import uuid4
 
+import httpx
+from mcp.server.fastmcp import Context, FastMCP
+from pydantic import BaseModel
 
 from elkar.a2a_types import AgentCard, Message, Task, TaskSendParams
 from elkar.client.a2a_client import A2AClient, A2AClientConfig
-from mcp.server.fastmcp import FastMCP, Context
-import httpx
-from pydantic import BaseModel
 
 # Create the MCP server
 
@@ -68,9 +68,7 @@ async def list_a2a_servers(ctx: Context) -> dict[str, Any]:
 
 
 @mcp.tool()
-async def send_task(
-    ctx: Context, url: str, task_send_params: TaskSendParams
-) -> Task | str:
+async def send_task(ctx: Context, url: str, task_send_params: TaskSendParams) -> Task | str:
     """Send a task to a specific A2A server
 
     Args:

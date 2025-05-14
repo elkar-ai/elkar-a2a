@@ -1,18 +1,19 @@
 import json
-from typing import AsyncIterable, Callable, Any
-from elkar.a2a_errors import InternalError, InvalidRequestError, JSONParseError
-from elkar.a2a_types import *
+import logging
+from typing import Any, AsyncIterable, Callable
 
 from pydantic import ValidationError
+from sse_starlette.sse import EventSourceResponse
 from starlette.applications import Starlette
-from starlette.responses import JSONResponse, Response
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
-from sse_starlette.sse import EventSourceResponse
 from starlette.requests import Request
+from starlette.responses import JSONResponse, Response
+
+from elkar.a2a_errors import InternalError, InvalidRequestError, JSONParseError
+from elkar.a2a_types import *
 from elkar.json_rpc import JSONRPCError
 from elkar.task_manager.task_manager_base import RequestContext, TaskManager
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -46,9 +47,7 @@ class A2AServer[T: TaskManager]:
 
         self.app = Starlette(middleware=middleware)
 
-        self.app.add_route(
-            self.endpoint, self._process_request, methods=["POST", "OPTIONS"]
-        )
+        self.app.add_route(self.endpoint, self._process_request, methods=["POST", "OPTIONS"])
         self.app.add_route(
             "/.well-known/agent.json",
             self._get_agent_card,
@@ -56,7 +55,6 @@ class A2AServer[T: TaskManager]:
         )
 
     def start(self, reload_server: bool = False) -> None:
-
         if self.task_manager is None:
             raise ValueError("request_handler is not defined")
 
@@ -91,9 +89,7 @@ class A2AServer[T: TaskManager]:
         agent_card = await self.task_manager.get_agent_card()
         return JSONResponse(agent_card.model_dump(exclude_none=True))
 
-    async def _process_request(
-        self, request: Request
-    ) -> Response | JSONResponse | EventSourceResponse:
+    async def _process_request(self, request: Request) -> Response | JSONResponse | EventSourceResponse:
         request_context = await self.extract_request_context(request)
         if request.method == "OPTIONS":
             return Response(status_code=200)
@@ -103,33 +99,19 @@ class A2AServer[T: TaskManager]:
             json_rpc_request = A2ARequest.validate_python(body)
             result: AsyncIterable[Any] | JSONRPCResponse
             if isinstance(json_rpc_request, GetTaskRequest):
-                result = await self.task_manager.get_task(
-                    json_rpc_request, request_context
-                )
+                result = await self.task_manager.get_task(json_rpc_request, request_context)
             elif isinstance(json_rpc_request, SendTaskRequest):
-                result = await self.task_manager.send_task(
-                    json_rpc_request, request_context
-                )
+                result = await self.task_manager.send_task(json_rpc_request, request_context)
             elif isinstance(json_rpc_request, SendTaskStreamingRequest):
-                result = await self.task_manager.send_task_streaming(
-                    json_rpc_request, request_context
-                )
+                result = await self.task_manager.send_task_streaming(json_rpc_request, request_context)
             elif isinstance(json_rpc_request, CancelTaskRequest):
-                result = await self.task_manager.cancel_task(
-                    json_rpc_request, request_context
-                )
+                result = await self.task_manager.cancel_task(json_rpc_request, request_context)
             elif isinstance(json_rpc_request, SetTaskPushNotificationRequest):
-                result = await self.task_manager.set_task_push_notification(
-                    json_rpc_request, request_context
-                )
+                result = await self.task_manager.set_task_push_notification(json_rpc_request, request_context)
             elif isinstance(json_rpc_request, GetTaskPushNotificationRequest):
-                result = await self.task_manager.get_task_push_notification(
-                    json_rpc_request, request_context
-                )
+                result = await self.task_manager.get_task_push_notification(json_rpc_request, request_context)
             elif isinstance(json_rpc_request, TaskResubscriptionRequest):
-                result = await self.task_manager.resubscribe_to_task(
-                    json_rpc_request, request_context
-                )
+                result = await self.task_manager.resubscribe_to_task(json_rpc_request, request_context)
             else:
                 logger.warning(f"Unexpected request type: {type(json_rpc_request)}")
                 raise ValueError(f"Unexpected request type: {type(request)}")

@@ -1,7 +1,5 @@
-from regex import R
 from elkar.a2a_types import Task, TaskSendParams
 from elkar.api_client.client import ElkarClient
-
 from elkar.api_client.models import (
     CreateTaskInput,
     GetTaskQueryParams,
@@ -31,11 +29,7 @@ def convert_task(task: TaskResponse) -> StoredTask:
         task_type=TaskType.INCOMING,
         is_streaming=False,
         task=task.a2a_task,
-        push_notification=(
-            task.push_notification.pushNotificationConfig
-            if task.push_notification
-            else None
-        ),
+        push_notification=(task.push_notification.pushNotificationConfig if task.push_notification else None),
         created_at=task.created_at,
         updated_at=task.updated_at,
         agent_url=None,
@@ -108,14 +102,12 @@ class ElkarClientStore(TaskManagerStore):
 
 class ElkarClientStoreClientSide(ClientSideTaskManagerStore):
     def __init__(self, base_url: str, api_key: str | None = None) -> None:
-        raise NotImplementedError(
-            "ElkarClientStoreClientSide does not support update_task yet"
-        )
+        # raise NotImplementedError(
+        #     "ElkarClientStoreClientSide does not support update_task yet"
+        # )
         self.client = ElkarClient(base_url=base_url, api_key=api_key)
 
-    async def upsert_task(
-        self, task: Task, server_agent_url: str, caller_id: str | None = None
-    ) -> StoredTask:
+    async def upsert_task(self, task: Task, server_agent_url: str, caller_id: str | None = None) -> StoredTask:
         task_input = UpsertTaskA2AInput(
             task=task,
             server_agent_url=server_agent_url,
@@ -131,6 +123,4 @@ class ElkarClientStoreClientSide(ClientSideTaskManagerStore):
         return convert_task(task_response)
 
     async def update_task(self, task_id: str, params: UpdateTaskParams) -> StoredTask:
-        raise NotImplementedError(
-            "ElkarClientStoreClientSide does not support update_task"
-        )
+        raise NotImplementedError("ElkarClientStoreClientSide does not support update_task")

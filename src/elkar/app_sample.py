@@ -1,4 +1,5 @@
 import asyncio
+
 from elkar.a2a_types import *
 from elkar.api_server import app as api_app
 from elkar.server.server import A2AServer
@@ -6,7 +7,6 @@ from elkar.store.elkar_client_store import ElkarClientStore
 from elkar.task_manager.task_manager_base import RequestContext
 from elkar.task_manager.task_manager_with_task_modifier import TaskManagerWithModifier
 from elkar.task_modifier.base import TaskModifierBase
-
 
 agent_card = AgentCard(
     name="Test Agent",
@@ -22,10 +22,7 @@ agent_card = AgentCard(
 )
 
 
-async def task_handler(
-    task: TaskModifierBase, request_context: RequestContext | None
-) -> None:
-
+async def task_handler(task: TaskModifierBase, request_context: RequestContext | None) -> None:
     await task.set_status(
         TaskStatus(
             state=TaskState.WORKING,

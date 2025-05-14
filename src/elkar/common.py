@@ -1,7 +1,9 @@
 from datetime import datetime
 from typing import Generic, TypeVar
-from elkar.a2a_types import PushNotificationConfig, Task, TaskState
+
 from pydantic import BaseModel
+
+from elkar.a2a_types import PushNotificationConfig, Task, TaskState
 
 
 class ListTasksRequest(BaseModel):

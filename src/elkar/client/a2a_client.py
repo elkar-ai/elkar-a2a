@@ -1,29 +1,29 @@
-from dataclasses import dataclass
-from typing import Any, AsyncIterable, Optional, Dict
-import aiohttp
 import json
+from dataclasses import dataclass
+from typing import Any, AsyncIterable, Dict, Optional
 
+import aiohttp
 from pydantic import BaseModel
 
 from elkar.a2a_types import (
     AgentCard,
-    TaskIdParams,
-    TaskQueryParams,
-    TaskSendParams,
-    GetTaskRequest,
-    GetTaskResponse,
     CancelTaskRequest,
     CancelTaskResponse,
+    GetTaskPushNotificationRequest,
+    GetTaskPushNotificationResponse,
+    GetTaskRequest,
+    GetTaskResponse,
     SendTaskRequest,
     SendTaskResponse,
     SendTaskStreamingRequest,
     SendTaskStreamingResponse,
     SetTaskPushNotificationRequest,
     SetTaskPushNotificationResponse,
-    GetTaskPushNotificationRequest,
-    GetTaskPushNotificationResponse,
-    TaskResubscriptionRequest,
+    TaskIdParams,
     TaskPushNotificationConfig,
+    TaskQueryParams,
+    TaskResubscriptionRequest,
+    TaskSendParams,
 )
 from elkar.client.base import A2AClientBase
 
@@ -68,9 +68,7 @@ class A2AClient(A2AClientBase):
     ) -> Dict[str, Any]:
         """Make an HTTP request to the A2A server."""
         if not self._session:
-            raise RuntimeError(
-                "Client session not initialized. Use 'async with' context manager."
-            )
+            raise RuntimeError("Client session not initialized. Use 'async with' context manager.")
 
         url = f"{self.config.base_url.rstrip('/')}"
         if endpoint:
@@ -99,24 +97,18 @@ class A2AClient(A2AClientBase):
         response = await self._make_request("POST", data=request)
         return SendTaskResponse(**response)
 
-    async def _stream_response(
-        self, response: aiohttp.ClientResponse
-    ) -> AsyncIterable[SendTaskStreamingResponse]:
+    async def _stream_response(self, response: aiohttp.ClientResponse) -> AsyncIterable[SendTaskStreamingResponse]:
         async for line in response.content:
             if line:
                 event_data = json.loads(line.decode("utf-8"))
                 yield SendTaskStreamingResponse(**event_data)
 
-    async def send_task_streaming(
-        self, task_params: TaskSendParams
-    ) -> AsyncIterable[SendTaskStreamingResponse]:
+    async def send_task_streaming(self, task_params: TaskSendParams) -> AsyncIterable[SendTaskStreamingResponse]:
         """Send a task with streaming response."""
         request = SendTaskStreamingRequest(params=task_params)
 
         if not self._session:
-            raise RuntimeError(
-                "Client session not initialized. Use 'async with' context manager."
-            )
+            raise RuntimeError("Client session not initialized. Use 'async with' context manager.")
 
         async with self._session.post(self.config.base_url, json=request) as response:
             response.raise_for_status()
@@ -136,24 +128,18 @@ class A2AClient(A2AClientBase):
         response = await self._make_request("POST", data=request)
         return SetTaskPushNotificationResponse(**response)
 
-    async def get_task_push_notification(
-        self, task_params: TaskIdParams
-    ) -> GetTaskPushNotificationResponse:
+    async def get_task_push_notification(self, task_params: TaskIdParams) -> GetTaskPushNotificationResponse:
         """Get push notification configuration for a task."""
         request = GetTaskPushNotificationRequest(params=task_params)
         response = await self._make_request("POST", data=request)
         return GetTaskPushNotificationResponse(**response)
 
-    async def resubscribe_to_task(
-        self, task_params: TaskIdParams
-    ) -> AsyncIterable[SendTaskStreamingResponse]:
+    async def resubscribe_to_task(self, task_params: TaskIdParams) -> AsyncIterable[SendTaskStreamingResponse]:
         """Resubscribe to task events."""
         request = TaskResubscriptionRequest(params=task_params)
 
         if not self._session:
-            raise RuntimeError(
-                "Client session not initialized. Use 'async with' context manager."
-            )
+            raise RuntimeError("Client session not initialized. Use 'async with' context manager.")
 
         async with self._session.post(self.config.base_url, json=request) as response:
             response.raise_for_status()

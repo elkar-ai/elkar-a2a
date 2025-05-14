@@ -66,7 +66,6 @@ class CreateTaskForClientParams:
 
 
 class TaskManagerStore(Protocol):
-
     @abstractmethod
     async def upsert_task(
         self,
@@ -124,15 +123,11 @@ class TaskManagerStore(Protocol):
 
 class ClientSideTaskManagerStore(Protocol):
     @abstractmethod
-    async def upsert_task_for_client(
-        self, task: Task, agent_url: str, caller_id: str | None = None
-    ) -> StoredTask:
+    async def upsert_task_for_client(self, task: Task, agent_url: str, caller_id: str | None = None) -> StoredTask:
         pass
 
     @abstractmethod
-    async def get_task_for_client(
-        self, task_id: str, caller_id: str | None
-    ) -> StoredTask | None:
+    async def get_task_for_client(self, task_id: str, caller_id: str | None) -> StoredTask | None:
         pass
 
     @abstractmethod

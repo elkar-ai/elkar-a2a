@@ -1,8 +1,9 @@
-from abc import abstractmethod
 import asyncio
+import logging
+import uuid
+from abc import abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
-
 from typing import (
     Any,
     AsyncIterable,
@@ -10,7 +11,6 @@ from typing import (
     Callable,
     Optional,
 )
-import uuid
 
 from elkar.a2a_errors import (
     InternalError,
@@ -22,49 +22,43 @@ from elkar.a2a_errors import (
 from elkar.a2a_types import (
     AgentCard,
     Artifact,
-    Message,
-    Task,
-    TaskArtifactUpdateEvent,
-    TaskSendParams,
-    TaskState,
-    TaskStatusUpdateEvent,
-    TaskStatus,
-    GetTaskRequest,
-    GetTaskResponse,
     CancelTaskRequest,
     CancelTaskResponse,
+    GetTaskPushNotificationRequest,
+    GetTaskPushNotificationResponse,
+    GetTaskRequest,
+    GetTaskResponse,
+    JSONRPCResponse,
+    Message,
     SendTaskRequest,
     SendTaskResponse,
     SendTaskStreamingRequest,
     SendTaskStreamingResponse,
     SetTaskPushNotificationRequest,
     SetTaskPushNotificationResponse,
-    GetTaskPushNotificationRequest,
-    GetTaskPushNotificationResponse,
-    TaskResubscriptionRequest,
-    JSONRPCResponse,
+    Task,
+    TaskArtifactUpdateEvent,
     TaskPushNotificationConfig,
+    TaskResubscriptionRequest,
+    TaskSendParams,
+    TaskState,
+    TaskStatus,
+    TaskStatusUpdateEvent,
     TextPart,
 )
-
-
 from elkar.common import ListTasksRequest, PaginatedResponse
 from elkar.json_rpc import JSONRPCError
-from elkar.store.in_memory import InMemoryTaskManagerStore
-
-from elkar.task_modifier.base import TaskModifierBase
-from elkar.task_modifier.task_modifier import TaskModifier
-from elkar.task_queue.base import TaskEvent, TaskEventManager
 from elkar.store.base import (
     ListTasksParams,
     StoredTask,
     TaskManagerStore,
     UpdateTaskParams,
 )
+from elkar.store.in_memory import InMemoryTaskManagerStore
 from elkar.task_manager.task_manager_base import RequestContext, TaskManager
-
-import logging
-
+from elkar.task_modifier.base import TaskModifierBase
+from elkar.task_modifier.task_modifier import TaskModifier
+from elkar.task_queue.base import TaskEvent, TaskEventManager
 from elkar.task_queue.in_memory import InMemoryTaskEventQueue
 
 logger = logging.getLogger(__name__)
@@ -86,7 +80,6 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
         queue: Optional[Q] = None,
         send_task_handler: Callable[..., Awaitable[None]] | None = None,
     ):
-
         self.agent_card = agent_card
         self._send_task_handler = send_task_handler
         self.store: S = store or InMemoryTaskManagerStore()  # type: ignore
@@ -95,19 +88,14 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
     async def get_agent_card(self) -> AgentCard:
         return self.agent_card
 
-    async def get_task(
-        self, request: GetTaskRequest, request_context: RequestContext | None = None
-    ) -> GetTaskResponse:
+    async def get_task(self, request: GetTaskRequest, request_context: RequestContext | None = None) -> GetTaskResponse:
         stored_task = await self.store.get_task(request.params.id)
         if stored_task is None:
             return GetTaskResponse(
                 result=None,
                 error=TaskNotFoundError(),
             )
-        if (
-            request_context is not None
-            and stored_task.caller_id != request_context.caller_id
-        ):
+        if request_context is not None and stored_task.caller_id != request_context.caller_id:
             return GetTaskResponse(
                 result=None,
                 error=JSONRPCError(code=-32003, message="Task not found", data=None),
@@ -159,17 +147,12 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
 
         stored_task = await self.store.get_task(params.id)
 
-        if (
-            stored_task is not None
-            and self._check_caller_id(stored_task, request_context) is not None
-        ):
+        if stored_task is not None and self._check_caller_id(stored_task, request_context) is not None:
             return SendTaskResponse(
                 result=None,
                 error=TaskNotFoundError(),
             )
-        elif stored_task is not None and (
-            stored_task.task.status.state == TaskState.COMPLETED
-        ):
+        elif stored_task is not None and (stored_task.task.status.state == TaskState.COMPLETED):
             return SendTaskResponse(
                 result=None,
                 error=InvalidTaskStateError(),
@@ -177,18 +160,14 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
         elif stored_task is None:
             stored_task = await self.store.upsert_task(
                 params,
-                caller_id=(
-                    request_context.caller_id if request_context is not None else None
-                ),
+                caller_id=(request_context.caller_id if request_context is not None else None),
                 is_streaming=is_streaming,
             )
         task_modifier: TaskModifier[S, Q] = TaskModifier(
             task=stored_task.task,
             store=self.store,
             queue=self.queue if with_queue else None,
-            caller_id=(
-                request_context.caller_id if request_context is not None else None
-            ),
+            caller_id=(request_context.caller_id if request_context is not None else None),
         )
 
         return task_modifier
@@ -199,9 +178,7 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
         if self._send_task_handler is None:
             raise ValueError("send_task_handler is not set")
         params = request.params
-        task_modifier = await self._prepare_task_modifier(
-            params, request_context, with_queue=False
-        )
+        task_modifier = await self._prepare_task_modifier(params, request_context, with_queue=False)
         if isinstance(task_modifier, SendTaskResponse):
             return task_modifier
 
@@ -211,9 +188,7 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
             await task_modifier.set_status(
                 TaskStatus(
                     state=TaskState.FAILED,
-                    message=Message(
-                        role="agent", parts=[TextPart(text="Internal error")]
-                    ),
+                    message=Message(role="agent", parts=[TextPart(text="Internal error")]),
                     timestamp=datetime.now(),
                 ),
             )
@@ -262,17 +237,13 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
     ) -> AsyncIterable[SendTaskStreamingResponse] | JSONRPCResponse:
         subscriber_identifier = str(uuid.uuid4())
         params = request.params
-        task_modifier = await self._prepare_task_modifier(
-            params, request_context, with_queue=True
-        )
+        task_modifier = await self._prepare_task_modifier(params, request_context, with_queue=True)
 
         await self.queue.add_subscriber(
             request.params.id,
             subscriber_identifier,
             is_resubscribe=False,
-            caller_id=(
-                request_context.caller_id if request_context is not None else None
-            ),
+            caller_id=(request_context.caller_id if request_context is not None else None),
         )
         if isinstance(task_modifier, SendTaskResponse):
             return task_modifier
@@ -298,9 +269,7 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
         request_context: RequestContext | None = None,
     ) -> SetTaskPushNotificationResponse:
         if not self.agent_card.capabilities.pushNotifications:
-            return SetTaskPushNotificationResponse(
-                result=None, error=PushNotificationNotSupportedError()
-            )
+            return SetTaskPushNotificationResponse(result=None, error=PushNotificationNotSupportedError())
         task_id = request.params.id
         task = await self.store.get_task(task_id)
         if task is None:
@@ -364,9 +333,7 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
                 task_id_params.id,
                 subscriber_identifier,
                 is_resubscribe=True,
-                caller_id=(
-                    request_context.caller_id if request_context is not None else None
-                ),
+                caller_id=(request_context.caller_id if request_context is not None else None),
             )
             return await self.dequeue_task_events(
                 request.id,
@@ -378,15 +345,11 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
             logger.error(f"Error while reconnecting to SSE stream: {e}")
             return JSONRPCResponse(
                 id=request.id,
-                error=InternalError(
-                    message=f"An error occurred while reconnecting to stream: {e}"
-                ),
+                error=InternalError(message=f"An error occurred while reconnecting to stream: {e}"),
             )
 
     @staticmethod
-    def _check_caller_id(
-        task: StoredTask, request_context: RequestContext | None
-    ) -> TaskNotFoundError | None:
+    def _check_caller_id(task: StoredTask, request_context: RequestContext | None) -> TaskNotFoundError | None:
         if request_context is not None:
             if task.caller_id != request_context.caller_id:
                 return TaskNotFoundError()
@@ -400,9 +363,7 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
         caller_id: str | None,
     ) -> AsyncIterable[SendTaskStreamingResponse] | JSONRPCResponse:
         try:
-            return self.try_dequeue_task_events(
-                request_id, task_id, subscriber_identifier, caller_id
-            )
+            return self.try_dequeue_task_events(request_id, task_id, subscriber_identifier, caller_id)
 
         except Exception as e:
             return JSONRPCResponse(id=request_id, error=InternalError(message=str(e)))
@@ -414,15 +375,12 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
         subscriber_identifier: str,
         caller_id: str | None,
     ) -> AsyncIterable[SendTaskStreamingResponse]:
-
         while True:
             event = await self.queue.dequeue(task_id, subscriber_identifier, caller_id)
             if event is None:
                 continue
             if isinstance(event, JSONRPCError):
-                await self.queue.remove_subscriber(
-                    task_id, subscriber_identifier, caller_id
-                )
+                await self.queue.remove_subscriber(task_id, subscriber_identifier, caller_id)
                 yield SendTaskStreamingResponse(
                     jsonrpc="2.0",
                     id=request_id,
@@ -438,9 +396,7 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
                     error=None,
                 )
                 if event.final:
-                    await self.queue.remove_subscriber(
-                        task_id, subscriber_identifier, caller_id
-                    )
+                    await self.queue.remove_subscriber(task_id, subscriber_identifier, caller_id)
                     break
             if isinstance(event, TaskArtifactUpdateEvent):
                 yield SendTaskStreamingResponse(

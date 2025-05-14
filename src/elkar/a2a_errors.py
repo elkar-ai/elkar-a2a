@@ -1,4 +1,5 @@
 from typing import Any
+
 from elkar.json_rpc import JSONRPCError
 
 

@@ -1,14 +1,14 @@
 import asyncio
+import logging
+import uuid
 from dataclasses import dataclass
 from datetime import datetime
-
 from typing import (
     Any,
     AsyncIterable,
     Awaitable,
     Callable,
 )
-import uuid
 
 from elkar.a2a_errors import (
     InternalError,
@@ -18,45 +18,40 @@ from elkar.a2a_errors import (
 from elkar.a2a_types import (
     AgentCard,
     Artifact,
-    Message,
-    Task,
-    TaskArtifactUpdateEvent,
-    TaskState,
-    TaskStatusUpdateEvent,
-    TaskStatus,
-    GetTaskRequest,
-    GetTaskResponse,
     CancelTaskRequest,
     CancelTaskResponse,
+    GetTaskPushNotificationRequest,
+    GetTaskPushNotificationResponse,
+    GetTaskRequest,
+    GetTaskResponse,
+    JSONRPCResponse,
+    Message,
     SendTaskRequest,
     SendTaskResponse,
     SendTaskStreamingRequest,
     SendTaskStreamingResponse,
     SetTaskPushNotificationRequest,
     SetTaskPushNotificationResponse,
-    GetTaskPushNotificationRequest,
-    GetTaskPushNotificationResponse,
-    TaskResubscriptionRequest,
-    JSONRPCResponse,
+    Task,
+    TaskArtifactUpdateEvent,
     TaskPushNotificationConfig,
+    TaskResubscriptionRequest,
+    TaskState,
+    TaskStatus,
+    TaskStatusUpdateEvent,
     TextPart,
 )
-
-
 from elkar.common import ListTasksRequest, PaginatedResponse
 from elkar.json_rpc import JSONRPCError
-from elkar.store.in_memory import InMemoryTaskManagerStore
-from elkar.task_queue.base import TaskEvent, TaskEventManager
 from elkar.store.base import (
     ListTasksParams,
     StoredTask,
     TaskManagerStore,
     UpdateTaskParams,
 )
+from elkar.store.in_memory import InMemoryTaskManagerStore
 from elkar.task_manager.task_manager_base import RequestContext, TaskManager
-
-import logging
-
+from elkar.task_queue.base import TaskEvent, TaskEventManager
 from elkar.task_queue.in_memory import InMemoryTaskEventQueue
 
 logger = logging.getLogger(__name__)
@@ -100,19 +95,14 @@ class TaskManagerWithStore[T: TaskManagerStore, Q: TaskEventManager](TaskManager
     async def get_agent_card(self) -> AgentCard:
         return self.agent_card
 
-    async def get_task(
-        self, request: GetTaskRequest, request_context: RequestContext | None = None
-    ) -> GetTaskResponse:
+    async def get_task(self, request: GetTaskRequest, request_context: RequestContext | None = None) -> GetTaskResponse:
         stored_task = await self.store.get_task(request.params.id)
         if stored_task is None:
             return GetTaskResponse(
                 result=None,
                 error=TaskNotFoundError(),
             )
-        if (
-            request_context is not None
-            and stored_task.caller_id != request_context.caller_id
-        ):
+        if request_context is not None and stored_task.caller_id != request_context.caller_id:
             return GetTaskResponse(
                 result=None,
                 error=TaskNotFoundError(),
@@ -157,15 +147,11 @@ class TaskManagerWithStore[T: TaskManagerStore, Q: TaskEventManager](TaskManager
 
         stored_task = await self.store.upsert_task(
             params,
-            caller_id=(
-                request_context.caller_id if request_context is not None else None
-            ),
+            caller_id=(request_context.caller_id if request_context is not None else None),
             is_streaming=False,
         )
         try:
-            task_response = await self._send_task_handler(
-                stored_task.task, request_context, self.store
-            )
+            task_response = await self._send_task_handler(stored_task.task, request_context, self.store)
 
             updated_task = await self.store.update_task(
                 stored_task.id,
@@ -174,11 +160,7 @@ class TaskManagerWithStore[T: TaskManagerStore, Q: TaskEventManager](TaskManager
                     artifacts_updates=task_response.new_artifacts,
                     new_messages=task_response.new_history_messages,
                     metadata=task_response.metadata,
-                    caller_id=(
-                        request_context.caller_id
-                        if request_context is not None
-                        else None
-                    ),
+                    caller_id=(request_context.caller_id if request_context is not None else None),
                 ),
             )
         except Exception as e:
@@ -187,9 +169,7 @@ class TaskManagerWithStore[T: TaskManagerStore, Q: TaskEventManager](TaskManager
                 UpdateTaskParams(
                     status=TaskStatus(
                         state=TaskState.FAILED,
-                        message=Message(
-                            role="agent", parts=[TextPart(text="Internal error")]
-                        ),
+                        message=Message(role="agent", parts=[TextPart(text="Internal error")]),
                         timestamp=datetime.now(),
                     ),
                 ),
@@ -212,23 +192,16 @@ class TaskManagerWithStore[T: TaskManagerStore, Q: TaskEventManager](TaskManager
             The protocol defines this method to return an AsyncIterable.
             We implement it as an async iterator function that yields responses.
             """
-            caller_id = (
-                request_context.caller_id if request_context is not None else None
-            )
+            caller_id = request_context.caller_id if request_context is not None else None
 
             if self._send_task_streaming_handler is None:
                 raise ValueError("send_task_streaming_handler is not set")
 
             # Convert the awaitable AsyncIterable to an actual AsyncIterable
-            stored_task = await self.store.upsert_task(
-                request.params, is_streaming=True
-            )
+            stored_task = await self.store.upsert_task(request.params, is_streaming=True)
 
             current_task = stored_task.task
-            async for response in self._send_task_streaming_handler(
-                current_task, request_context, self.store
-            ):
-
+            async for response in self._send_task_streaming_handler(current_task, request_context, self.store):
                 if isinstance(response.result, TaskStatusUpdateEvent):
                     message = response.result.status.message
                     await self.store.update_task(
@@ -261,9 +234,7 @@ class TaskManagerWithStore[T: TaskManagerStore, Q: TaskEventManager](TaskManager
                     )
 
                 if response.error is not None:
-                    logger.error(
-                        f"Task {stored_task.id} failed: {response.error.message}"
-                    )
+                    logger.error(f"Task {stored_task.id} failed: {response.error.message}")
                     await self.store.update_task(
                         stored_task.id,
                         UpdateTaskParams(
@@ -277,9 +248,7 @@ class TaskManagerWithStore[T: TaskManagerStore, Q: TaskEventManager](TaskManager
                             ),
                         ),
                     )
-                    await self.queue.enqueue(
-                        task_id=stored_task.id, event=response.error
-                    )
+                    await self.queue.enqueue(task_id=stored_task.id, event=response.error)
                     break
         except Exception as e:
             await self.queue.enqueue(
@@ -288,9 +257,7 @@ class TaskManagerWithStore[T: TaskManagerStore, Q: TaskEventManager](TaskManager
                     id=stored_task.id,
                     status=TaskStatus(
                         state=TaskState.FAILED,
-                        message=Message(
-                            role="agent", parts=[TextPart(text="Internal error")]
-                        ),
+                        message=Message(role="agent", parts=[TextPart(text="Internal error")]),
                         timestamp=datetime.now(),
                     ),
                     final=True,
@@ -301,9 +268,7 @@ class TaskManagerWithStore[T: TaskManagerStore, Q: TaskEventManager](TaskManager
                 UpdateTaskParams(
                     status=TaskStatus(
                         state=TaskState.FAILED,
-                        message=Message(
-                            role="agent", parts=[TextPart(text="Internal error")]
-                        ),
+                        message=Message(role="agent", parts=[TextPart(text="Internal error")]),
                         timestamp=datetime.now(),
                     )
                 ),
@@ -320,9 +285,7 @@ class TaskManagerWithStore[T: TaskManagerStore, Q: TaskEventManager](TaskManager
             request.params.id,
             subscriber_identifier,
             is_resubscribe=False,
-            caller_id=(
-                request_context.caller_id if request_context is not None else None
-            ),
+            caller_id=(request_context.caller_id if request_context is not None else None),
         )
 
         asyncio.create_task(self._send_task_streaming(request, request_context))
@@ -346,9 +309,7 @@ class TaskManagerWithStore[T: TaskManagerStore, Q: TaskEventManager](TaskManager
         request_context: RequestContext | None = None,
     ) -> SetTaskPushNotificationResponse:
         if not self.agent_card.capabilities.pushNotifications:
-            return SetTaskPushNotificationResponse(
-                result=None, error=PushNotificationNotSupportedError()
-            )
+            return SetTaskPushNotificationResponse(result=None, error=PushNotificationNotSupportedError())
         task_id = request.params.id
         task = await self.store.get_task(task_id)
         if task is None:
@@ -416,9 +377,7 @@ class TaskManagerWithStore[T: TaskManagerStore, Q: TaskEventManager](TaskManager
                 task_id_params.id,
                 subscriber_identifier,
                 is_resubscribe=True,
-                caller_id=(
-                    request_context.caller_id if request_context is not None else None
-                ),
+                caller_id=(request_context.caller_id if request_context is not None else None),
             )
             return await self.dequeue_task_events(
                 request.id,
@@ -429,15 +388,11 @@ class TaskManagerWithStore[T: TaskManagerStore, Q: TaskEventManager](TaskManager
             logger.error(f"Error while reconnecting to SSE stream: {e}")
             return JSONRPCResponse(
                 id=request.id,
-                error=InternalError(
-                    message=f"An error occurred while reconnecting to stream: {e}"
-                ),
+                error=InternalError(message=f"An error occurred while reconnecting to stream: {e}"),
             )
 
     @staticmethod
-    def _check_caller_id(
-        task: StoredTask, request_context: RequestContext | None
-    ) -> TaskNotFoundError | None:
+    def _check_caller_id(task: StoredTask, request_context: RequestContext | None) -> TaskNotFoundError | None:
         if request_context is not None:
             if task.caller_id != request_context.caller_id:
                 return TaskNotFoundError()
@@ -447,9 +402,7 @@ class TaskManagerWithStore[T: TaskManagerStore, Q: TaskEventManager](TaskManager
         self, request_id: int | str | None, task_id: str, subscriber_identifier: str
     ) -> AsyncIterable[SendTaskStreamingResponse] | JSONRPCResponse:
         try:
-            return self.try_dequeue_task_events(
-                request_id, task_id, subscriber_identifier
-            )
+            return self.try_dequeue_task_events(request_id, task_id, subscriber_identifier)
 
         except Exception as e:
             return JSONRPCResponse(id=request_id, error=InternalError(message=str(e)))
@@ -457,7 +410,6 @@ class TaskManagerWithStore[T: TaskManagerStore, Q: TaskEventManager](TaskManager
     async def try_dequeue_task_events(
         self, request_id: str | int | None, task_id: str, subscriber_identifier: str
     ) -> AsyncIterable[SendTaskStreamingResponse]:
-
         while True:
             event = await self.queue.dequeue(task_id, subscriber_identifier)
             if isinstance(event, JSONRPCError):

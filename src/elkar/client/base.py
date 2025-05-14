@@ -1,20 +1,18 @@
 from abc import abstractmethod
-
 from typing import AsyncIterable, Protocol
-
 
 from elkar.a2a_types import (
     AgentCard,
-    TaskIdParams,
-    TaskQueryParams,
-    TaskSendParams,
-    GetTaskResponse,
     CancelTaskResponse,
+    GetTaskPushNotificationResponse,
+    GetTaskResponse,
     SendTaskResponse,
     SendTaskStreamingResponse,
     SetTaskPushNotificationResponse,
-    GetTaskPushNotificationResponse,
+    TaskIdParams,
     TaskPushNotificationConfig,
+    TaskQueryParams,
+    TaskSendParams,
 )
 
 
@@ -40,9 +38,7 @@ class A2AClientBase(Protocol):
         pass
 
     @abstractmethod
-    async def send_task_streaming(
-        self, task_params: TaskSendParams
-    ) -> AsyncIterable[SendTaskStreamingResponse]:
+    async def send_task_streaming(self, task_params: TaskSendParams) -> AsyncIterable[SendTaskStreamingResponse]:
         """Send a task with streaming response."""
         pass
 
@@ -59,15 +55,11 @@ class A2AClientBase(Protocol):
         pass
 
     @abstractmethod
-    async def get_task_push_notification(
-        self, task_params: TaskIdParams
-    ) -> GetTaskPushNotificationResponse:
+    async def get_task_push_notification(self, task_params: TaskIdParams) -> GetTaskPushNotificationResponse:
         """Get push notification configuration for a task."""
         pass
 
     @abstractmethod
-    async def resubscribe_to_task(
-        self, task_params: TaskIdParams
-    ) -> AsyncIterable[SendTaskStreamingResponse]:
+    async def resubscribe_to_task(self, task_params: TaskIdParams) -> AsyncIterable[SendTaskStreamingResponse]:
         """Resubscribe to task events."""
         pass

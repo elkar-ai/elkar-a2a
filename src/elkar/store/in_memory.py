@@ -1,6 +1,6 @@
 import asyncio
-from datetime import datetime
 import logging
+from datetime import datetime
 
 from elkar.a2a_types import (
     Artifact,
@@ -9,7 +9,6 @@ from elkar.a2a_types import (
     TaskState,
     TaskStatus,
 )
-
 from elkar.store.base import (
     ClientSideTaskManagerStore,
     StoredTask,
@@ -17,7 +16,6 @@ from elkar.store.base import (
     TaskType,
     UpdateTaskParams,
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +42,7 @@ class InMemoryTaskManagerStore(TaskManagerStore):
             task = self.tasks[caller_id].get(params.id)
             if task is not None:
                 if task.caller_id != caller_id:
-                    raise ValueError(
-                        f"Task {params.id} is already owned by caller {task.caller_id}"
-                    )
+                    raise ValueError(f"Task {params.id} is already owned by caller {task.caller_id}")
                 if task.task.history is None:
                     task.task.history = []
 
@@ -99,7 +95,6 @@ async def _update_task(
     params: UpdateTaskParams,
 ) -> StoredTask:
     async with lock:
-
         if params.caller_id not in tasks:
             raise ValueError("caller id was not found")
         mutable_task = tasks[params.caller_id][task_id].task
@@ -123,9 +118,7 @@ async def _update_task(
                 await upsert_artifact(mutable_task, artifact)
 
         if params.push_notification is not None:
-            tasks[params.caller_id][
-                task_id
-            ].push_notification = params.push_notification
+            tasks[params.caller_id][task_id].push_notification = params.push_notification
         tasks[params.caller_id][task_id].updated_at = datetime.now()
         return tasks[params.caller_id][task_id]
 
@@ -136,9 +129,7 @@ async def upsert_artifact(task: Task, artifact: Artifact) -> None:
     for existing_artifact in task.artifacts:
         if existing_artifact.index == artifact.index:
             if existing_artifact.lastChunk == True:
-                raise ValueError(
-                    f"Artifact {existing_artifact.index} is already a last chunk"
-                )
+                raise ValueError(f"Artifact {existing_artifact.index} is already a last chunk")
             existing_artifact.parts.extend(artifact.parts)
             existing_artifact.lastChunk = artifact.lastChunk
             return
@@ -150,9 +141,7 @@ class InMemoryClientSideTaskManagerStore(ClientSideTaskManagerStore):
         self.tasks: dict[str | None, dict[str, StoredTask]] = {}
         self.lock = asyncio.Lock()
 
-    async def upsert_task_for_client(
-        self, task: Task, agent_url: str, caller_id: str | None = None
-    ) -> StoredTask:
+    async def upsert_task_for_client(self, task: Task, agent_url: str, caller_id: str | None = None) -> StoredTask:
         async with self.lock:
             task_id = task.id
             caller_tasks = self.tasks.get(caller_id)
@@ -160,7 +149,6 @@ class InMemoryClientSideTaskManagerStore(ClientSideTaskManagerStore):
                 caller_tasks = {}
             curr_task = caller_tasks.get(task_id)
             if curr_task is None:
-
                 caller_tasks[task_id] = StoredTask(
                     id=task_id,
                     task=task,
@@ -174,9 +162,7 @@ class InMemoryClientSideTaskManagerStore(ClientSideTaskManagerStore):
                 )
                 return caller_tasks[task_id]
             if caller_id is not None and curr_task.caller_id != caller_id:
-                raise ValueError(
-                    f"Task {task_id} is already owned by caller {curr_task.caller_id}"
-                )
+                raise ValueError(f"Task {task_id} is already owned by caller {curr_task.caller_id}")
             elif caller_id is None and curr_task.caller_id is not None:
                 raise ValueError(f"Task {task_id} is already owned")
             curr_task.task = task
@@ -184,9 +170,7 @@ class InMemoryClientSideTaskManagerStore(ClientSideTaskManagerStore):
             curr_task.agent_url = agent_url
             return curr_task
 
-    async def get_task_for_client(
-        self, task_id: str, caller_id: str | None
-    ) -> StoredTask | None:
+    async def get_task_for_client(self, task_id: str, caller_id: str | None) -> StoredTask | None:
         async with self.lock:
             caller_tasks = self.tasks.get(caller_id)
             if caller_tasks is None:

@@ -33,9 +33,7 @@ class TaskModifier[S: TaskManagerStore, Q: TaskEventManager](TaskModifierBase):
 
     async def get_task(self, from_store: bool = False) -> Task:
         if from_store and self._store:
-            stored_task = await self._store.get_task(
-                task_id=self._task.id, caller_id=self._caller_id
-            )
+            stored_task = await self._store.get_task(task_id=self._task.id, caller_id=self._caller_id)
             if stored_task is None:
                 raise ValueError("Task not found")
             return stored_task.task
