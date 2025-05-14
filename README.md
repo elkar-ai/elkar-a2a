@@ -242,7 +242,7 @@ await task.add_messages_to_history(
 Check out our [documentation](https://docs.elkar.co/) for more details!
 
 ## 💬 Community
-Join our [Discord server](https://discord.gg/f5Znhcvm) to get help, share ideas, and get updates
+Join our [Discord server](https://discord.gg/HDB4rkqn) to get help, share ideas, and get updates
 
 ## 🤝 Contribute
 
