@@ -1,5 +1,6 @@
-from .base import ListTasksOrder, ListTasksParams, StoredTask, TaskManagerStore
-from .in_memory import InMemoryTaskManagerStore
+from .base import StoredTask, TaskManagerStore
+from .elkar_client_store import ElkarClientStore, ElkarClientStoreClientSide
+from .in_memory import InMemoryClientSideTaskManagerStore, InMemoryTaskManagerStore
 
 __all__ = [
     "TaskManagerStore",
@@ -7,4 +8,7 @@ __all__ = [
     "ListTasksParams",
     "StoredTask",
     "InMemoryTaskManagerStore",
+    "InMemoryClientSideTaskManagerStore",
+    "ElkarClientStore",
+    "ElkarClientStoreClientSide",
 ]

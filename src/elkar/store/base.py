@@ -37,20 +37,6 @@ class UpdateTaskParams:
     caller_id: str | None = None
 
 
-class ListTasksOrder(str, Enum):
-    CREATED_AT = "created_at"
-    UPDATED_AT = "updated_at"
-
-
-@dataclass
-class ListTasksParams:
-    caller_id: str | None = None
-    state_in: list[TaskState] | None = None
-    order_by: ListTasksOrder = ListTasksOrder.CREATED_AT
-    page: int | None = 1
-    page_size: int | None = 100
-
-
 @dataclass
 class UpdateStoredTaskClient:
     state: TaskState

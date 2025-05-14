@@ -3,8 +3,6 @@ from typing import Generic, TypeVar
 
 from pydantic import BaseModel
 
-from elkar.a2a_types import PushNotificationConfig, Task, TaskState
-
 
 class ListTasksRequest(BaseModel):
     pass

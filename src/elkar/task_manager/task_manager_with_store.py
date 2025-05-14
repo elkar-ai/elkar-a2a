@@ -44,7 +44,6 @@ from elkar.a2a_types import (
 from elkar.common import ListTasksRequest, PaginatedResponse
 from elkar.json_rpc import JSONRPCError
 from elkar.store.base import (
-    ListTasksParams,
     StoredTask,
     TaskManagerStore,
     UpdateTaskParams,
