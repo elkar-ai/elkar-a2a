@@ -68,3 +68,6 @@ include = ["src/elkar", "README.md", "LICENSE"]
 
 [tool.hatch.build.targets.wheel.shared-data]
 "src/elkar/py.typed" = "elkar/py.typed"
+
+[tool.setuptools.package-data]
+elkar = ["py.typed"]
