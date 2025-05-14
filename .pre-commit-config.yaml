@@ -15,4 +15,4 @@ repos:
     rev: v1.14.1
     hooks:
       - id: mypy
-        # args: ["--config-file", "mypy.ini"]
+        args: ["src/elkar", "--config-file", "mypy.ini"]
