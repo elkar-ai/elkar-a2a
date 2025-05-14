@@ -33,11 +33,11 @@ jobs:
         run: uv sync --locked --all-extras --dev
 
       - name: Lint with ruff
-        run: ruff check src/elkar
+        run: uv run ruff check src/elkar
 
       - name: Type check with mypy
-        run: mypy src/elkar
+        run: uv run mypy src/elkar
 
       - name: Run tests with pytest
         if: ${{ hashFiles('tests/**/*.py') != '' }}
-        run: pytest
+        run: uv run pytest
