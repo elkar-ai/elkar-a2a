@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import Enum
 from typing import Generic, TypeVar
 
 from pydantic import BaseModel
@@ -6,6 +7,11 @@ from pydantic import BaseModel
 
 class ListTasksRequest(BaseModel):
     pass
+
+
+class TaskType(str, Enum):
+    OUTGOING = "outgoing"
+    INCOMING = "incoming"
 
 
 class Error(BaseModel):

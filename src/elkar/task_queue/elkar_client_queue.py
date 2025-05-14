@@ -1,17 +1,10 @@
-from abc import abstractmethod
-from typing import Protocol
-
-from elkar.a2a_types import *
+from elkar.a2a_types import TaskEvent
 from elkar.api_client.client import ElkarClient
 from elkar.api_client.models import (
     CreateTaskSubscriberRequest,
     DequeueTaskEventInput,
     EnqueueTaskEventInput,
-    UnpaginatedOutput,
 )
-from elkar.json_rpc import JSONRPCError
-
-TaskEvent = TaskStatusUpdateEvent | TaskArtifactUpdateEvent | JSONRPCError
 
 
 class ElkarClientTaskQueue:

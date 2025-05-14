@@ -11,13 +11,13 @@ from elkar.a2a_types import (
     Message,
     PushNotificationConfig,
     Task,
+    TaskEvent,
     TaskPushNotificationConfig,
     TaskSendParams,
     TaskState,
     TaskStatus,
 )
 from elkar.store.base import TaskType
-from elkar.task_queue.base import TaskEvent
 
 
 class CreateTaskInput(BaseModel):

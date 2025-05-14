@@ -1,17 +1,9 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from re import S
 from typing import Protocol
 
-from click import Option
-
 from elkar.a2a_types import *
-from elkar.common import PaginatedResponse
-
-
-class TaskType(str, Enum):
-    OUTGOING = "outgoing"
-    INCOMING = "incoming"
+from elkar.common import TaskType
 
 
 @dataclass

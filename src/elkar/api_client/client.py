@@ -9,7 +9,6 @@ from elkar.api_client.models import (
     DequeueTaskEventInput,
     EnqueueTaskEventInput,
     GetTaskQueryParams,
-    TaskEventResponse,
     TaskResponse,
     UnpaginatedOutput,
     UpdateTaskInput,

@@ -7,12 +7,11 @@ from elkar.api_client.models import (
     UpdateTaskInput,
     UpsertTaskA2AInput,
 )
-from elkar.common import PaginatedResponse
+from elkar.common import PaginatedResponse, TaskType
 from elkar.store.base import (
     ClientSideTaskManagerStore,
     StoredTask,
     TaskManagerStore,
-    TaskType,
     UpdateTaskParams,
 )
 

@@ -9,11 +9,11 @@ from elkar.a2a_types import (
     TaskState,
     TaskStatus,
 )
+from elkar.common import TaskType
 from elkar.store.base import (
     ClientSideTaskManagerStore,
     StoredTask,
     TaskManagerStore,
-    TaskType,
     UpdateTaskParams,
 )
 

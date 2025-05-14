@@ -14,7 +14,7 @@ from pydantic import (
 )
 from typing_extensions import Self
 
-from elkar.json_rpc import JSONRPCRequest, JSONRPCResponse
+from elkar.json_rpc import JSONRPCError, JSONRPCRequest, JSONRPCResponse
 
 
 class TaskState(str, Enum):
@@ -110,6 +110,9 @@ class TaskArtifactUpdateEvent(BaseModel):
     artifact: Artifact
 
     metadata: dict[str, Any] | None = None
+
+
+TaskEvent = TaskStatusUpdateEvent | TaskArtifactUpdateEvent | JSONRPCError
 
 
 class AuthenticationInfo(BaseModel):
