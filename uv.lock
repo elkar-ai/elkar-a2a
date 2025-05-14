@@ -374,6 +374,7 @@ dependencies = [
 dev = [
     { name = "datamodel-code-generator", extra = ["http"] },
     { name = "mypy" },
+    { name = "pytest" },
     { name = "ruff" },
     { name = "types-pyjwt" },
 ]
@@ -401,6 +402,7 @@ dev = [
     { name = "datamodel-code-generator" },
     { name = "datamodel-code-generator", extras = ["http"] },
     { name = "mypy" },
+    { name = "pytest", specifier = ">=8.3.5" },
     { name = "ruff", specifier = ">=0.11.9" },
     { name = "types-pyjwt" },
 ]
