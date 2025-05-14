@@ -303,6 +303,16 @@ wheels = [
 ]
 
 [[package]]
+name = "crew"
+version = "0.9.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "python3-pika" },
+    { name = "shortuuid" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/40/28/217ca1977b8d90544ebb5b9d267c78dd0d4bd3f642e37729718ad0f2695d/crew-0.9.2.tar.gz", hash = "sha256:76427b80efb2a83096d334aa86971e77b17bc38f6b851d1212a053e57dbfa0fc", size = 11018, upload_time = "2016-03-25T13:31:06.76Z" }
+
+[[package]]
 name = "datamodel-code-generator"
 version = "0.30.1"
 source = { registry = "https://pypi.org/simple" }
@@ -351,11 +361,12 @@ wheels = [
 
 [[package]]
 name = "elkar"
-version = "0.1.20"
+version = "0.1.22"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },
     { name = "colorlog" },
+    { name = "crew" },
     { name = "fastapi" },
     { name = "mcp" },
     { name = "pre-commit" },
@@ -383,6 +394,7 @@ dev = [
 requires-dist = [
     { name = "aiohttp", specifier = ">=3.11.18" },
     { name = "colorlog", specifier = ">=6.9.0" },
+    { name = "crew", specifier = ">=0.9.2" },
     { name = "fastapi" },
     { name = "mcp", specifier = ">=1.7.0" },
     { name = "pre-commit", specifier = ">=4.2.0" },
@@ -1349,6 +1361,12 @@ wheels = [
 ]
 
 [[package]]
+name = "python3-pika"
+version = "0.9.14"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/1a/0f/70233fa4ce5df4b6451a94043bfdb6a8e524a85b53a0c861fc8e46cb6115/python3-pika-0.9.14.tar.gz", hash = "sha256:073267c932671cfbcc62d772eba511e77bae80e32a22a424dd9300bbb98b70b0", size = 68752, upload_time = "2014-09-23T13:13:00.4Z" }
+
+[[package]]
 name = "pyyaml"
 version = "6.0.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1445,6 +1463,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/22/e6/7ed70048e89b01d728ccc950557a17ecf8df4127b08a56944b9d0bae61bc/ruff-0.11.9-py3-none-win32.whl", hash = "sha256:7fe1bc950e7d7b42caaee2a8a3bc27410547cc032c9558ee2e0f6d3b209e845a", size = 10548627, upload_time = "2025-05-09T16:19:33.657Z" },
     { url = "https://files.pythonhosted.org/packages/90/36/1da5d566271682ed10f436f732e5f75f926c17255c9c75cefb77d4bf8f10/ruff-0.11.9-py3-none-win_amd64.whl", hash = "sha256:52edaa4a6d70f8180343a5b7f030c7edd36ad180c9f4d224959c2d689962d964", size = 11634340, upload_time = "2025-05-09T16:19:35.815Z" },
     { url = "https://files.pythonhosted.org/packages/40/f7/70aad26e5877c8f7ee5b161c4c9fa0100e63fc4c944dc6d97b9c7e871417/ruff-0.11.9-py3-none-win_arm64.whl", hash = "sha256:bcf42689c22f2e240f496d0c183ef2c6f7b35e809f12c1db58f75d9aa8d630ca", size = 10741080, upload_time = "2025-05-09T16:19:39.605Z" },
+]
+
+[[package]]
+name = "shortuuid"
+version = "1.0.13"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/8c/e2/bcf761f3bff95856203f9559baf3741c416071dd200c0fc19fad7f078f86/shortuuid-1.0.13.tar.gz", hash = "sha256:3bb9cf07f606260584b1df46399c0b87dd84773e7b25912b7e391e30797c5e72", size = 9662, upload_time = "2024-03-11T20:11:06.879Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c0/44/21d6bf170bf40b41396480d8d49ad640bca3f2b02139cd52aa1e272830a5/shortuuid-1.0.13-py3-none-any.whl", hash = "sha256:a482a497300b49b4953e15108a7913244e1bb0d41f9d332f5e9925dba33a3c5a", size = 10529, upload_time = "2024-03-11T20:11:04.807Z" },
 ]
 
 [[package]]

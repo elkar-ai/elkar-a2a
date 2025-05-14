@@ -74,7 +74,7 @@ class A2AClient(A2AClientBase):
         if endpoint:
             url = f"{url}/{endpoint.lstrip('/')}"
         serialized_data = data.model_dump() if data else None
-        async with self._session.request(method, url, json=data) as response:
+        async with self._session.request(method, url, json=serialized_data) as response:
             response.raise_for_status()
             return await response.json()
 
