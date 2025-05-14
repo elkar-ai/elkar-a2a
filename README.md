@@ -250,7 +250,7 @@ We ❤️ feedback, PRs, and ideas! Here's how to help:
 
 - If you find Elkar useful, a GitHub ⭐️ would mean a lot! — it helps to support the project!
 - Report bugs or request features via [issues](https://github.com/elkar-ai/elkar/issues).
-- Show off what you've built with Elkar [here](https://discord.com/channels/1366517666054934589/1366528135730040862)! 
+- Show off what you've built with Elkar [here](https://discord.gg/HDB4rkqn)! 
 - Submit [pull requests](https://github.com/elkar-ai/elkar/pulls), and we'll review it as soon as possible.
 
 ## 🔒 License  
