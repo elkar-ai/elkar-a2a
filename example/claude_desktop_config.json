@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "a2a_elkar": {
+      "command": "/opt/anaconda3/bin/python",
+      "args": ["/Users/mm/elkar-a2a/mcp-agent-pipeline/server_mcp.py"],
+      "env": {
+        "ANTHROPIC_API_KEY": "sk-xxx",
+        "OPENAI_API_KEY": "sk-proj-yyy",
+        "AGENT_URLS": "http://localhost:5001,http://localhost:5002"
+      }
+    }
+  }
+}
