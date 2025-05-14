@@ -234,30 +234,11 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
 
     async def _send_task_streaming(
         self,
-        request: SendTaskStreamingRequest,
+        task_modifier: TaskModifier[S, Q],
         request_context: RequestContext | None = None,
-        subscriber_identifier: str | None = None,
     ) -> None:
         if self._send_task_handler is None:
             raise ValueError("send_task_handler is not set")
-        params = request.params
-        task_modifier = await self._prepare_task_modifier(
-            params, request_context, with_queue=True
-        )
-        if subscriber_identifier is None:
-            raise ValueError("subscriber_identifier is not set")
-
-        await self.queue.add_subscriber(
-            request.params.id,
-            subscriber_identifier,
-            is_resubscribe=False,
-            caller_id=(
-                request_context.caller_id if request_context is not None else None
-            ),
-        )
-        if isinstance(task_modifier, SendTaskResponse):
-            raise ValueError("Error while preparing the task")
-
         try:
             await self._send_task_handler(task_modifier, request_context)
         except Exception as e:
@@ -280,15 +261,28 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
         request_context: RequestContext | None = None,
     ) -> AsyncIterable[SendTaskStreamingResponse] | JSONRPCResponse:
         subscriber_identifier = str(uuid.uuid4())
-
-        asyncio.create_task(
-            self._send_task_streaming(request, request_context, subscriber_identifier)
+        params = request.params
+        task_modifier = await self._prepare_task_modifier(
+            params, request_context, with_queue=True
         )
+
+        await self.queue.add_subscriber(
+            request.params.id,
+            subscriber_identifier,
+            is_resubscribe=False,
+            caller_id=(
+                request_context.caller_id if request_context is not None else None
+            ),
+        )
+        if isinstance(task_modifier, SendTaskResponse):
+            return task_modifier
+        asyncio.create_task(self._send_task_streaming(task_modifier, request_context))
         try:
             events = await self.dequeue_task_events(
                 request.id,
                 request.params.id,
                 subscriber_identifier,
+                request_context.caller_id if request_context is not None else None,
             )
             return events
         except Exception as e:
@@ -316,15 +310,11 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
             )
         error = self._check_caller_id(task, request_context)
         if error is not None:
-            return SetTaskPushNotificationResponse(
-                result=None,
-                error=error,
-            )
+            return SetTaskPushNotificationResponse(result=None, error=error)
+
         stored_task = await self.store.update_task(
             task_id,
-            UpdateTaskParams(
-                push_notification=request.params.pushNotificationConfig,
-            ),
+            UpdateTaskParams(push_notification=request.params.pushNotificationConfig),
         )
         if stored_task.push_notification is None:
             return SetTaskPushNotificationResponse(
@@ -382,6 +372,7 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
                 request.id,
                 task_id_params.id,
                 subscriber_identifier,
+                request_context.caller_id if request_context is not None else None,
             )
         except Exception as e:
             logger.error(f"Error while reconnecting to SSE stream: {e}")
@@ -402,26 +393,36 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
         return None
 
     async def dequeue_task_events(
-        self, request_id: int | str | None, task_id: str, subscriber_identifier: str
+        self,
+        request_id: int | str | None,
+        task_id: str,
+        subscriber_identifier: str,
+        caller_id: str | None,
     ) -> AsyncIterable[SendTaskStreamingResponse] | JSONRPCResponse:
         try:
             return self.try_dequeue_task_events(
-                request_id, task_id, subscriber_identifier
+                request_id, task_id, subscriber_identifier, caller_id
             )
 
         except Exception as e:
             return JSONRPCResponse(id=request_id, error=InternalError(message=str(e)))
 
     async def try_dequeue_task_events(
-        self, request_id: str | int | None, task_id: str, subscriber_identifier: str
+        self,
+        request_id: str | int | None,
+        task_id: str,
+        subscriber_identifier: str,
+        caller_id: str | None,
     ) -> AsyncIterable[SendTaskStreamingResponse]:
 
         while True:
-            event = await self.queue.dequeue(task_id, subscriber_identifier)
+            event = await self.queue.dequeue(task_id, subscriber_identifier, caller_id)
             if event is None:
                 continue
             if isinstance(event, JSONRPCError):
-                await self.queue.remove_subscriber(task_id, subscriber_identifier)
+                await self.queue.remove_subscriber(
+                    task_id, subscriber_identifier, caller_id
+                )
                 yield SendTaskStreamingResponse(
                     jsonrpc="2.0",
                     id=request_id,
@@ -437,7 +438,9 @@ class TaskManagerWithModifier[S: TaskManagerStore, Q: TaskEventManager](TaskMana
                     error=None,
                 )
                 if event.final:
-                    await self.queue.remove_subscriber(task_id, subscriber_identifier)
+                    await self.queue.remove_subscriber(
+                        task_id, subscriber_identifier, caller_id
+                    )
                     break
             if isinstance(event, TaskArtifactUpdateEvent):
                 yield SendTaskStreamingResponse(

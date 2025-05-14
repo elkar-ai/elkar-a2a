@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "local": "VITE_BACKEND_URL=http://localhost:1996 vite",
     "a2adebugger": "VITE_A2A_DEBUGGER=true vite",
     "lint": "eslint .",
     "preview": "vite preview",

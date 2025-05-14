@@ -15,9 +15,7 @@ TaskEvent = TaskStatusUpdateEvent | TaskArtifactUpdateEvent | JSONRPCError
 
 
 class ElkarClientTaskQueue:
-
     def __init__(self, base_url: str, api_key: str | None = None) -> None:
-
         self.elkar_client = ElkarClient(base_url=base_url, api_key=api_key)
 
     async def add_subscriber(

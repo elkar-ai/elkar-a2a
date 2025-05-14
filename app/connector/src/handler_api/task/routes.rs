@@ -88,7 +88,7 @@ pub async fn ep_get_task(
         task_id,
         agent_id,
         caller_id: query_params.caller_id,
-        task_type: TaskType::Outgoing,
+        task_type: TaskType::Incoming,
     };
     let mut conn = context.async_pool.get().await?;
     let task = retrieve_task_a2a(params, &mut conn).await?;

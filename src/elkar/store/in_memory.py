@@ -37,10 +37,11 @@ class InMemoryTaskManagerStore(TaskManagerStore):
         caller_id: str | None = None,
     ) -> StoredTask:
         async with self.lock:
-            caller_tasks = self.caller_tasks(caller_id=caller_id)
+            caller_tasks = self.tasks.get(caller_id)
             if caller_tasks is None:
-                caller_tasks = {}
-            task = caller_tasks.get(params.id)
+                self.tasks[caller_id] = {}
+
+            task = self.tasks[caller_id].get(params.id)
             if task is not None:
                 if task.caller_id != caller_id:
                     raise ValueError(
@@ -52,7 +53,7 @@ class InMemoryTaskManagerStore(TaskManagerStore):
                 task.task.history.append(params.message)
                 task.updated_at = datetime.now()
                 return task
-            caller_tasks[params.id] = StoredTask(
+            self.tasks[caller_id][params.id] = StoredTask(
                 id=params.id,
                 caller_id=caller_id,
                 task_type=TaskType.INCOMING,
@@ -72,7 +73,8 @@ class InMemoryTaskManagerStore(TaskManagerStore):
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
             )
-            return caller_tasks[params.id]
+            print(self.tasks)
+            return self.tasks[caller_id][params.id]
 
     async def get_task(
         self,
@@ -97,11 +99,11 @@ async def _update_task(
     params: UpdateTaskParams,
 ) -> StoredTask:
     async with lock:
-        caller_tasks = tasks.get(params.caller_id)
-        if caller_tasks is None:
+
+        if params.caller_id not in tasks:
             raise ValueError("caller id was not found")
-        mutable_task = caller_tasks[task_id].task
-        if task_id not in tasks:
+        mutable_task = tasks[params.caller_id][task_id].task
+        if task_id not in tasks[params.caller_id]:
             raise ValueError(f"Task {task_id} does not exist")
 
         if params.status is not None:
@@ -121,9 +123,11 @@ async def _update_task(
                 await upsert_artifact(mutable_task, artifact)
 
         if params.push_notification is not None:
-            caller_tasks[task_id].push_notification = params.push_notification
-        caller_tasks[task_id].updated_at = datetime.now()
-        return caller_tasks[task_id]
+            tasks[params.caller_id][
+                task_id
+            ].push_notification = params.push_notification
+        tasks[params.caller_id][task_id].updated_at = datetime.now()
+        return tasks[params.caller_id][task_id]
 
 
 async def upsert_artifact(task: Task, artifact: Artifact) -> None:
