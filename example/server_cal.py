@@ -294,7 +294,6 @@ def get_calendar_details(days: int = 7, force_reauth: bool = False) -> str:
 
 
 @tool
-<<<<<<< HEAD
 def create_calendar_event(summary: str, start_time: str, end_time: str, description: str = "", location: str = "", time_zone: str = "", force_reauth: bool = False) -> str:
     """
     Creates a new event in the user's primary calendar.
@@ -308,40 +307,17 @@ def create_calendar_event(summary: str, start_time: str, end_time: str, descript
         force_reauth: Whether to force re-authentication.
     Returns:
         A string with the created event information.
-=======
-def create_calendar_event(summary: str, start_time: str, end_time: str, description: str = "", location: str = "", force_reauth: bool = False) -> str:
-    """
-    Creates a new event in the user's primary calendar.
-    Args:
-        summary: Title of the event
-        start_time: Start time in ISO format (YYYY-MM-DDTHH:MM:SS) or date (YYYY-MM-DD)
-        end_time: End time in ISO format (YYYY-MM-DDTHH:MM:SS) or date (YYYY-MM-DD)
-        description: Optional description of the event
-        location: Optional location of the event
-        force_reauth: Whether to force re-authentication
-    Returns:
-        A string with the created event information
->>>>>>> 324e16c (adding a2a elkar servers through MCP tools)
     """
     try:
         service = get_calendar_service(force_reauth=force_reauth)
         
-<<<<<<< HEAD
         is_all_day = 'T' not in start_time
 
         event_body: Dict[str, Any] = {
-=======
-        # Determine if this is an all-day event or a timed event
-        is_all_day = 'T' not in start_time
-        
-        # Create event body
-        event = {
->>>>>>> 324e16c (adding a2a elkar servers through MCP tools)
             'summary': summary,
             'location': location,
             'description': description,
         }
-<<<<<<< HEAD
 
         if is_all_day:
             event_body['start'] = {'date': start_time}
@@ -362,27 +338,6 @@ def create_calendar_event(summary: str, start_time: str, end_time: str, descript
         created_event = service.events().insert(calendarId='primary', body=event_body).execute()
         
         return f"Event created successfully!\nID: {created_event.get('id')}\nLink: {created_event.get('htmlLink')}"
-=======
-        
-        if is_all_day:
-            # All-day event
-            event['start'] = {'date': start_time}
-            event['end'] = {'date': end_time}
-        else:
-            # Timed event - ensure proper ISO format with timezone
-            if not start_time.endswith('Z') and '+' not in start_time:
-                start_time += 'Z'  # Add UTC marker if no timezone
-            if not end_time.endswith('Z') and '+' not in end_time:
-                end_time += 'Z'  # Add UTC marker if no timezone
-                
-            event['start'] = {'dateTime': start_time}
-            event['end'] = {'dateTime': end_time}
-        
-        # Create the event
-        event = service.events().insert(calendarId='primary', body=event).execute()
-        
-        return f"Event created successfully!\nID: {event.get('id')}\nLink: {event.get('htmlLink')}"
->>>>>>> 324e16c (adding a2a elkar servers through MCP tools)
         
     except HttpError as error:
         return f"An error occurred: {error}"
@@ -392,7 +347,6 @@ def create_calendar_event(summary: str, start_time: str, end_time: str, descript
 
 @tool
 def update_calendar_event(event_id: str, summary: str = "", start_time: str = "", 
-<<<<<<< HEAD
                          end_time: str = "", description: str = "", location: str = "", time_zone: str = "", force_reauth: bool = False) -> str:
     """
     Updates an existing event in the user's primary calendar.
@@ -407,34 +361,12 @@ def update_calendar_event(event_id: str, summary: str = "", start_time: str = ""
         force_reauth: Whether to force re-authentication.
     Returns:
         A string with the updated event information.
-=======
-                         end_time: str = "", description: str = "", location: str = "", force_reauth: bool = False) -> str:
-    """
-    Updates an existing event in the user's primary calendar.
-    Args:
-        event_id: ID of the event to update
-        summary: New title of the event (optional)
-        start_time: New start time in ISO format (YYYY-MM-DDTHH:MM:SS) or date (YYYY-MM-DD) (optional)
-        end_time: New end time in ISO format (YYYY-MM-DDTHH:MM:SS) or date (YYYY-MM-DD) (optional)
-        description: New description of the event (optional)
-        location: New location of the event (optional)
-        force_reauth: Whether to force re-authentication
-    Returns:
-        A string with the updated event information
->>>>>>> 324e16c (adding a2a elkar servers through MCP tools)
     """
     try:
         service = get_calendar_service(force_reauth=force_reauth)
         
-<<<<<<< HEAD
         event: Dict[str, Any] = service.events().get(calendarId='primary', eventId=event_id).execute()
         
-=======
-        # Get the existing event
-        event: Dict[str, Any] = service.events().get(calendarId='primary', eventId=event_id).execute()
-        
-        # Update the fields that were provided
->>>>>>> 324e16c (adding a2a elkar servers through MCP tools)
         if summary:
             event['summary'] = summary
         if location:
@@ -442,7 +374,6 @@ def update_calendar_event(event_id: str, summary: str = "", start_time: str = ""
         if description:
             event['description'] = description
         
-<<<<<<< HEAD
         if start_time:
             is_all_day_start = 'T' not in start_time
             if is_all_day_start:
@@ -467,32 +398,6 @@ def update_calendar_event(event_id: str, summary: str = "", start_time: str = ""
                         return "Error: end_time must be in ISO format with Z or offset if time_zone is not provided for update."
                     event['end'] = {'dateTime': end_time}
         
-=======
-        # Update start and end times if provided
-        if start_time:
-            is_all_day = 'T' not in start_time
-            if is_all_day:
-                # For all-day events
-                event['start'] = {'date': start_time}
-            else:
-                # For timed events
-                if not start_time.endswith('Z') and '+' not in start_time:
-                    start_time += 'Z'  # Add UTC marker if no timezone
-                event['start'] = {'dateTime': start_time}
-                
-        if end_time:
-            is_all_day = 'T' not in end_time
-            if is_all_day:
-                # For all-day events
-                event['end'] = {'date': end_time}
-            else:
-                # For timed events
-                if not end_time.endswith('Z') and '+' not in end_time:
-                    end_time += 'Z'  # Add UTC marker if no timezone
-                event['end'] = {'dateTime': end_time}
-        
-        # Update the event
->>>>>>> 324e16c (adding a2a elkar servers through MCP tools)
         updated_event = service.events().update(calendarId='primary', eventId=event_id, body=event).execute()
         
         return f"Event updated successfully!\nID: {updated_event.get('id')}\nLink: {updated_event.get('htmlLink')}"
@@ -546,13 +451,8 @@ class CrewAIWrapper:
         # Create an agent with calendar tools
         self.agent = Agent(
             role="Calendar Assistant",
-<<<<<<< HEAD
             goal="Help users access, create, update, and manage their Google Calendar. Coordinate with the Gmail Assistant for tasks requiring email access.",
             backstory="You are an expert calendar assistant. You can manage schedules, appointments, and events. You are also aware of a Gmail Assistant and can suggest using it if a user's request involves reading emails (e.g., to find event details sent via email) or sending email confirmations.",
-=======
-            goal="Help users access, create, update, and manage their calendar information",
-            backstory="You are an expert calendar assistant who can help users manage their schedule, appointments, and events efficiently.",
->>>>>>> 324e16c (adding a2a elkar servers through MCP tools)
             verbose=verbose,
             allow_delegation=False,
             tools=[
@@ -584,7 +484,6 @@ class CrewAIWrapper:
         Returns:
             The calendar information requested
         """
-<<<<<<< HEAD
         current_utc_date = datetime.utcnow().strftime('%Y-%m-%d')
         # Metaprompt for collaboration and date awareness
         metaprompt = (
@@ -600,8 +499,6 @@ class CrewAIWrapper:
             "If the request is purely about calendar functions (e.g., 'list my events for tomorrow', 'create an event for a meeting'), proceed as usual."
         )
 
-=======
->>>>>>> 324e16c (adding a2a elkar servers through MCP tools)
         # Check if this is a request to force re-authentication
         force_reauth = "force reauth" in prompt.lower() or "re-authenticate" in prompt.lower()
         
@@ -614,13 +511,8 @@ class CrewAIWrapper:
         # Create a dynamic task based on user input
         print(f"Calendar Prompt: {update_prompt}")
         task = CrewTask(
-<<<<<<< HEAD
             description=f"{metaprompt}\\n\\nUser request: {update_prompt}",
             expected_output="Retrieved or modified calendar information based on the user's request, or guidance to consult the Gmail assistant.",
-=======
-            description=f"Process the following calendar-related request: {update_prompt}",
-            expected_output="Retrieved or modified calendar information based on the user's request",
->>>>>>> 324e16c (adding a2a elkar servers through MCP tools)
             agent=self.agent,
             status={
                 "state": "submitted", 
@@ -651,11 +543,7 @@ async def setup_server():
     # Create the agent card - using proper AgentSkill objects
     agent_card = AgentCard(
         name="Google Calendar Assistant",
-<<<<<<< HEAD
         description="Manages Google Calendar. Can create, update, delete, and list events. Collaborates with the Gmail Assistant for tasks requiring email access (e.g., finding event details in emails).",
-=======
-        description="A specialized agent that helps users access and manage their Google Calendar, including creating, updating, and deleting events",
->>>>>>> 324e16c (adding a2a elkar servers through MCP tools)
         url="http://localhost:5002",
         version="1.0.0",
         skills=[
@@ -823,11 +711,6 @@ async def setup_server():
 if __name__ == "__main__":
     # Set up and run the server using uvicorn directly, avoiding asyncio conflict
     server = asyncio.run(setup_server())
-<<<<<<< HEAD
-
-=======
-    
->>>>>>> 324e16c (adding a2a elkar servers through MCP tools)
     print("Starting Elkar A2A server on http://localhost:5002")
     print("Press Ctrl+C to stop the server")
     

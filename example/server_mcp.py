@@ -56,10 +56,7 @@ async def send_task_to_a2a_agent(
     metadata: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """Send a task to an external Elkar A2A agent and retrieve the results.
-<<<<<<< HEAD
     Be careful, task are completely stateless, and therefore they are independent and the agent will not remember the context of previous interaction.
-=======
->>>>>>> 324e16c (adding a2a elkar servers through MCP tools)
     
     Args:
         agent_url: The base URL of the A2A agent to call (e.g., 'http://localhost:5001')
@@ -264,11 +261,7 @@ async def discover_a2a_agents(
     timeout: int = 10,
     headers: Optional[Dict[str, str]] = None
 ) -> Dict[str, Any]:
-<<<<<<< HEAD
     """Describe the available Elkar A2A agents and their capabilities.
-=======
-    """Discover available Elkar A2A agents and retrieve their agent cards.
->>>>>>> 324e16c (adding a2a elkar servers through MCP tools)
     
     Args:
         agent_urls: Optional list of URLs to check for A2A agents. If not provided, uses AGENT_URLS from environment.

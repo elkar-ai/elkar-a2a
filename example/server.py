@@ -25,10 +25,6 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.errors import HttpError
-<<<<<<< HEAD
-=======
-from fastmcp import FastMCP
->>>>>>> 324e16c (adding a2a elkar servers through MCP tools)
 
 # Elkar imports
 from elkar.a2a_types import (
@@ -66,38 +62,6 @@ GMAIL_SCOPES = [
 GMAIL_TOKEN_FILE = 'gmail_token.json'
 GMAIL_CREDENTIALS_FILE = 'credentials.json'
 
-
-
-# @tool
-# async def ask_required_inputs(
-#     message: str,
-#     ) -> str:
-#     """
-#     Ask the user for required inputs.
-#     Args:
-#         message: The message to display to the user
-#     Returns:
-#         The user's response"""
-#     #set the elkas tasks status from input.required to working. 
-#     # it kill the http connexion and wait for claude next http call
-#     #
-
-# Remove Animal color tool for CrewAI
-# @tool
-# def get_animal_color(animal: str) -> str:
-#     """
-#     Returns the color associated with the specified animal.
-#     Args:
-#         animal: Must be either 'cat' or 'dog'
-#     Returns:
-#         The color associated with the animal: 'red' for cat, 'blue' for dog
-#     """
-#     if animal.lower() == "cat":
-#         return "red"
-#     elif animal.lower() == "dog":
-#         return "blue"
-#     else:
-#         return f"Error: '{animal}' is not supported. Please specify either 'cat' or 'dog'."
 
 
 # Gmail API tools
@@ -249,13 +213,8 @@ class CrewAIWrapper:
         # Create the agent
         self.agent = Agent(
             role="Email Assistant",
-<<<<<<< HEAD
             goal="Help users access their email content. Coordinate with the Calendar Assistant for tasks requiring calendar management.",
             backstory="You are an expert email assistant. You can read and search emails. You are also aware of a Google Calendar Assistant and can suggest using it if a user's request involves creating, modifying, or querying calendar events (e.g., 'add this meeting to my calendar', 'what is my schedule for next Monday?').",
-=======
-            goal="Help users access their email content",
-            backstory="You are an email assistant who can help users access their email information.",
->>>>>>> 324e16c (adding a2a elkar servers through MCP tools)
             verbose=verbose,
             allow_delegation=False,
             tools=[read_emails, search_emails], # Removed get_animal_color
@@ -270,38 +229,7 @@ class CrewAIWrapper:
             process=Process.sequential,
         )
     
-    # async def get_animal_color(self, prompt: str) -> str: # Removed this method
-    #     """
-    #     Run the CrewAI agent to get animal color based on the prompt.
-    #     
-    #     Args:
-    #         prompt: The user's prompt for animal color
-    #         
-    #     Returns:
-    #         The animal color
-    #     """
-    #     # Create a dynamic task based on user input
-    #     print(f"Animal Prompt: {prompt}")
-    #     task = CrewTask(
-    #         description=f"Determine the animal color for: {prompt}",
-    #         expected_output="The color associated with the specified animal (red for cat, blue for dog)",
-    #         agent=self.agent,
-    #         status={
-    #             "state": "submitted", 
-    #             "created_at": datetime.now().isoformat()
-    #         }
-    #     )
-    #     # Update crew tasks and execute
-    #     self.crew.tasks = [task]
-    #     
-    #     # Run the crew in an executor to avoid blocking
-    #     loop = asyncio.get_event_loop()
-    #     result = await loop.run_in_executor(None, self.crew.kickoff)
-    #     # Extract string from CrewOutput object
-    #     if hasattr(result, 'raw'):
-    #         return str(result.raw)
-    #     return str(result)
-    
+ 
     async def process_email_query(self, prompt: str) -> str:
         """
         Run the CrewAI agent to process email queries.
@@ -312,7 +240,6 @@ class CrewAIWrapper:
         Returns:
             The email information requested
         """
-<<<<<<< HEAD
         # Metaprompt for collaboration
         metaprompt = (
             "You are the Gmail Assistant. If the user's request seems to require calendar operations "
@@ -326,8 +253,6 @@ class CrewAIWrapper:
             "If the request is purely about email functions (e.g., 'read my latest emails', 'search for emails from John'), proceed as usual."
         )
 
-=======
->>>>>>> 324e16c (adding a2a elkar servers through MCP tools)
         # Check if this is a request to force re-authentication
         force_reauth = "force reauth" in prompt.lower() or "re-authenticate" in prompt.lower()
         
@@ -340,13 +265,8 @@ class CrewAIWrapper:
         # Create a dynamic task based on user input
         print(f"Email Prompt: {update_prompt}")
         task = CrewTask(
-<<<<<<< HEAD
             description=f"{metaprompt}\\n\\nUser request: {update_prompt}",
             expected_output="Retrieved email information based on the user's request, or guidance to consult the Calendar assistant.",
-=======
-            description=f"Process the following email-related request: {update_prompt}",
-            expected_output="Retrieved email information based on the user's request",
->>>>>>> 324e16c (adding a2a elkar servers through MCP tools)
             agent=self.agent,
             status={
                 "state": "submitted", 
@@ -377,11 +297,7 @@ async def setup_server():
     # Create the agent card - using proper AgentSkill objects
     agent_card = AgentCard(
         name="Gmail Assistant",
-<<<<<<< HEAD
         description="Manages Gmail. Can read and search emails. Collaborates with the Google Calendar Assistant for tasks requiring calendar operations (e.g., creating events from email details).",
-=======
-        description="A specialized agent that helps users access their Gmail emails.",
->>>>>>> 324e16c (adding a2a elkar servers through MCP tools)
         url="http://localhost:5001",
         version="1.0.0",
         skills=[
