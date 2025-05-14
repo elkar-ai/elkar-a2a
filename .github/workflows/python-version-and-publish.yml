@@ -12,7 +12,7 @@ on:
 
 jobs:
   version-and-publish:
-    if: github.actor == 'laurentmeunier'
+    if: github.actor == 'LaurentMnr95'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
