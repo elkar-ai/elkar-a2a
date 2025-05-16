@@ -34,9 +34,9 @@ load_dotenv()
 # Define the Google Calendar API scopes - use multiple scopes to ensure we have proper permissions
 CALENDAR_SCOPES = [
     'https://www.googleapis.com/auth/calendar',       # Full access to all calendars
-    'https://www.googleapis.com/auth/calendar.events', # Full access to events on all calendars
-    'https://www.googleapis.com/auth/calendar.readonly', # Read-only access to calendars
-    'https://www.googleapis.com/auth/calendar.events.readonly' # Read-only access to events
+    # 'https://www.googleapis.com/auth/calendar.events', # Full access to events on all calendars
+    # 'https://www.googleapis.com/auth/calendar.readonly', # Read-only access to calendars
+    # 'https://www.googleapis.com/auth/calendar.events.readonly' # Read-only access to events
 ]
 CALENDAR_TOKEN_FILE = 'example/token.json'
 CALENDAR_CREDENTIALS_FILE = 'example/credentials.json'
@@ -594,7 +594,7 @@ def update_calendar_event(event_id: str, summary: str = "", start_time: str = ""
 class CrewAIWrapper:
     """Wrapper for CrewAI agents that handles calendar tasks."""
     
-    def __init__(self, verbose: bool = True, model_name: str = "gpt-3.5-turbo-0125"):
+    def __init__(self, verbose: bool = True, model_name: str = "gpt-4-turbo"):
         """Initialize the CrewAI wrapper with a calendar agent."""
         # Setup LLM
         openai_api_key_str = os.environ.get("OPENAI_API_KEY", "")
@@ -647,37 +647,30 @@ class CrewAIWrapper:
         # Metaprompt for collaboration, date awareness, input validation, preventing hallucinations, and conference creation
         metaprompt = (
             f"You are the Google Calendar Assistant. Today's UTC date is {current_utc_date}. "
-            "Your primary goal is to successfully fulfill the user's request using your available tools. You have a tool `create_calendar_event` that can automatically create a video conference link (like Google Meet) if `create_conference` is true (which it is by default)."
-            "You MUST NOT invent any information you are not explicitly given or cannot derive directly from your tool outputs. This is especially critical for personal information like email addresses or specific private details. "
-            "Before attempting to use any tool, ensure you have all necessary information. If critical information is missing, your response MUST be to ask the user for that information. Do not proceed with tool use if essential details are absent or unconfirmed. "
-            "For example: "
-            "- When creating events: You MUST have a summary, a start time, and an end time. "
-            "  - Attendee Emails: \n"
-            "    - If an attendee is mentioned by name (e.g., 'Invite Olga') AND THEIR EMAIL ADDRESS IS NOT PROVIDED IN THE USER'S REQUEST, your ONLY permissible action MUST be to ask the user for their email address. For example, if the user says 'Invite Olga', you MUST respond with a question like: 'What is Olga\'s email address so I can include her in the invitation?'. \n"
-            "    - You are ABSOLUTELY PROHIBITED from inventing email addresses or using any form of placeholder like 'name@example.com', 'user@domain.com', 'contact@somegenericdomain.org', etc., if an email is not explicitly provided by the user for that named attendee. Inventing or assuming an email address for an attendee is a critical failure of your task. Using 'example.com' or similar placeholder domains when an email was not given is strictly forbidden.\n"
-            "    - If the user *does* provide an email address that appears to be a generic placeholder (e.g., 'olga@example.com', 'test@test.net', 'info@company.com'), you MUST ask for confirmation before proceeding. For example: 'The email provided for Olga is olga@example.com. Is this the correct email address, or would you like to provide a different one?' Only proceed if they confirm it or provide a new one. Do not use the tool until this confirmation is received.\n"
-            "    - Final Pre-Tool-Call Check for Placeholder Attendee Emails: Before you use the `create_calendar_event` or `update_calendar_event` tools, critically examine the attendee list you are about to use. If ANY email address in that list for ANY attendee is a placeholder (e.g., uses domains like `example.com`, `example.org`, `test.net`, `yourdomain.com`, `anycompany.com`, `email.com`, `user.com`, or is clearly generic like `info@...`, `contact@...`, `admin@...`), YOU MUST NOT CALL THE TOOL. Instead, your direct output to the user MUST be a question asking for the correct, non-placeholder email for EACH such attendee. For example, if you were about to use `olga@example.com`, your response to the user should be: 'I need a valid email address for Olga. The email olga@example.com appears to be a placeholder. What is Olga\'s correct email address?' If there are multiple such emails, ask for all of them. Do not proceed with the event creation/update until you receive valid, non-placeholder email addresses for all intended attendees.\n"
-            # Enhanced Timezone Instructions:
-            "- Timezones and Calendar Event Time Handling:\n"
-            "  - CRITICAL: When creating or updating calendar events, the time MUST be handled correctly to prevent timezone mismatch issues where events appear at different times than intended. Do NOT make timezone conversions unless explicitly instructed.\n"
-            "  - If the user's prompt contains calendar timezone information (e.g., 'The user's Google Calendar is set to the Europe/Paris timezone'), you MUST use this information. In this case, when the user provides a local time (e.g., '5 PM'), use this time as-is with the specified time zone (e.g., `start_time='YYYY-MM-DDT17:00:00'` with `time_zone='Europe/Paris'`).\n"
-            "  - If the user provides a time with a specific timezone (e.g., '2 PM Paris time', '10 AM EST'), identify the IANA timezone (e.g., 'Europe/Paris', 'America/New_York'). You will use this for the 'time_zone' parameter of the 'create_calendar_event' or 'update_calendar_event' tool.\n"
-            "  - When you use the 'time_zone' parameter with an IANA timezone, the 'start_time' and 'end_time' parameters for the tool MUST be provided as local time strings in 'YYYY-MM-DDTHH:MM:SS' format for THAT IANA ZONE. For example, if the user says 'August 10th, 2 PM in Paris', and you determine the year is 2024, you should call the tool with `start_time=\'2024-08-10T14:00:00\'` and `time_zone=\'Europe/Paris\'`. Do NOT include 'Z' or any UTC offset like '+02:00' in the 'start_time' or 'end_time' strings when 'time_zone' is also being provided. Do NOT convert the time to UTC or any other timezone.\n"
-            "  - If the user provides time without any timezone information (e.g., 'tomorrow at 2 PM', '1:30 PM') or a relative time ('in 2 hours'), you MUST ask them to provide a specific IANA timezone (e.g., 'Europe/Paris', 'America/New_York') to use for the event. Do not assume a timezone. Explicitly state: Do NOT default to UTC or any other timezone in this scenario; you MUST get the IANA timezone from the user before proceeding with event creation/modification. If no IANA timezone is specified by the user for a local time, ask 'What timezone should I use for the time 1:30 PM? Please provide an IANA timezone like Europe/Paris or America/New_York.' \n"
-            "  - If the user provides a time already in full ISO 8601 format with a 'Z' or a UTC offset (e.g., '2024-05-15T13:30:00Z' or '2024-05-15T15:30:00+02:00'), then you should pass this time string directly as 'start_time'/'end_time' and you should *not* provide the 'time_zone' parameter (leave it empty/default).\n"
-            # Event creation verification:
-            "- Event Creation/Modification Verification:\n"
-            "  - After calling 'create_calendar_event' or 'update_calendar_event', you MUST carefully examine the response to verify that the event was actually created or updated successfully.\n"
-            "  - If the response includes error messages (like 'HTTP error', 'Permission error', 'Invalid event parameters', etc.), inform the user of the failure with exact details and suggest corrective actions.\n"
-            "  - If the response includes 'verification failed', tell the user there was an issue creating the event and they should check their calendar to see if it appears.\n"
-            "  - Only tell the user an event was successfully created if the response explicitly includes 'Event created successfully and verified'.\n"
-            "- Updating/Deleting Events: You MUST have the event_id. If not provided, ask the user for it. You can suggest they use 'list_upcoming_events' or 'search_calendar_events' to find the event ID. "
-            "- Adding Attendees (Update): If asked to add attendees to an existing event and you are given a name (e.g., 'Olga') but not their email address, your ONLY permissible action MUST be to ask the user for their email address (e.g., 'What is Olga\'s email address so I can update the invitation?'). Do not proceed if the email is missing. Using 'example.com' or similar is forbidden here too."
-            "- Ambiguous Times/Dates: If a date or time is ambiguous (e.g., 'next Tuesday', 'evening'), ask for clarification to get a specific date and time. "
-            "If any of the above critical pieces of information (summary, start time, end time for creation; event_id for updates/deletions; VALID and CONFIRMED attendee email addresses if attendees are specified by name; a specific IANA timezone if a local time without offset is given) is missing or unconfirmed, YOU MUST NOT USE ANY TOOL. Your response MUST BE a question to the user to obtain or confirm the missing information. Do not make assumptions or proceed with incomplete or invented data. This is paramount."
-            "If the user's request seems to require information from their emails (e.g., 'find Olga\'s actual email address'), suggest asking the Gmail Assistant. Do not attempt to directly access emails yourself. "
-            "If the request is purely about calendar functions and all necessary information is clearly provided and confirmed, proceed as usual."
+            "Your goal is to fulfill the user's request using your tools. You have a tool `create_calendar_event`, which automatically adds a video link (like Google Meet) if `create_conference` is true (default). "
+            "NEVER invent information, especially personal details like emails. Only use what's given or derived from tool output. "
+            "Before using any tool, ensure all critical info is present. If anything essential is missing, ASK the user for it—do NOT proceed without it. "
+            "To create events: you MUST have a summary, start time, and end time. "
+            "- Attendee emails:\n"
+            "  - If a person is mentioned (e.g., 'Meet with Olga'), assume they should be invited as an attendee.\n"
+            "  - Try to find their email using prior event history or from related emails.\n"
+            "  - If not found, ask the user to provide it using the Task input.required prompt (e.g., 'What is Olga's email address so I can send the invite?').\n"
+            "  - Do NOT invent or use placeholders like 'name@example.com'.\n"
+            "  - If an email looks generic (e.g., olga@example.com), ASK for confirmation before proceeding.\n"
+            "- Timezones:\n"
+            "  - Do NOT convert times unless told to. Use any provided IANA timezone (e.g., Europe/Paris) as-is.\n"
+            "  - If the time includes a named zone (e.g., '10 AM EST'), map it to IANA (e.g., America/New_York) and use it in the `time_zone` parameter.\n"
+            "  - If time is ISO 8601 with 'Z' or offset, pass it as-is without `time_zone`.\n"
+            "  - If the user gives time without timezone info (e.g., '2 PM'), you MUST ask for an IANA timezone. Never assume UTC.\n"
+            "- After using `create_calendar_event` or `update_calendar_event`, verify success. Only say it's successful if tool confirms with 'Event created successfully and verified'. Report errors clearly.\n"
+            "- For updates/deletes: you MUST have `event_id`. If missing, ask the user or suggest listing/searching events.\n"
+            "- Adding attendees: if only names are given, ask for email addresses. Do NOT proceed with placeholders.\n"
+            "- If times/dates are vague (e.g., 'evening', 'next Tuesday'), ask for exact info.\n"
+            "If any of the following is missing: summary, start/end time, valid/confirmed attendee emails, timezone for local time, or event_id (for updates), DO NOT USE ANY TOOL. Ask the user instead. "
+            "If the request needs info from emails, refer the user to the Gmail Assistant. Only act on calendar tasks if all data is present."
         )
+
+
 
         # Check if this is a request to force re-authentication
         force_reauth = "force reauth" in prompt.lower() or "re-authenticate" in prompt.lower()
@@ -849,88 +842,42 @@ async def setup_server():
                     )
                 )
             
-            # Inject calendar timezone information into the prompt if the request involves creating/updating events
-            calendar_related_keywords = ["schedule", "meeting", "appointment", "event", "calendar", "remind", "book"]
-            time_related_keywords = ["am", "pm", "today", "tomorrow", "next week", ":00", "o'clock"]
-            
-            if (any(keyword in user_prompt.lower() for keyword in calendar_related_keywords) and 
-                any(keyword in user_prompt.lower() for keyword in time_related_keywords)):
-                try:
-                    # Get the user's calendar timezone
-                    calendar_timezone = get_calendar_timezone()
-                    
-                    # Enhance the prompt with the calendar timezone information
-                    timezone_info = f"\n\nIMPORTANT: The user's Google Calendar is set to the '{calendar_timezone}' timezone. " + \
-                                   f"When creating or updating events without explicit timezone information, " + \
-                                   f"ALWAYS use the local time in '{calendar_timezone}' timezone " + \
-                                   f"with the time_zone parameter set to '{calendar_timezone}'. " + \
-                                   f"For example, if the user asks for an event at '5 PM', " + \
-                                   f"use start_time='YYYY-MM-DDT17:00:00' with time_zone='{calendar_timezone}'. " + \
-                                   f"DO NOT convert to UTC or any other timezone unless explicitly requested."
-                                   
-                    user_prompt += timezone_info
-                    print(f"Enhanced prompt with timezone info for calendar: {calendar_timezone}")
-                except Exception as e:
-                    print(f"Error getting calendar timezone: {str(e)}")
-            
-            # Add explicit instruction to NEVER use example.com domains
-            user_prompt += "\n\nCRITICAL: NEVER use emails with placeholder domains like example.com, test.com, or fake domains. If the user includes such placeholder emails, you MUST ask for real email addresses instead."
+            # Add a simple warning about placeholder emails
+            user_prompt += "\n\nNever use placeholder email domains like example.com."
             
             # Call CrewAI to process calendar query
             result = await crew_ai_wrapper.process_calendar_query(user_prompt)
             
             # Check for error indicators in the response
-            error_indicators = [
-                "HTTP error", "API error", "Permission error", "Calendar access error", 
-                "Invalid event parameters", "Error creating event", "verification failed",
-                "exception", "error occurred"
-            ]
-            
-            creation_failed = False
-            for indicator in error_indicators:
-                if indicator.lower() in result.lower():
-                    creation_failed = True
-                    print(f"Found error indicator in response: {indicator}")
-                    break
-            
-            # Check for placeholder domains in the result
-            if "example.com" in result or "example.org" in result or "test.com" in result:
-                # Return a INPUT_REQUIRED response to the client
-                await task.set_status(
-                    TaskStatus(
-                        state=TaskState.INPUT_REQUIRED,
-                        message=Message(
-                            role="agent",
-                            parts=[TextPart(text="I notice there's a placeholder email address like example.com in the calendar request. Please provide a valid email address instead of a placeholder.")],
-                        ),
-                    ),
-                    is_final=False,  # Mark as not final, expecting more input from user
-                )
-                return
-            
-            # If creation failed, set the task to FAILED with error details
-            if creation_failed:
+            if any(indicator in result.lower() for indicator in ["http error", "api error", "permission error"]):
                 await task.set_status(
                     TaskStatus(
                         state=TaskState.FAILED,
                         message=Message(
                             role="agent",
-                            parts=[TextPart(text=f"There was an issue creating or updating the calendar event: {result}")],
+                            parts=[TextPart(text=f"There was an issue with the calendar request: {result}")],
                         ),
                     ),
                     is_final=True,
                 )
                 return
             
+            # Check for placeholder domains in the result
+            if any(domain in result for domain in ["example.com", "example.org", "test.com"]):
+                await task.set_status(
+                    TaskStatus(
+                        state=TaskState.INPUT_REQUIRED,
+                        message=Message(
+                            role="agent",
+                            parts=[TextPart(text="I notice there's a placeholder email address in the request. Please provide a valid email address.")],
+                        ),
+                    ),
+                    is_final=False,
+                )
+                return
+            
             # Check if the agent is asking for more information
-            # Simple heuristic: check for question marks or common question phrases
-            is_question = result.strip().endswith("?") or \
-                          any(phrase in result.lower() for phrase in 
-                              ["what ", "which ", "when ", "who ", "how ", 
-                               "could you specify", "please provide", "do you mean", "clarify"])
-
-            if is_question:
-                # Agent is asking for more information, set state to INPUT_REQUIRED
+            if result.strip().endswith("?") or any(phrase in result.lower() for phrase in ["please provide", "do you mean", "clarify"]):
                 await task.set_status(
                     TaskStatus(
                         state=TaskState.INPUT_REQUIRED,
@@ -972,7 +919,7 @@ async def setup_server():
                     state=TaskState.FAILED,
                     message=Message(
                         role="agent",
-                        parts=[TextPart(text=error_message)],
+                        parts=[TextPart(text=f"Error processing request: {str(e)}")],
                     ),
                 ),
                 is_final=True,
