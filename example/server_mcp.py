@@ -8,13 +8,11 @@ import os
 import json
 import datetime
 from dotenv import load_dotenv
-# from api_client import BreezyAIClient, SupabasePasswordCredentials
 from pydantic import AnyUrl
 import mcp.server.stdio
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-# from database_schema import DATABASE_SCHEMA
 import asyncpg
 import urllib.parse
 import uuid
