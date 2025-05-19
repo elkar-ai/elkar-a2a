@@ -1,4 +1,4 @@
-use axum::{extract::Path, Json};
+use axum::{Json, extract::Path};
 use utoipa_axum::{router::OpenApiRouter, routes};
 
 use crate::{
@@ -12,7 +12,7 @@ use crate::{
 use super::schemas::{RetrieveTasksInput, TaskResponse};
 
 pub fn task_app_router() -> OpenApiRouter {
-    OpenApiRouter::new().routes(routes!(ep_retrieve_tasks, ep_get_task))
+    OpenApiRouter::new().routes(routes!(ep_retrieve_tasks, ep_get_task,))
 }
 
 #[utoipa::path(

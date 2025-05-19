@@ -1,4 +1,4 @@
-use agent2agent::{Task as A2ATask, TaskPushNotificationConfig};
+use agent2agent::{Task as A2ATask, TaskPushNotificationConfig, TaskSendParams};
 use chrono::{DateTime, Utc};
 use database_schema::enum_definitions::task::{TaskState, TaskType};
 use serde::{Deserialize, Serialize};

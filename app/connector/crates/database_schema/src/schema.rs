@@ -67,6 +67,19 @@ diesel::table! {
 
 diesel::table! {
     use diesel::sql_types::*;
+
+    debugger_history (id) {
+        tenant_id -> Uuid,
+        id -> Uuid,
+        task_id -> Text,
+        url -> Text,
+        payload -> Jsonb,
+        created_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
     use super::sql_types::TaskState;
     use super::sql_types::TaskType;
 
@@ -171,6 +184,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     agent,
     api_key,
     application_user,
+    debugger_history,
     task,
     task_event,
     task_event_subscription,

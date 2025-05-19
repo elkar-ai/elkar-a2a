@@ -2,9 +2,9 @@ use crate::extensions::extractors::user_context::UserContext;
 
 use crate::handler::agent::routes::agent_router;
 use crate::handler::api_key::routes::api_key_router;
+use crate::handler::debugger::routes::debugger_router;
 use crate::handler::task::routes::task_app_router;
 use crate::handler::task_event::routes::task_event_router;
-
 use crate::handler::tenant::routes::tenant_router;
 use crate::handler::user::routes::user_router;
 use crate::handler_api::task::routes::task_api_router;
@@ -35,6 +35,7 @@ pub fn build_router() -> OpenApiRouter {
         .merge(api_key_router())
         .merge(task_app_router())
         .merge(task_event_router())
+        .merge(debugger_router())
 }
 
 pub fn build_api_router() -> OpenApiRouter {

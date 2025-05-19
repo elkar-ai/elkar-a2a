@@ -19,6 +19,7 @@ import {
   Configuration,
   TaskApi,
   RequestContext,
+  DebuggerHistoryApi,
 } from "../../generated-api";
 import { getAccessToken } from "./accessToken";
 import getTenantId from "./tenantId";
@@ -50,4 +51,5 @@ export const apiConfig = new Configuration({
 
 // Create API instance with dynamic token fetching
 export const taskApi = new TaskApi(apiConfig);
+export const debuggerHistoryApi = new DebuggerHistoryApi(apiConfig);
 export const api = new DefaultApi(apiConfig);

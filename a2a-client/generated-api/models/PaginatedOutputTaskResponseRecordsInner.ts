@@ -73,6 +73,12 @@ export interface PaginatedOutputTaskResponseRecordsInner {
     pushNotification?: TaskPushNotificationConfig | null;
     /**
      * 
+     * @type {string}
+     * @memberof PaginatedOutputTaskResponseRecordsInner
+     */
+    serverAgentUrl?: string | null;
+    /**
+     * 
      * @type {TaskType}
      * @memberof PaginatedOutputTaskResponseRecordsInner
      */
@@ -83,6 +89,12 @@ export interface PaginatedOutputTaskResponseRecordsInner {
      * @memberof PaginatedOutputTaskResponseRecordsInner
      */
     updatedAt: Date;
+    /**
+     * 
+     * @type {string}
+     * @memberof PaginatedOutputTaskResponseRecordsInner
+     */
+    userId?: string | null;
 }
 
 
@@ -114,8 +126,10 @@ export function PaginatedOutputTaskResponseRecordsInnerFromJSONTyped(json: any, 
         'createdAt': (new Date(json['created_at'])),
         'id': json['id'],
         'pushNotification': json['push_notification'] == null ? undefined : TaskPushNotificationConfigFromJSON(json['push_notification']),
+        'serverAgentUrl': json['server_agent_url'] == null ? undefined : json['server_agent_url'],
         'taskType': TaskTypeFromJSON(json['task_type']),
         'updatedAt': (new Date(json['updated_at'])),
+        'userId': json['user_id'] == null ? undefined : json['user_id'],
     };
 }
 
@@ -135,8 +149,10 @@ export function PaginatedOutputTaskResponseRecordsInnerToJSONTyped(value?: Pagin
         'created_at': ((value['createdAt']).toISOString()),
         'id': value['id'],
         'push_notification': TaskPushNotificationConfigToJSON(value['pushNotification']),
+        'server_agent_url': value['serverAgentUrl'],
         'task_type': TaskTypeToJSON(value['taskType']),
         'updated_at': ((value['updatedAt']).toISOString()),
+        'user_id': value['userId'],
     };
 }
 

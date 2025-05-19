@@ -14,7 +14,6 @@ import {
   TaskArtifactUpdateEvent,
   AgentCard,
 } from "../types/a2aTypes";
-
 class A2AClient {
   private baseUrl: string;
 
@@ -36,7 +35,7 @@ class A2AClient {
   }
 
   private async sendRequest<T extends JSONRPCResponse<any>, RequestParams>(
-    request: JSONRPCRequest<RequestParams>
+    request: JSONRPCRequest<RequestParams>,
   ): Promise<T> {
     console.log("Sending request:", JSON.stringify(request, null, 2));
     try {
@@ -49,7 +48,7 @@ class A2AClient {
         if (error.response) {
           console.error("Error response:", error.response.data);
           throw new Error(
-            `HTTP Error ${error.response.status}: ${error.response.statusText}`
+            `HTTP Error ${error.response.status}: ${error.response.statusText}`,
           );
         } else if (error.request) {
           console.error("No response received:", error.request);
@@ -59,7 +58,7 @@ class A2AClient {
       throw new Error(
         `Failed to send request: ${
           error instanceof Error ? error.message : String(error)
-        }`
+        }`,
       );
     }
   }
@@ -67,7 +66,7 @@ class A2AClient {
   public async sendTask(params: TaskSendParams): Promise<Task> {
     const request = createJsonRpcRequest("tasks/send", params);
     const response = await this.sendRequest<SendTaskResponse, TaskSendParams>(
-      request
+      request,
     );
 
     if (response.error) {
@@ -82,7 +81,7 @@ class A2AClient {
 
   public async getTask(
     taskId: string,
-    historyLength?: number
+    historyLength?: number,
   ): Promise<Task | null> {
     const params: TaskQueryParams = {
       id: taskId,
@@ -91,7 +90,7 @@ class A2AClient {
 
     const request = createJsonRpcRequest("tasks/get", params);
     const response = await this.sendRequest<GetTaskResponse, TaskQueryParams>(
-      request
+      request,
     );
 
     if (response.error) {
@@ -104,7 +103,7 @@ class A2AClient {
   public async cancelTask(params: TaskIdParams): Promise<Task | null> {
     const request = createJsonRpcRequest("tasks/cancel", params);
     const response = await this.sendRequest<CancelTaskResponse, TaskIdParams>(
-      request
+      request,
     );
 
     if (response.error) {
@@ -116,7 +115,7 @@ class A2AClient {
 
   public async sendStreamingRequest<T, U>(
     request: JSONRPCRequest<T>,
-    onChunk: (chunk: U) => void
+    onChunk: (chunk: U) => void,
   ): Promise<void> {
     const response = await axios({
       url: this.baseUrl,
@@ -167,7 +166,7 @@ class A2AClient {
 
   public async streamTask(
     params: TaskSendParams,
-    onUpdate: (update: TaskStatusUpdateEvent | TaskArtifactUpdateEvent) => void
+    onUpdate: (update: TaskStatusUpdateEvent | TaskArtifactUpdateEvent) => void,
   ): Promise<void> {
     const request = createJsonRpcRequest("tasks/sendSubscribe", params);
     await this.sendStreamingRequest<

@@ -4,6 +4,7 @@ import { useUrl } from "../../contexts/UrlContext";
 
 import SendTaskPanel from "../features/SendTaskPanel";
 import AgentCard from "../features/AgentCard";
+import DebuggerHistoryPanel from "../features/DebuggerHistoryPanel";
 import A2AClient from "../../services/a2aClient";
 
 const PageContainer = styled.div`
@@ -110,7 +111,9 @@ const TabContentContainer = styled.div`
 
 const A2ADebuggerPage: React.FC = () => {
   const { endpoint, setEndpoint } = useUrl();
-  const [activeTab, setActiveTab] = useState<"agent" | "task">("agent");
+  const [activeTab, setActiveTab] = useState<"agent" | "task" | "history">(
+    "agent",
+  );
   const [urlError, setUrlError] = useState<string | null>(null);
   const [isCheckingUrl, setIsCheckingUrl] = useState<boolean>(true);
   const a2aApiEndpoint = new A2AClient(endpoint);
@@ -172,11 +175,18 @@ const A2ADebuggerPage: React.FC = () => {
             >
               Task Debugger
             </TabButton>
+            <TabButton
+              active={activeTab === "history"}
+              onClick={() => setActiveTab("history")}
+            >
+              History
+            </TabButton>
           </TabsContainer>
 
           <TabContentContainer>
             {activeTab === "agent" && <AgentCard />}
             {activeTab === "task" && <SendTaskPanel />}
+            {activeTab === "history" && <DebuggerHistoryPanel />}
           </TabContentContainer>
         </>
       )}

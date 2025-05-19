@@ -15,6 +15,9 @@ import { FullTaskPanel } from "./TaskResultPanel";
 import { v4 as uuidv4 } from "uuid";
 import { useSearchParams } from "react-router";
 import { SendMessageArea } from "./SendMessageArea";
+import { DebuggerHistoryApi } from "../../../generated-api/apis/DebuggerHistoryApi";
+import { Configuration } from "../../../generated-api/runtime";
+import { StoreA2ADebuggerHistoryInput } from "../../../generated-api/models";
 
 const Container = styled.div`
   height: 100%;
@@ -226,6 +229,30 @@ const SendTaskPanel: React.FC<SendTaskPanelProps> = ({
     new Set(),
   );
 
+  // Setup debugger history API
+  const apiConfig = new Configuration({
+    basePath: endpoint,
+  });
+  const debuggerHistoryApi = new DebuggerHistoryApi(apiConfig);
+
+  // Helper function to store task in history
+  const storeTaskInHistory = async (task: Task) => {
+    if (!endpoint) return;
+
+    try {
+      const payload: StoreA2ADebuggerHistoryInput = {
+        url: endpoint,
+        payload: task,
+      };
+
+      await debuggerHistoryApi.epStoreDebuggerHistory({
+        storeA2ADebuggerHistoryInput: payload,
+      });
+    } catch (error) {
+      console.error("Failed to store task in debugger history:", error);
+    }
+  };
+
   // Effect for auto-generating a task ID if none provided
   useEffect(() => {
     if (!propTaskId && taskIdFromSearch === null && !readOnly) {
@@ -313,14 +340,63 @@ const SendTaskPanel: React.FC<SendTaskPanelProps> = ({
 
   const sendTaskMutation = useMutation({
     mutationFn: async (params: TaskSendParams) => {
+      // We'll store a simplified version for the debugger history
+      const simplePayload: StoreA2ADebuggerHistoryInput = {
+        url: endpoint,
+        payload: {
+          id: params.id,
+          metadata: {
+            userInitiated: true,
+            timestamp: new Date().toISOString(),
+          },
+        },
+      };
+
+      // Store initial task info in history
+      try {
+        await debuggerHistoryApi.epStoreDebuggerHistory({
+          storeA2ADebuggerHistoryInput: simplePayload,
+        });
+      } catch (error) {
+        console.error("Error storing initial task in debugger history:", error);
+      }
+
       if (streaming) {
+        // For streaming tasks, send the task
         await apiClient.streamTask(params, (data) => {
           setStreamingMessages((prev) => [...prev, data]);
           getTaskClientQuery.refetch();
         });
+
+        // Refetch the full task to get final state
+        try {
+          const taskData = await apiClient.getTask(params.id);
+          if (taskData) {
+            // Update history with complete task data
+            await debuggerHistoryApi.epStoreDebuggerHistory({
+              storeA2ADebuggerHistoryInput: {
+                url: endpoint,
+                payload: taskData,
+              },
+            });
+          }
+        } catch (error) {
+          console.error(
+            "Error updating streaming task in debugger history:",
+            error,
+          );
+        }
+
         return undefined;
       }
+
       const result = await apiClient.sendTask(params);
+
+      // Update the history with the complete task result
+      if (result) {
+        await storeTaskInHistory(result);
+      }
+
       return result?.history?.[result.history.length - 1];
     },
     onSettled() {

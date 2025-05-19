@@ -1,5 +1,6 @@
 pub mod agent;
 pub mod api_key;
+pub mod debugger;
 pub mod task;
 pub mod task_event;
 pub mod tenant;

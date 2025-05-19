@@ -9,3 +9,4 @@ export { default as ListAgents } from "./ListAgents";
 export { default as AgentSidebar } from "./AgentSidebar";
 export { default as AgentDashboard } from "./AgentDashboard";
 export { default as CreateAgentModal } from "./CreateAgentModal";
+export { default as DebuggerHistoryPanel } from "./DebuggerHistoryPanel";
