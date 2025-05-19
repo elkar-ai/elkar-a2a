@@ -117,12 +117,23 @@ def get_gmail_service(force_reauth: bool = False):
 @tool
 def read_emails(max_results: int = 10, force_reauth: bool = False) -> str:
     """
-    Reads a specified number of emails from the user's inbox.
+    Retrieves a list of recent emails from the user's primary Gmail inbox.
+
+    This function connects to the Gmail API, fetches the most recent emails
+    (up to a specified maximum number), and extracts key information such as
+    sender, subject, date, and a snippet of the email body.
+
     Args:
-        max_results: Maximum number of emails to retrieve
-        force_reauth: Whether to force re-authentication
+        max_results: The maximum number of emails to retrieve. Defaults to 10.
+                     This helps control the amount of data returned and API usage.
+        force_reauth: If True, forces the Gmail API to re-authenticate by deleting
+                      any existing token. This is useful if there are persistent
+                      authentication issues. Defaults to False.
+
     Returns:
-        A string with email information
+        A string containing the formatted information for each retrieved email,
+        separated by '---'. If no messages are found, it returns "No messages found.".
+        In case of an API error or other exception, it returns an error message.
     """
     try:
         service = get_gmail_service(force_reauth=force_reauth)
@@ -158,13 +169,26 @@ def read_emails(max_results: int = 10, force_reauth: bool = False) -> str:
 @tool
 def search_emails(query: str, max_results: int = 10, force_reauth: bool = False) -> str:
     """
-    Searches emails based on a Gmail search query.
+    Searches the user's Gmail inbox for emails matching a specific query.
+
+    This function utilizes the Gmail API's search capabilities to find emails
+    that match the provided search query string (e.g., 'from:boss@example.com',
+    'subject:project update'). It then retrieves and formats details for
+    each matching email, including sender, subject, date, and a snippet.
+
     Args:
-        query: Gmail search query (e.g., 'from:example@gmail.com')
-        max_results: Maximum number of results to return
-        force_reauth: Whether to force re-authentication
+        query: The Gmail search query string. This uses standard Gmail search
+               operators (e.g., 'from:', 'to:', 'subject:', 'is:unread').
+        max_results: The maximum number of matching emails to retrieve.
+                     Defaults to 10.
+        force_reauth: If True, forces the Gmail API to re-authenticate.
+                      Defaults to False.
+
     Returns:
-        A string with matching email information
+        A string containing the formatted information for each matching email,
+        separated by '---'. If no messages match the query, it returns
+        "No messages found matching query: <query>". In case of an API error
+        or other exception, it returns an error message.
     """
     try:
         service = get_gmail_service(force_reauth=force_reauth)
@@ -200,14 +224,25 @@ def search_emails(query: str, max_results: int = 10, force_reauth: bool = False)
 @tool
 def send_email(to: str, subject: str, body: str, force_reauth: bool = False) -> str:
     """
-    Sends an email to a specified recipient with a given subject and body.
+    Composes and sends an email using the user's Gmail account.
+
+    This function takes the recipient's email address, the subject line, and
+    the plain text body of the email. It then constructs a MIME message and
+    uses the Gmail API to send the email. Line breaks in the body are preserved.
+
     Args:
-        to: The email address of the recipient.
-        subject: The subject of the email.
-        body: The plain text body of the email.
-        force_reauth: Whether to force re-authentication.
+        to: The email address of the recipient (e.g., 'recipient@example.com').
+        subject: The subject line of the email.
+        body: The plain text content of the email. Line breaks (e.g., '\n')
+              will be rendered as new lines in the sent email.
+        force_reauth: If True, forces the Gmail API to re-authenticate.
+                      Defaults to False.
+
     Returns:
-        A string confirming the email was sent or an error message.
+        A string confirming that the email was sent successfully, including the
+        Message ID, (e.g., "Email sent successfully to <to>. Message ID: <id>").
+        If an error occurs during the process (e.g., API error, invalid email
+        format), it returns an error message detailing the issue.
     """
     try:
         import email.mime.text

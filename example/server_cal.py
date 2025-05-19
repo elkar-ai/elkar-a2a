@@ -99,13 +99,29 @@ def get_calendar_service(force_reauth: bool = False):
 @tool
 def list_upcoming_events(max_results: int = 10, time_min_days: int = 0, force_reauth: bool = False) -> str:
     """
-    Lists upcoming events from the user's primary calendar.
+    Retrieves a list of upcoming events from the user's primary Google Calendar.
+
+    This function queries the Google Calendar API for events starting from a specified
+    number of days from the current moment (or today if `time_min_days` is 0).
+    It fetches event details such as summary (title), start time, location,
+    description, and event ID. The start time is formatted for readability.
+    Descriptions longer than 100 characters are truncated.
+
     Args:
-        max_results: Maximum number of events to retrieve
-        time_min_days: Number of days from now to start looking for events (0 = today)
-        force_reauth: Whether to force re-authentication
+        max_results: The maximum number of upcoming events to retrieve.
+                     Defaults to 10.
+        time_min_days: The number of days from the current time to start listing
+                       events. For example, 0 means starting from today,
+                       1 means starting from tomorrow. Defaults to 0.
+        force_reauth: If True, forces the Google Calendar API to re-authenticate
+                      by deleting any existing token. Useful for resolving
+                      authentication issues. Defaults to False.
+
     Returns:
-        A string with upcoming event information
+        A string containing formatted information for each upcoming event,
+        separated by '---'. If no events are found, it returns
+        "No upcoming events found.". In case of an API error or other
+        exception, it returns an error message.
     """
     try:
         service = get_calendar_service(force_reauth=force_reauth)
@@ -168,13 +184,27 @@ def list_upcoming_events(max_results: int = 10, time_min_days: int = 0, force_re
 @tool
 def search_calendar_events(query: str, max_results: int = 10, force_reauth: bool = False) -> str:
     """
-    Searches for events in the user's primary calendar based on a query.
+    Searches for events in the user's primary Google Calendar that match a given query.
+
+    This function uses the Google Calendar API to find events based on a textual query.
+    It looks for matches in event titles, descriptions, attendees, etc. For each
+    matching event, it retrieves and formats details like summary, start time,
+    location, description, and event ID. Start times are formatted for clarity,
+    and long descriptions are truncated.
+
     Args:
-        query: Search query (e.g., 'meeting', 'dinner', etc.)
-        max_results: Maximum number of events to retrieve
-        force_reauth: Whether to force re-authentication
+        query: The search term or query string to use for finding events.
+               For example, "meeting with John" or "dentist appointment".
+        max_results: The maximum number of matching events to retrieve.
+                     Defaults to 10.
+        force_reauth: If True, forces the Google Calendar API to re-authenticate.
+                      Defaults to False.
+
     Returns:
-        A string with matching event information
+        A string containing formatted information for each matching event,
+        separated by '---'. If no events match the query, it returns
+        "No events found matching query: <query>". In case of an API error
+        or other exception, it returns an error message.
     """
     try:
         service = get_calendar_service(force_reauth=force_reauth)
@@ -234,12 +264,24 @@ def search_calendar_events(query: str, max_results: int = 10, force_reauth: bool
 @tool
 def get_calendar_details(days: int = 7, force_reauth: bool = False) -> str:
     """
-    Gets detailed information about the user's primary calendar and upcoming events.
+    Retrieves general details about the user's primary Google Calendar and a summary of upcoming events.
+
+    This function fetches metadata about the primary calendar, including its name,
+    ID, time zone, and description. It also calculates and returns the number
+    of events scheduled within a specified number of upcoming days.
+
     Args:
-        days: Number of days to look ahead for events
-        force_reauth: Whether to force re-authentication
+        days: The number of days into the future to look for counting events.
+              For example, a value of 7 will count events in the next 7 days.
+              Defaults to 7.
+        force_reauth: If True, forces the Google Calendar API to re-authenticate.
+                      Defaults to False.
+
     Returns:
-        A string with calendar information
+        A string containing the calendar's name, ID, time zone, description,
+        and the count of events in the specified upcoming period. Each piece
+        of information is on a new line. In case of an API error or other
+        exception, it returns an error message.
     """
     try:
         service = get_calendar_service(force_reauth=force_reauth)
@@ -280,12 +322,21 @@ def get_calendar_details(days: int = 7, force_reauth: bool = False) -> str:
 @tool
 def delete_calendar_event(event_id: str, force_reauth: bool = False) -> str:
     """
-    Deletes an event from the user's primary calendar.
+    Deletes a specific event from the user's primary Google Calendar.
+
+    This function uses the Google Calendar API to remove an event identified by its unique ID.
+
     Args:
-        event_id: ID of the event to delete
-        force_reauth: Whether to force re-authentication
+        event_id: The unique identifier of the calendar event to be deleted.
+                  This ID can typically be obtained from functions like
+                  `list_upcoming_events` or `search_calendar_events`.
+        force_reauth: If True, forces the Google Calendar API to re-authenticate.
+                      Defaults to False.
+
     Returns:
-        A confirmation message
+        A string confirming the successful deletion of the event, e.g.,
+        "Event with ID <event_id> deleted successfully!". If an error occurs
+        (e.g., event not found, permission issues), it returns an error message.
     """
     try:
         service = get_calendar_service(force_reauth=force_reauth)
@@ -374,19 +425,45 @@ def create_calendar_event(summary: str, start_time: str, end_time: str,
                          create_conference: bool = True,
                          force_reauth: bool = False) -> str:
     """
-    Creates a new event in the user's primary calendar.
+    Creates a new event in the user's primary Google Calendar with specified details.
+
+    This function allows for the creation of a new calendar event, including its title (summary),
+    start and end times, description, location, and attendees. It can also automatically
+    generate a Google Meet conference link for the event.
+
+    Time Handling:
+    - If `time_zone` is provided (e.g., 'Europe/Paris'), `start_time` and `end_time` should be
+      in 'YYYY-MM-DDTHH:MM:SS' format and are considered local to that timezone.
+    - If `time_zone` is NOT provided, `start_time` and `end_time` MUST be in full ISO 8601
+      format with a UTC offset (e.g., '2023-10-26T10:00:00-07:00') or 'Z' for UTC
+      (e.g., '2023-10-26T17:00:00Z').
+    - For all-day events, `start_time` and `end_time` should be in 'YYYY-MM-DD' format,
+      and `time_zone` is not applicable in the same way (the event spans the whole day
+      regardless of timezone for display, but Google Calendar handles the underlying UTC).
+
     Args:
-        summary: Title of the event.
-        start_time: Start time in 'YYYY-MM-DDTHH:MM:SS' format (if time_zone is provided) or full ISO 8601 format with offset/Z (if time_zone is not provided). For all-day events, use 'YYYY-MM-DD'.
-        end_time: End time in 'YYYY-MM-DDTHH:MM:SS' format (if time_zone is provided) or full ISO 8601 format with offset/Z (if time_zone is not provided). For all-day events, use 'YYYY-MM-DD'.
-        description: Optional description of the event.
-        location: Optional location of the event.
-        time_zone: Optional IANA time zone name (e.g., 'Europe/Paris', 'America/New_York'). If provided, start_time and end_time are considered local to this timezone. Otherwise, they must include timezone information (offset or 'Z').
-        attendees: Optional list of email addresses for attendees to invite.
-        create_conference: Whether to automatically create a video conference link for the event (defaults to True).
-        force_reauth: Whether to force re-authentication.
+        summary: The title or summary of the event (e.g., "Team Meeting").
+        start_time: The start date/time of the event. Format depends on whether `time_zone`
+                    is provided and if it's an all-day event. See Time Handling notes.
+        end_time: The end date/time of the event. Format follows the same rules as `start_time`.
+        description: An optional detailed description for the event.
+        location: An optional location for the event (e.g., "Conference Room 4" or an address).
+        time_zone: Optional. The IANA time zone name for `start_time` and `end_time`
+                   (e.g., 'America/New_York', 'Europe/London'). If not provided, times must
+                   include offset information.
+        attendees: An optional list of email addresses of people to invite to the event.
+                   (e.g., ['user1@example.com', 'user2@example.com']).
+        create_conference: If True (default), attempts to create a Google Meet conference
+                           link for the event. Set to False to not create one.
+        force_reauth: If True, forces the Google Calendar API to re-authenticate.
+                      Defaults to False.
+
     Returns:
-        A string with the created event information.
+        A string confirming the successful creation of the event, including its ID, a web link
+        to the event, and a conference link if generated (e.g., "Event created successfully and verified!\nID: <id>\nLink: <htmlLink>\nConference Link: <uri>").
+        If `create_conference` was True but no link was generated, a note is added.
+        Returns an error message if the event creation fails due to API errors, permission
+        issues, invalid parameters, or event conflicts.
     """
     try:
         service = get_calendar_service(force_reauth=force_reauth)
@@ -504,20 +581,39 @@ def update_calendar_event(event_id: str, summary: str = "", start_time: str = ""
                          attendees_to_remove: Optional[List[str]] = None, 
                          force_reauth: bool = False) -> str:
     """
-    Updates an existing event in the user's primary calendar. Can update details and/or attendees.
+    Updates an existing event in the user's primary Google Calendar.
+
+    This function allows modification of various properties of an existing calendar event,
+    identified by its `event_id`. Fields that are not provided or are empty strings (for textual
+    fields) will not be updated. Attendee lists can be modified by providing lists of emails
+    to add or remove.
+
+    Time Handling for Updates:
+    - Similar to `create_calendar_event`, if `start_time` or `end_time` are being updated AND
+      `time_zone` is provided, the times are local to that zone.
+    - If `time_zone` is not provided when updating times, the new `start_time` and `end_time`
+      must include UTC offset or 'Z'.
+    - To convert an event to all-day or change an all-day event's date, provide `start_time`
+      and `end_time` in 'YYYY-MM-DD' format.
+
     Args:
-        event_id: ID of the event to update.
-        summary: New title of the event (optional).
-        start_time: New start time in 'YYYY-MM-DDTHH:MM:SS' format (if time_zone is provided) or full ISO 8601 format with offset/Z (if time_zone is not provided). For all-day events, use 'YYYY-MM-DD' (optional).
-        end_time: New end time in 'YYYY-MM-DDTHH:MM:SS' format (if time_zone is provided) or full ISO 8601 format with offset/Z (if time_zone is not provided). For all-day events, use 'YYYY-MM-DD' (optional).
-        description: New description of the event (optional).
-        location: New location of the event (optional).
-        time_zone: Optional IANA time zone name (e.g., 'Europe/Paris'). If provided and start/end times are being updated, these times are local to this zone.
-        attendees_to_add: Optional list of email addresses for attendees to add to the event.
-        attendees_to_remove: Optional list of email addresses for attendees to remove from the event.
-        force_reauth: Whether to force re-authentication.
+        event_id: The unique ID of the event to be updated.
+        summary: Optional. The new title for the event. If empty, not updated.
+        start_time: Optional. The new start date/time. See Time Handling notes. If empty, not updated.
+        end_time: Optional. The new end date/time. See Time Handling notes. If empty, not updated.
+        description: Optional. The new description for the event. If empty, not updated.
+        location: Optional. The new location for the event. If empty, not updated.
+        time_zone: Optional. The IANA time zone for updated `start_time` and `end_time`.
+        attendees_to_add: Optional. A list of email addresses to add as attendees.
+        attendees_to_remove: Optional. A list of email addresses to remove from attendees.
+        force_reauth: If True, forces the Google Calendar API to re-authenticate.
+                      Defaults to False.
+
     Returns:
-        A string with the updated event information or an error message.
+        A string confirming the successful update of the event, including its ID and web link
+        (e.g., "Event updated successfully!\nID: <id>\nLink: <htmlLink>").
+        Returns an error message if the update fails (e.g., event not found, API error,
+        permission issues).
     """
     try:
         service = get_calendar_service(force_reauth=force_reauth)

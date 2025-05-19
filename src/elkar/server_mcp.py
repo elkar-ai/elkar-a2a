@@ -53,19 +53,35 @@ async def send_task_to_a2a_agent(
     timeout: int = 300,
     metadata: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
-    """Send a task to an external Elkar A2A agent and retrieve the results.
-    Be careful, task are completely stateless, and therefore they are independent and the agent will not remember the context of previous interaction.
-    
+    """Sends a task to a specified Elkar A2A (Agent-to-Agent) compliant agent and awaits its response.
+
+    This function facilitates communication with external AI agents that adhere to the Elkar A2A protocol.
+    It constructs a task with the given message and parameters, sends it to the target agent's URL,
+    and then processes the agent's response. The interaction is stateless, meaning each call is independent,
+    and the remote agent does not retain context from previous calls unless explicitly managed within the task itself.
+
+    The function first attempts to retrieve the agent's 'card' (a summary of its capabilities and identity)
+    to ensure connectivity and gather basic information. If successful, it proceeds to send the actual task.
+    The response from the agent, which includes the task's final status, any generated artifacts (results),
+    and potential error messages, is then parsed and returned.
+
     Args:
-        agent_url: The base URL of the A2A agent to call (e.g., 'http://localhost:5001')
-        task_message: The content of the task to send to the agent
-        task_id: Optional custom task ID (defaults to auto-generated UUID)
-        headers: Optional HTTP headers for authentication or other purposes
-        timeout: Timeout in seconds (default: 300)
-        metadata: Optional metadata to include with the task
-        
+        ctx: The MCP (Multi-Capability Platform) context object, providing access to platform features.
+        agent_url: The complete base URL of the target Elkar A2A agent (e.g., 'http://localhost:5001').
+        task_message: The primary content or instruction for the task to be performed by the remote agent.
+        task_id: An optional custom identifier for the task. If not provided, a unique UUID will be automatically generated.
+        headers: Optional dictionary of HTTP headers to include in the request, typically for authentication (e.g., API keys) or custom routing.
+        timeout: The maximum time in seconds to wait for a response from the A2A agent. Defaults to 300 seconds (5 minutes).
+        metadata: Optional dictionary of arbitrary key-value pairs to be sent along with the task, which the remote agent might use.
+
     Returns:
-        The response from the A2A agent including task status, artifacts, and any error information
+        A dictionary containing the outcome of the task interaction. This includes:
+        - 'task_id': The ID of the task.
+        - 'status': The final state of the task (e.g., 'completed', 'failed', 'input_required').
+        - 'agent_info': Basic information about the agent (name, description, version).
+        - 'message': (Optional) A message from the agent related to the task's status.
+        - 'artifacts': (Optional) A list of strings, where each string is the content of an artifact produced by the agent.
+        - 'error': (Optional) An error message if any part of the process failed (e.g., connection error, task error, client initialization error).
     """
     try:
         # Configure the A2A client
@@ -182,15 +198,32 @@ async def get_a2a_agent_card(
     timeout: int = 10,
     headers: Optional[Dict[str, str]] = None
 ) -> Dict[str, Any]:
-    """Retrieve the agent card from a specific Elkar A2A agent.
-    
+    """Retrieves and returns the 'Agent Card' from a specified Elkar A2A agent.
+
+    The Agent Card provides metadata about an A2A agent, including its name, description, version,
+    capabilities (like streaming support, push notifications, state history), and the skills it offers.
+    This function is useful for discovering an agent's functionalities before sending it tasks.
+
     Args:
-        agent_url: URL of the A2A agent (e.g., 'http://localhost:5001')
-        timeout: Connection timeout in seconds (default: 10)
-        headers: Optional HTTP headers for authentication or other purposes
-        
+        ctx: The MCP context object.
+        agent_url: The base URL of the Elkar A2A agent from which to fetch the card (e.g., 'http://localhost:5001').
+        timeout: The maximum time in seconds to wait for a response from the agent. Defaults to 10 seconds.
+        headers: Optional dictionary of HTTP headers to include in the request, often used for authentication.
+
     Returns:
-        Agent card information or error details
+        A dictionary containing the agent card information upon success, or error details upon failure.
+        Successful response structure:
+        - 'status': 'success'
+        - 'url': The agent_url queried.
+        - 'name': Name of the agent.
+        - 'description': Description of the agent.
+        - 'version': Version of the agent.
+        - 'capabilities': (Optional) Dictionary of agent capabilities (streaming, pushNotifications, stateTransitionHistory).
+        - 'skills': (Optional) List of skills, each with 'id' and 'name'.
+        Error response structure:
+        - 'status': 'error'
+        - 'url': The agent_url queried.
+        - 'error': A message detailing the error (e.g., connection failure, error retrieving card).
     """
     try:
         # Configure the A2A client
@@ -259,15 +292,30 @@ async def discover_a2a_agents(
     timeout: int = 10,
     headers: Optional[Dict[str, str]] = None
 ) -> Dict[str, Any]:
-    """Describe the available Elkar A2A agents and their capabilities.
-    
+    """Discovers available Elkar A2A agents by querying a list of URLs and summarizing their capabilities.
+
+    This function iterates through a provided list of agent URLs (or a default list from environment variables)
+    and attempts to retrieve the Agent Card from each. It compiles a report of successfully contacted agents
+    along with their key information (name, description, version, capabilities, skills) and a list of any
+    URLs that resulted in errors (e.g., connection failed, agent card not retrieved).
+
+    This is useful for dynamically finding and understanding the A2A agents available in a network.
+
     Args:
-        agent_urls: Optional list of URLs to check for A2A agents. If not provided, uses AGENT_URLS from environment.
-        timeout: Connection timeout in seconds (default: 10)
-        headers: Optional HTTP headers for authentication or other purposes
-        
+        ctx: The MCP context object.
+        agent_urls: An optional list of base URLs for the Elkar A2A agents to discover.
+                    If not provided, it defaults to the URLs specified in the `AGENT_URLS`
+                    environment variable (comma-separated).
+        timeout: The maximum time in seconds to wait for a response from each agent. Defaults to 10 seconds.
+        headers: Optional dictionary of HTTP headers to include in requests, typically for authentication.
+
     Returns:
-        Dictionary with available agents and their capabilities
+        A dictionary with two keys:
+        - 'available_agents': A list of dictionaries, where each dictionary represents a successfully
+          contacted agent and contains its 'url', 'name', 'description', 'version',
+          'capabilities' (streaming, pushNotifications, stateTransitionHistory), and 'skills'.
+        - 'errors': A list of dictionaries, where each entry details an error encountered while trying
+          to contact an agent, including the 'url' and an 'error' message.
     """
     # If agent_urls not provided, use environment variable
     if agent_urls is None:
