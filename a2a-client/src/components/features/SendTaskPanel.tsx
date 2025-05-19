@@ -394,7 +394,12 @@ const SendTaskPanel: React.FC<SendTaskPanelProps> = ({
 
       // Update the history with the complete task result
       if (result) {
-        await storeTaskInHistory(result);
+        await debuggerHistoryApi.epStoreDebuggerHistory({
+          storeA2ADebuggerHistoryInput: {
+            url: endpoint,
+            payload: result,
+          },
+        });
       }
 
       return result?.history?.[result.history.length - 1];
