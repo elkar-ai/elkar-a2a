@@ -1,4 +1,7 @@
-# Elkar
+
+<p align="center">
+  <img src="./images/logo.jpeg" alt="Elkar product screenshot"
+
 **Elkar is an open-source task-management layer for AI agents** — based on Google's Agent2Agent Protocol (A2A).
 **Send, track, and orchestrate tasks** across AI agents — effortlessly.
 
