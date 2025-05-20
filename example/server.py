@@ -15,8 +15,7 @@ import pickle
 # pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
 from crewai import Agent, Task as CrewTask, Crew, Process
 from langchain_openai import ChatOpenAI
-# from crewai.tools import tool
-from langchain_core.tools import tool
+from crewai.tools import tool
 from dotenv import load_dotenv
 import uvicorn
 import httplib2

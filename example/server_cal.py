@@ -15,7 +15,7 @@ import pickle
 # pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
 from crewai import Agent, Task as CrewTask, Crew, Process
 from langchain_openai import ChatOpenAI
-from langchain_core.tools import tool
+from crewai.tools import tool
 from dotenv import load_dotenv
 import uvicorn
 import httplib2
@@ -27,6 +27,7 @@ from elkar.task_manager.task_manager_with_task_modifier import TaskManagerWithMo
 from elkar.task_modifier.base import TaskModifierBase
 from elkar.task_modifier.task_modifier import TaskModifier
 from pydantic import SecretStr
+import logging
 
 # Load environment variables
 load_dotenv()
@@ -38,8 +39,8 @@ CALENDAR_SCOPES = [
     # 'https://www.googleapis.com/auth/calendar.readonly', # Read-only access to calendars
     # 'https://www.googleapis.com/auth/calendar.events.readonly' # Read-only access to events
 ]
-CALENDAR_TOKEN_FILE = 'example/token.json'
-CALENDAR_CREDENTIALS_FILE = 'example/credentials.json'
+CALENDAR_TOKEN_FILE = os.environ.get('CALENDAR_TOKEN_FILE', 'example/token.json')
+CALENDAR_CREDENTIALS_FILE = os.environ.get('CALENDAR_CREDENTIALS_FILE', 'example/credentials.json')
 
 # Google API imports
 from googleapiclient.discovery import build
@@ -60,40 +61,67 @@ def get_calendar_service(force_reauth: bool = False):
     """
     creds = None
     
+    logging.info(f"Using credentials file: {CALENDAR_CREDENTIALS_FILE}")
+    logging.info(f"Using token file: {CALENDAR_TOKEN_FILE}")
+    
     # If force_reauth is True, delete the token file if it exists
     if force_reauth and os.path.exists(CALENDAR_TOKEN_FILE):
         os.remove(CALENDAR_TOKEN_FILE)
-        print(f"Deleted existing token file to force re-authentication")
+        logging.info(f"Deleted existing token file to force re-authentication")
     
     # The file token.json stores the user's access and refresh tokens
     if os.path.exists(CALENDAR_TOKEN_FILE):
-        with open(CALENDAR_TOKEN_FILE, 'rb') as token:
-            creds = pickle.load(token)
-        print(f"Loaded credentials from {CALENDAR_TOKEN_FILE}")
+        try:
+            with open(CALENDAR_TOKEN_FILE, 'rb') as token:
+                creds = pickle.load(token)
+            logging.info(f"Loaded credentials from {CALENDAR_TOKEN_FILE}")
+            logging.info(f"Credentials valid: {creds.valid}")
+            if creds.expired:
+                logging.info("Credentials are expired")
+            if creds.refresh_token:
+                logging.info("Refresh token is available")
+        except Exception as e:
+            logging.info(f"Error loading token file: {str(e)}")
     
     # If credentials don't exist or are invalid, prompt the user to log in
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
-            print(f"Refreshing expired credentials")
-            creds.refresh(Request())
+            logging.info(f"Refreshing expired credentials")
+            try:
+                creds.refresh(Request())
+                logging.info("Successfully refreshed credentials")
+            except Exception as e:
+                logging.info(f"Error refreshing credentials: {str(e)}")
         else:
             # Check if credentials file exists
             if not os.path.exists(CALENDAR_CREDENTIALS_FILE):
                 raise FileNotFoundError(f"Credentials file not found: {CALENDAR_CREDENTIALS_FILE}. Please set up OAuth credentials.")
             
-            print(f"Starting new OAuth flow with scopes: {CALENDAR_SCOPES}")
-            flow = InstalledAppFlow.from_client_secrets_file(
-                CALENDAR_CREDENTIALS_FILE, CALENDAR_SCOPES)
-            creds = flow.run_local_server(port=0)
-            print(f"New authentication completed")
+            logging.info(f"Starting new OAuth flow with scopes: {CALENDAR_SCOPES}")
+            try:
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    CALENDAR_CREDENTIALS_FILE, CALENDAR_SCOPES)
+                creds = flow.run_local_server(port=0)
+                logging.info(f"New authentication completed")
+            except Exception as e:
+                logging.info(f"Error during OAuth flow: {str(e)}")
+                raise
         
         # Save the credentials for the next run
-        with open(CALENDAR_TOKEN_FILE, 'wb') as token:
-            pickle.dump(creds, token)
-            print(f"Saved credentials to {CALENDAR_TOKEN_FILE}")
+        try:
+            with open(CALENDAR_TOKEN_FILE, 'wb') as token:
+                pickle.dump(creds, token)
+                logging.info(f"Saved credentials to {CALENDAR_TOKEN_FILE}")
+        except Exception as e:
+            logging.info(f"Error saving token file: {str(e)}")
     
-    service = build('calendar', 'v3', credentials=creds)
-    return service
+    try:
+        service = build('calendar', 'v3', credentials=creds)
+        logging.info("Successfully built calendar service")
+        return service
+    except Exception as e:
+        logging.info(f"Error building calendar service: {str(e)}")
+        raise
 
 
 @tool
@@ -126,9 +154,9 @@ def list_calendar_events(max_results: int = 10, time_min_days: int = -7, time_ma
         service = get_calendar_service(force_reauth=force_reauth)
         
         # Calculate time range
-        now = datetime.utcnow()
-        time_min = (now + timedelta(days=time_min_days)).isoformat() + 'Z'
-        time_max = (now + timedelta(days=time_max_days)).isoformat() + 'Z'
+        now = datetime.now(timezone.utc)
+        time_min = (now + timedelta(days=time_min_days)).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+        time_max = (now + timedelta(days=time_max_days)).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
         
         # Call the Calendar API
         events_result = service.events().list(
