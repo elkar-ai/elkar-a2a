@@ -6,3 +6,6 @@
 *.DS_Store
 sandbox/
 dist/
+example/credentials.json
+example/gmail_token.json
+example/token.json

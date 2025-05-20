@@ -97,46 +97,44 @@ def get_calendar_service(force_reauth: bool = False):
 
 
 @tool
-def list_upcoming_events(max_results: int = 10, time_min_days: int = 0, force_reauth: bool = False) -> str:
+def list_calendar_events(max_results: int = 10, time_min_days: int = -7, time_max_days: int = 7, force_reauth: bool = False) -> str:
     """
-    Retrieves a list of upcoming events from the user's primary Google Calendar.
+    Retrieves a list of events from the user's primary Google Calendar within a specified time range.
 
-    This function queries the Google Calendar API for events starting from a specified
-    number of days from the current moment (or today if `time_min_days` is 0).
-    It fetches event details such as summary (title), start time, location,
-    description, and event ID. The start time is formatted for readability.
-    Descriptions longer than 100 characters are truncated.
+    This function queries the Google Calendar API for events within a time window specified by
+    time_min_days and time_max_days relative to the current time. For example:
+    - time_min_days=-7, time_max_days=7 will show events from 7 days ago to 7 days in the future
+    - time_min_days=-1, time_max_days=0 will show events from yesterday to now
+    - time_min_days=0, time_max_days=7 will show events from now to 7 days in the future
 
     Args:
-        max_results: The maximum number of upcoming events to retrieve.
-                     Defaults to 10.
-        time_min_days: The number of days from the current time to start listing
-                       events. For example, 0 means starting from today,
-                       1 means starting from tomorrow. Defaults to 0.
-        force_reauth: If True, forces the Google Calendar API to re-authenticate
-                      by deleting any existing token. Useful for resolving
-                      authentication issues. Defaults to False.
+        max_results: The maximum number of events to retrieve. Defaults to 10.
+        time_min_days: The number of days before current time to start listing events.
+                      Negative values look into the past. Defaults to -7 (one week ago).
+        time_max_days: The number of days after current time to end listing events.
+                      Defaults to 7 (one week ahead).
+        force_reauth: If True, forces the Google Calendar API to re-authenticate.
+                      Defaults to False.
 
     Returns:
-        A string containing formatted information for each upcoming event,
+        A string containing formatted information for each event,
         separated by '---'. If no events are found, it returns
-        "No upcoming events found.". In case of an API error or other
+        "No events found in the specified time range.". In case of an API error or other
         exception, it returns an error message.
     """
     try:
         service = get_calendar_service(force_reauth=force_reauth)
         
-        # Calculate time_min as current time
+        # Calculate time range
         now = datetime.utcnow()
-        if time_min_days > 0:
-            now = now + timedelta(days=time_min_days)
-            
-        time_min = now.isoformat() + 'Z'  # 'Z' indicates UTC time
+        time_min = (now + timedelta(days=time_min_days)).isoformat() + 'Z'
+        time_max = (now + timedelta(days=time_max_days)).isoformat() + 'Z'
         
         # Call the Calendar API
         events_result = service.events().list(
             calendarId='primary',
             timeMin=time_min,
+            timeMax=time_max,
             maxResults=max_results,
             singleEvents=True,
             orderBy='startTime'
@@ -145,7 +143,7 @@ def list_upcoming_events(max_results: int = 10, time_min_days: int = 0, force_re
         events = events_result.get('items', [])
         
         if not events:
-            return "No upcoming events found."
+            return f"No events found in the specified time range ({time_min_days} to {time_max_days} days from now)."
             
         event_info = []
         for event in events:
@@ -711,7 +709,7 @@ class CrewAIWrapper:
             verbose=verbose,
             allow_delegation=False,
             tools=[
-                list_upcoming_events, 
+                list_calendar_events, 
                 search_calendar_events, 
                 get_calendar_details,
                 create_calendar_event,
@@ -812,10 +810,59 @@ async def setup_server():
         url="http://localhost:5002",
         version="1.0.0",
         skills=[
-            AgentSkill(id="calendar-assistant", name="calendar-assistant"),
-            AgentSkill(id="google-calendar", name="google-calendar"),
-            AgentSkill(id="event-management", name="event-management"),
-            AgentSkill(id="scheduling", name="scheduling")
+            AgentSkill(
+                id="calendar-assistant",
+                name="calendar-assistant",
+                description="Overall capability to manage and interact with Google Calendar. This includes understanding natural language requests related to calendar operations.",
+                tags=["calendar", "assistant", "google calendar", "natural language processing"],
+                examples=[
+                    "What's on my calendar for tomorrow?",
+                    "Can you schedule a meeting for me?",
+                    "Remind me about my doctor's appointment."
+                ],
+                inputModes=["text"],
+                outputModes=["text"]
+            ),
+            AgentSkill(
+                id="google-calendar",
+                name="google-calendar",
+                description="Direct interaction with the Google Calendar API. This skill covers the technical aspects of connecting to and using Google Calendar services.",
+                tags=["google calendar", "api", "integration", "events"],
+                examples=[
+                    "List events from my primary calendar.",
+                    "Authenticate with Google Calendar.",
+                    "Check permissions for calendar access."
+                ],
+                inputModes=["text"], # Can also be API calls internally
+                outputModes=["text", "json"] # API responses
+            ),
+            AgentSkill(
+                id="event-management",
+                name="event-management",
+                description="Specific skills for creating, reading, updating, and deleting (CRUD) calendar events. Handles event details like summaries, times, attendees, and locations.",
+                tags=["event", "create", "update", "delete", "list", "manage", "crud"],
+                examples=[
+                    "Create an event titled 'Team Meeting' for next Monday at 10 AM.",
+                    "Update my 'Project Deadline' event to be on Friday.",
+                    "Delete the 'Lunch with Alex' event.",
+                    "Show me all events for next week."
+                ],
+                inputModes=["text"],
+                outputModes=["text"]
+            ),
+            AgentSkill(
+                id="scheduling",
+                name="scheduling",
+                description="Assists with scheduling appointments, meetings, and managing time slots. This can involve finding free time, coordinating with attendees (if supported), and setting reminders.",
+                tags=["schedule", "appointment", "meeting", "time management", "coordination"],
+                examples=[
+                    "Schedule a 30-minute call with Sarah next Tuesday afternoon.",
+                    "Find a free slot for a 1-hour meeting next week.",
+                    "Add a recurring weekly reminder for project updates."
+                ],
+                inputModes=["text"],
+                outputModes=["text"]
+            )
         ],
         capabilities=AgentCapabilities(
             streaming=True,

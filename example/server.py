@@ -15,6 +15,7 @@ import pickle
 # pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
 from crewai import Agent, Task as CrewTask, Crew, Process
 from langchain_openai import ChatOpenAI
+# from crewai.tools import tool
 from langchain_core.tools import tool
 from dotenv import load_dotenv
 import uvicorn
@@ -391,8 +392,36 @@ async def setup_server():
         url="http://localhost:5001",
         version="1.0.0",
         skills=[
-            AgentSkill(id="email-assistant", name="email-assistant"),
-            AgentSkill(id="gmail-integration", name="gmail-integration")
+            AgentSkill(
+                id="email-assistant",
+                name="email-assistant",
+                description="Core capability for managing Gmail tasks through natural language. Understands requests to read, search, draft, and send emails. Interacts with users to clarify details and confirm actions before execution, especially for sending emails. Defers calendar-related tasks to the Google Calendar Assistant.",
+                tags=["email", "gmail", "assistant", "natural language processing", "communication", "inbox management", "email composition"],
+                examples=[
+                    "Read my latest unread emails.",
+                    "Search for emails from 'marketing@example.com' about 'new campaign'.",
+                    "Draft an email to 'john.doe@example.com' with subject 'Project Update' and body 'The project is on track.'",
+                    "Can you send the draft I just made?",
+                    "What did Sarah say about the meeting notes?"
+                ],
+                inputModes=["text"],
+                outputModes=["text"]
+            ),
+            AgentSkill(
+                id="gmail-integration",
+                name="gmail-integration",
+                description="Provides the technical interface to the Gmail API. Manages authentication, executes commands to search mailboxes, retrieve email content (threads and individual messages), and send emails. Ensures secure and reliable communication with Google's Gmail services.",
+                tags=["gmail", "api", "google api", "email service", "integration", "authentication", "email search", "email retrieval", "email sending"],
+                examples=[
+                    "Execute API call to list emails matching 'subject:Urgent'.",
+                    "Retrieve full content of email thread ID 'xyz123'.",
+                    "Use Gmail API to send an email to 'recipient@example.com'.",
+                    "Handle Gmail API authentication flow.",
+                    "Force re-authentication with Gmail."
+                ],
+                inputModes=["text"], # Represents instructions that translate to API calls
+                outputModes=["text", "json"] # API responses, status messages, or structured email data
+            )
         ],
         capabilities=AgentCapabilities(
             streaming=True,
@@ -724,8 +753,8 @@ async def setup_server():
 
 if __name__ == "__main__":
     # Set up and run the server using uvicorn directly, avoiding asyncio conflict
-    load_dotenv()
-    print(os.getenv("OPENAI_API_KEY"))
+    # load_dotenv()
+    # print(os.getenv("OPENAI_API_KEY"))
     server = asyncio.run(setup_server())
 
     print("Starting Elkar A2A server on http://localhost:5001")

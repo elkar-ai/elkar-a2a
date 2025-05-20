@@ -55,8 +55,10 @@ async def send_task_to_a2a_agent(
 ) -> Dict[str, Any]:
     """Sends a task to a specified Elkar A2A (Agent-to-Agent) compliant agent and awaits its response.
 
-    This function facilitates communication with external AI agents that adhere to the Elkar A2A protocol.
-    It constructs a task with the given message and parameters, sends it to the target agent's URL,
+    As an MCP tool, this function communicates with a running A2A agent (server) to request task execution.
+    It leverages the Elkar A2A protocol; this framework is utilized for debugging, logging of task interactions, 
+    and maintaining the status of the submitted task.
+    The function constructs a task with the given message and parameters, sends it to the target agent's URL,
     and then processes the agent's response. The interaction is stateless, meaning each call is independent,
     and the remote agent does not retain context from previous calls unless explicitly managed within the task itself.
 
@@ -193,10 +195,10 @@ async def send_task_to_a2a_agent(
 
 @mcp.tool()
 async def get_a2a_agent_card(
-    ctx: Context,
+    # ctx: Context,
     agent_url: str,
-    timeout: int = 10,
-    headers: Optional[Dict[str, str]] = None
+    # timeout: int = 10,
+    # headers: Optional[Dict[str, str]] = None
 ) -> Dict[str, Any]:
     """Retrieves and returns the 'Agent Card' from a specified Elkar A2A agent.
 
@@ -292,7 +294,7 @@ async def discover_a2a_agents(
     timeout: int = 10,
     headers: Optional[Dict[str, str]] = None
 ) -> Dict[str, Any]:
-    """Discovers available Elkar A2A agents by querying a list of URLs and summarizing their capabilities.
+    """Discovers available Elkar A2A agents by querying a list of URLs and summarizing their capabilities, potentially enabling new features by identifying agents with specific skills.
 
     This function iterates through a provided list of agent URLs (or a default list from environment variables)
     and attempts to retrieve the Agent Card from each. It compiles a report of successfully contacted agents
@@ -300,14 +302,6 @@ async def discover_a2a_agents(
     URLs that resulted in errors (e.g., connection failed, agent card not retrieved).
 
     This is useful for dynamically finding and understanding the A2A agents available in a network.
-
-    Args:
-        ctx: The MCP context object.
-        agent_urls: An optional list of base URLs for the Elkar A2A agents to discover.
-                    If not provided, it defaults to the URLs specified in the `AGENT_URLS`
-                    environment variable (comma-separated).
-        timeout: The maximum time in seconds to wait for a response from each agent. Defaults to 10 seconds.
-        headers: Optional dictionary of HTTP headers to include in requests, typically for authentication.
 
     Returns:
         A dictionary with two keys:
@@ -382,4 +376,5 @@ async def discover_a2a_agents(
     return results
 
 if __name__ == "__main__":
+    load_dotenv()
     mcp.run("stdio")
