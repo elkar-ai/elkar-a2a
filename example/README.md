@@ -8,6 +8,27 @@ This project integrates Google Calendar and Gmail services with Elkar A2A, provi
 - Google Cloud Platform account
 - Claude Desktop application
 
+## Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/elkar-a2a.git
+cd elkar-a2a
+```
+
+2. Install the required dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+This will install all necessary packages including:
+- Core dependencies (crewai, langchain, elkar)
+- Google API dependencies
+- Web server dependencies (uvicorn, fastapi)
+- Database dependencies
+- Utility dependencies
+- MCP dependencies
+
 ## Google Services Setup
 
 ### 1. Enable Google APIs
@@ -51,7 +72,7 @@ When you run the application for the first time:
   "mcpServers": {
     "a2a_elkar": {
       "command": "/opt/anaconda3/bin/python",
-      "args": ["/Users/mm/elkar-a2a/example/server_mcp.py"],
+      "args": ["path to your server_mcp.py"],
       "env": {
         "ANTHROPIC_API_KEY": "sk-xxx",
         "OPENAI_API_KEY": "sk-yyy",
