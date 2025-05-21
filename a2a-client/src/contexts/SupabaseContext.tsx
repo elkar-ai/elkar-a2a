@@ -2,12 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { createClient, SupabaseClient, User } from "@supabase/supabase-js";
 
 // TODO: Replace with your actual Supabase URL and anon key
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
-
-// Debug environment variables
-console.log("Supabase URL:", supabaseUrl);
-console.log("Supabase Anon Key exists:", !!supabaseAnonKey);
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://fakeurl";
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "fakekey";
 
 // Create a single Supabase client instance at module scope
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);

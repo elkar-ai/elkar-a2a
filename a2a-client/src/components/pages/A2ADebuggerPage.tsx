@@ -74,7 +74,7 @@ const TabsContainer = styled.div`
 `;
 
 interface TabButtonProps {
-  active?: boolean;
+  $isActive?: boolean;
 }
 
 const TabButton = styled.button<TabButtonProps>`
@@ -92,8 +92,8 @@ const TabButton = styled.button<TabButtonProps>`
     color: ${({ theme }) => theme.colors.text};
   }
 
-  ${({ active, theme }) =>
-    active &&
+  ${({ $isActive, theme }) =>
+    $isActive &&
     css`
       color: ${theme.colors.primary};
       border-bottom-color: ${theme.colors.primary};
@@ -161,13 +161,13 @@ const A2ADebuggerPage: React.FC = () => {
         <>
           <TabsContainer>
             <TabButton
-              active={activeTab === "agent"}
+              $isActive={activeTab === "agent"}
               onClick={() => setActiveTab("agent")}
             >
               Agent
             </TabButton>
             <TabButton
-              active={activeTab === "task"}
+              $isActive={activeTab === "task"}
               onClick={() => setActiveTab("task")}
             >
               Task Debugger

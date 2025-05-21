@@ -15,7 +15,6 @@ import {
   TaskArtifactUpdateEvent,
   FilePart,
 } from "../../types/a2aTypes";
-import toast from "react-hot-toast";
 
 const Title = styled.h3`
   font-size: ${({ theme }) => theme.fontSizes.lg};
@@ -625,6 +624,78 @@ const CreateButton = styled.button`
   }
 `;
 
+const ErrorContainer = styled.div`
+  padding: ${({ theme }) => theme.spacing.lg};
+  background-color: ${({ theme }) => theme.colors.background};
+  border: 1px solid ${({ theme }) => theme.colors.error}30;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  margin: ${({ theme }) => theme.spacing.md};
+  color: ${({ theme }) => theme.colors.error};
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.md};
+  align-items: center;
+  text-align: center;
+`;
+
+const ErrorIcon = styled.div`
+  font-size: 2rem;
+  margin-bottom: ${({ theme }) => theme.spacing.sm};
+`;
+
+const ErrorMessage = styled.div`
+  font-weight: 500;
+  margin-bottom: ${({ theme }) => theme.spacing.sm};
+`;
+
+const ErrorHint = styled.div`
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.textSecondary};
+`;
+
+const LoadingContainer = styled.div`
+  padding: ${({ theme }) => theme.spacing.lg};
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: ${({ theme }) => theme.spacing.md};
+  height: 100%;
+  min-height: 200px;
+`;
+
+const LoadingSpinner = styled.div`
+  width: 50px;
+  height: 50px;
+  border: 3px solid ${({ theme }) => theme.colors.border};
+  border-top: 3px solid ${({ theme }) => theme.colors.primary};
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+`;
+
+const LoadingMessage = styled.div`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.fontSizes.md};
+  font-weight: 500;
+`;
+
+const LoadingSubtext = styled.div`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  max-width: 300px;
+  text-align: center;
+`;
+
 export function FullTaskPanel({
   task,
   streamingEvents,
@@ -645,78 +716,6 @@ export function FullTaskPanel({
   showStreaming?: boolean;
 }) {
   const [activeTab, setActiveTab] = useState<TabType>("results");
-
-  const ErrorContainer = styled.div`
-    padding: ${({ theme }) => theme.spacing.lg};
-    background-color: ${({ theme }) => theme.colors.background};
-    border: 1px solid ${({ theme }) => theme.colors.error}30;
-    border-radius: ${({ theme }) => theme.borderRadius.md};
-    margin: ${({ theme }) => theme.spacing.md};
-    color: ${({ theme }) => theme.colors.error};
-    display: flex;
-    flex-direction: column;
-    gap: ${({ theme }) => theme.spacing.md};
-    align-items: center;
-    text-align: center;
-  `;
-
-  const ErrorIcon = styled.div`
-    font-size: 2rem;
-    margin-bottom: ${({ theme }) => theme.spacing.sm};
-  `;
-
-  const ErrorMessage = styled.div`
-    font-weight: 500;
-    margin-bottom: ${({ theme }) => theme.spacing.sm};
-  `;
-
-  const ErrorHint = styled.div`
-    font-size: ${({ theme }) => theme.fontSizes.sm};
-    color: ${({ theme }) => theme.colors.textSecondary};
-  `;
-
-  const LoadingContainer = styled.div`
-    padding: ${({ theme }) => theme.spacing.lg};
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: ${({ theme }) => theme.spacing.md};
-    height: 100%;
-    min-height: 200px;
-  `;
-
-  const LoadingSpinner = styled.div`
-    width: 50px;
-    height: 50px;
-    border: 3px solid ${({ theme }) => theme.colors.border};
-    border-top: 3px solid ${({ theme }) => theme.colors.primary};
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: ${({ theme }) => theme.spacing.md};
-
-    @keyframes spin {
-      0% {
-        transform: rotate(0deg);
-      }
-      100% {
-        transform: rotate(360deg);
-      }
-    }
-  `;
-
-  const LoadingMessage = styled.div`
-    color: ${({ theme }) => theme.colors.textSecondary};
-    font-size: ${({ theme }) => theme.fontSizes.md};
-    font-weight: 500;
-  `;
-
-  const LoadingSubtext = styled.div`
-    color: ${({ theme }) => theme.colors.textSecondary};
-    font-size: ${({ theme }) => theme.fontSizes.sm};
-    max-width: 300px;
-    text-align: center;
-  `;
 
   const renderTask = () => {
     if (isTaskLoading) {

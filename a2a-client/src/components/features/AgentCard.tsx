@@ -94,12 +94,12 @@ const CapabilityItem = styled.div`
   border-radius: ${({ theme }) => theme.borderRadius.sm};
 `;
 
-const CapabilityStatus = styled.span<{ enabled: boolean }>`
+const CapabilityStatus = styled.span<{ $enabled: boolean }>`
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: ${({ enabled, theme }) =>
-    enabled ? theme.colors.success : theme.colors.error};
+  background-color: ${({ $enabled, theme }) =>
+    $enabled ? theme.colors.success : theme.colors.error};
 `;
 
 const LoadingContainer = styled.div`
@@ -219,7 +219,7 @@ const AgentCard: React.FC = () => {
           <CapabilitiesList>
             {Object.entries(agentData.capabilities).map(([key, value]) => (
               <CapabilityItem key={key}>
-                <CapabilityStatus enabled={value} />
+                <CapabilityStatus $enabled={value} />
                 <span>{key}</span>
               </CapabilityItem>
             ))}
