@@ -133,6 +133,7 @@ def list_calendar_events(max_results: int = 10, time_min_days: int = -7, time_ma
     time_min_days and time_max_days relative to the current time. For example:
     - time_min_days=-7, time_max_days=7 will show events from 7 days ago to 7 days in the future
     - time_min_days=-1, time_max_days=0 will show events from yesterday to now
+    - time_min_days=0, time_max_days=0 will show events for today only
     - time_min_days=0, time_max_days=7 will show events from now to 7 days in the future
 
     Args:
@@ -155,8 +156,17 @@ def list_calendar_events(max_results: int = 10, time_min_days: int = -7, time_ma
         
         # Calculate time range
         now = datetime.now(timezone.utc)
-        time_min = (now + timedelta(days=time_min_days)).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
-        time_max = (now + timedelta(days=time_max_days)).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+        
+        # For today's events (time_min_days=0, time_max_days=0), set the time range to cover the entire day
+        if time_min_days == 0 and time_max_days == 0:
+            # Set time_min to start of today
+            time_min = now.replace(hour=0, minute=0, second=0, microsecond=0).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+            # Set time_max to end of today
+            time_max = now.replace(hour=23, minute=59, second=59, microsecond=999999).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+        else:
+            # For other time ranges, use the original calculation
+            time_min = (now + timedelta(days=time_min_days)).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+            time_max = (now + timedelta(days=time_max_days)).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
         
         # Call the Calendar API
         events_result = service.events().list(
@@ -171,6 +181,8 @@ def list_calendar_events(max_results: int = 10, time_min_days: int = -7, time_ma
         events = events_result.get('items', [])
         
         if not events:
+            if time_min_days == 0 and time_max_days == 0:
+                return "No events found for today."
             return f"No events found in the specified time range ({time_min_days} to {time_max_days} days from now)."
             
         event_info = []
@@ -716,7 +728,7 @@ def update_calendar_event(event_id: str, summary: str = "", start_time: str = ""
 class CrewAIWrapper:
     """Wrapper for CrewAI agents that handles calendar tasks."""
     
-    def __init__(self, verbose: bool = True, model_name: str = "gpt-4-turbo"):
+    def __init__(self, verbose: bool = True, model_name: str = "gpt-3.5-turbo-0125"):#gpt-4o-mini"):
         """Initialize the CrewAI wrapper with a calendar agent."""
         # Setup LLM
         openai_api_key_str = os.environ.get("OPENAI_API_KEY", "")
