@@ -73,7 +73,7 @@ class A2AClient(A2AClientBase):
         url = f"{self.config.base_url.rstrip('/')}"
         if endpoint:
             url = f"{url}/{endpoint.lstrip('/')}"
-        serialized_data = data.model_dump() if data else None
+        serialized_data = data.model_dump(exclude_none=True) if data else None
         async with self._session.request(method, url, json=serialized_data) as response:
             response.raise_for_status()
             return await response.json()
@@ -110,7 +110,7 @@ class A2AClient(A2AClientBase):
         if not self._session:
             raise RuntimeError("Client session not initialized. Use 'async with' context manager.")
 
-        async with self._session.post(self.config.base_url, json=request) as response:
+        async with self._session.post(self.config.base_url, json=request.model_dump(exclude_none=True)) as response:
             response.raise_for_status()
             return self._stream_response(response)
 
@@ -141,7 +141,7 @@ class A2AClient(A2AClientBase):
         if not self._session:
             raise RuntimeError("Client session not initialized. Use 'async with' context manager.")
 
-        async with self._session.post(self.config.base_url, json=request) as response:
+        async with self._session.post(self.config.base_url, json=request.model_dump(exclude_none=True)) as response:
             response.raise_for_status()
 
             return self._stream_response(response)

@@ -1,0 +1,7 @@
+"a2a_elkar": {
+      "command": "/opt/anaconda3/bin/python",
+      "args": ["path to your server_mcp.py"],
+      "env": {
+        "AGENT_URLS": "http://localhost:5001,http://localhost:5002"
+      }
+    },
